@@ -73,7 +73,7 @@ fun AuthenticationScreen(
                     }
                 )
                 OutlinedTextField(
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(bottom = 8.dp),
                     label = { Text(text = "Введите пароль") },
                     value = "",
                     onValueChange = { },
@@ -92,7 +92,7 @@ fun AuthenticationScreen(
                 )
                 if (isRegister) {
                     OutlinedTextField(
-                        modifier = Modifier.padding(vertical = 8.dp),
+                        modifier = Modifier.padding(bottom = 8.dp),
                         label = { Text(text = "Введите пароль снова") },
                         value = "",
                         onValueChange = { },

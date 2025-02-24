@@ -38,7 +38,7 @@ fun TaskScreen(
     modifier: Modifier = Modifier,
     groupName: String = "Test",
     taskList: List<MyTask> = listOf(MyTask()),
-    onCompleteClick: (MyTask) -> Unit = {}
+    onCheckClick: (MyTask) -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -60,33 +60,46 @@ fun TaskScreen(
                 .padding(paddingValues)
         ) {
             items(taskList) { task ->
-                ListItem(
-                    headlineContent = {
-                        Text(text = task.name)
-                    },
-                    overlineContent = {
-                        Text(text = task.type)
-                    },
-                    supportingContent = {
-                        Text(text = task.note)
-                    },
-                    leadingContent = {
-                        Icon(
-                            imageVector = Icons.Default.Build,
-                            contentDescription = null
-                        )
-                    },
-                    trailingContent = {
-                        RadioButton(
-                            selected = task.isComplete,
-                            onClick = { onCompleteClick(task) }
-                        )
-                    }
+                TaskItem(
+                    task = task,
+                    onCheckClick = onCheckClick
                 )
-                HorizontalDivider()
             }
         }
     }
+}
+
+@Composable
+fun TaskItem(
+    modifier: Modifier = Modifier,
+    task: MyTask,
+    onCheckClick: (MyTask) -> Unit
+) {
+    ListItem(
+        modifier = modifier,
+        headlineContent = {
+            Text(text = task.name)
+        },
+        overlineContent = {
+            Text(text = task.type)
+        },
+        supportingContent = {
+            Text(text = task.note)
+        },
+        leadingContent = {
+            Icon(
+                imageVector = Icons.Default.Build,
+                contentDescription = null
+            )
+        },
+        trailingContent = {
+            RadioButton(
+                selected = task.isComplete,
+                onClick = { onCheckClick(task) }
+            )
+        }
+    )
+    HorizontalDivider()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

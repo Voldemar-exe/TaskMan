@@ -1,14 +1,18 @@
 package com.example.taskman.ui
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -34,8 +38,21 @@ fun GroupTaskSideSheet(
         Scaffold(
             topBar = {
                 GroupTaskTopBar(
-                    onBackClick = {}
+                    onBackClick = {},
+                    onAddClick = {}
                 )
+            },
+            bottomBar = {
+                HorizontalDivider()
+                IconButton(
+                    modifier = Modifier.padding(start = 16.dp),
+                    onClick = {}
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null
+                    )
+                }
             }
         ) { paddingValues ->
             LazyColumn(
@@ -74,7 +91,8 @@ fun GroupTaskSideSheet(
 @Composable
 fun GroupTaskTopBar(
     modifier: Modifier = Modifier,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onAddClick: () -> Unit
 ) {
     CenterAlignedTopAppBar(
         modifier = modifier,
@@ -88,6 +106,14 @@ fun GroupTaskTopBar(
         },
         title = {
             Text("Группы задач")
+        },
+        actions = {
+            IconButton(onClick = onAddClick) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null
+                )
+            }
         }
     )
 }
