@@ -1,6 +1,6 @@
 package com.example.taskman.ui
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,19 +28,21 @@ import com.example.taskman.model.TaskGroup
 
 @Preview
 @Composable
-fun GroupTaskSideSheet(
+fun GroupTaskDrawerSheet(
     modifier: Modifier = Modifier,
-    groups: List<TaskGroup> = listOf(TaskGroup(isActive = true))
+    groups: List<TaskGroup> = listOf(TaskGroup(isActive = true)),
+    onBackClick: () -> Unit = {},
+    onAddClick: () -> Unit = {},
+    onGroupClick: () -> Unit = {}
 ) {
     ModalDrawerSheet(
-        modifier = modifier,
-
+        modifier = modifier
         ) {
         Scaffold(
             topBar = {
                 GroupTaskTopBar(
-                    onBackClick = {},
-                    onAddClick = {}
+                    onBackClick = onBackClick,
+                    onAddClick = onAddClick
                 )
             },
             bottomBar = {
@@ -62,6 +65,9 @@ fun GroupTaskSideSheet(
             ) {
                 items(groups) { group ->
                     ListItem(
+                        modifier = Modifier.clickable{
+                            onGroupClick()
+                        },
                         headlineContent = {
                             Text(text = group.name)
                         },

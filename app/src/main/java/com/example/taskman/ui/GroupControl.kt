@@ -37,7 +37,8 @@ fun GroupControl(
     modifier: Modifier = Modifier,
     taskList: List<MyTask> = listOf(MyTask()),
     onAddClick: () -> Unit = {},
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    isEdit: Boolean = false
     ) {
 
     var selectedColor by remember { mutableStateOf(Color.Red) }
@@ -57,7 +58,7 @@ fun GroupControl(
                         contentDescription = null
                     )
                     Spacer(modifier = Modifier.padding(horizontal = 4.dp))
-                    Text(text = "Добавить")
+                    Text(text = if (!isEdit) "Добавить" else "Сохранить")
                 }
                 TextButton(onClick = onBackClick) {
                     Icon(
