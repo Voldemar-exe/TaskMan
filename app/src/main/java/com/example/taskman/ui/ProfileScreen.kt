@@ -2,6 +2,7 @@ package com.example.taskman.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -17,6 +18,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,17 +33,25 @@ import com.example.taskman.model.MyOption
 fun ProfileScreen(
     modifier: Modifier = Modifier,
     userName: String = "User",
-    options: List<MyOption> = listOf(MyOption())
+    options: List<MyOption> = listOf(MyOption()),
+    onBackClick: () -> Unit = {}
     ) {
+    var isShowInfo by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             ProfileScreenTopBar(
                 userName = userName,
-                onBackClick = {},
-                onInfoClick = {}
+                onBackClick = onBackClick,
+                onInfoClick = { isShowInfo = true }
             )
         }
     ) { paddingValues ->
+        if (isShowInfo)
+            InfoDialogScreen(
+                onDismissRequest = {
+                    isShowInfo = false
+                }
+            )
         LazyColumn(
             modifier = Modifier
                 .padding(paddingValues)
@@ -115,13 +128,19 @@ fun InfoDialogScreen(
     Dialog(
         onDismissRequest = onDismissRequest
     ) {
-        Column(
+        Scaffold(
             modifier = modifier
-        ) {
-            Text(text = "Справка")
-            Text(text = "Информация")
-            TextButton(onClick = onDismissRequest) {
-                Text(text = "Закрыть")
+                .size(250.dp)
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+            ) {
+                Text(text = "Справка")
+                Text(text = "Информация")
+                TextButton(onClick = onDismissRequest) {
+                    Text(text = "Закрыть")
+                }
             }
         }
     }

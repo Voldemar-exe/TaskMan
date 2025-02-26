@@ -21,12 +21,16 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.example.taskman.model.MyTask
 
-class SampleTaskProvider: PreviewParameterProvider<MyTask> {
+class SampleTaskProvider : PreviewParameterProvider<MyTask> {
     override val values = sequenceOf(
         MyTask()
     )
@@ -38,23 +42,31 @@ fun TaskScreen(
     modifier: Modifier = Modifier,
     groupName: String = "Test",
     taskList: List<MyTask> = listOf(MyTask()),
-    onCheckClick: (MyTask) -> Unit = {}
+    onCheckClick: (MyTask) -> Unit = {},
+    onProfileClick: () -> Unit = {},
+    onAddClick: () -> Unit = {}
 ) {
+    var isShowMenu by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TaskScreenTopBar(
                 groupName = groupName,
-                onMenuClick = {},
-                onProfileClick = {}
+                onMenuClick = { isShowMenu = true },
+                onProfileClick = onProfileClick
             )
         },
         bottomBar = {
             TaskScreenBottomBar(
-                onAddClick = {},
+                onAddClick = onAddClick,
                 onSearchClick = {}
             )
         }
     ) { paddingValues ->
+        if (isShowMenu)
+            GroupTaskSideSheet(
+
+            )
         LazyColumn(
             modifier = modifier
                 .padding(paddingValues)
