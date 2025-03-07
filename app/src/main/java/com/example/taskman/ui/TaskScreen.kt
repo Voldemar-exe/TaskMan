@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,7 +53,12 @@ class SampleTaskProvider : PreviewParameterProvider<MyTask> {
 fun TaskScreen(
     modifier: Modifier = Modifier,
     groupName: String = "Test",
-    taskList: List<MyTask> = listOf(MyTask()),
+    taskList: List<MyTask> = listOf(
+        MyTask(),
+        MyTask("Test2"),
+        MyTask("Test3"),
+        MyTask("Test4"),
+    ),
     onCheckClick: (MyTask) -> Unit = {},
     onProfileClick: () -> Unit = {}
 ) {
@@ -157,6 +163,9 @@ fun TaskScreen(
                     )
                 }
             }
+
+            var text by rememberSaveable { mutableStateOf("") }
+
         }
     }
 }
@@ -239,12 +248,14 @@ fun TaskScreenTopBar(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskScreenBottomBar(
     modifier: Modifier = Modifier,
     onSearchClick: () -> Unit,
     onAddClick: () -> Unit
 ) {
+
     BottomAppBar(
         modifier = modifier,
         actions = {
