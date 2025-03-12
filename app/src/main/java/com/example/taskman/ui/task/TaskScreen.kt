@@ -1,4 +1,4 @@
-package com.example.taskman.ui
+package com.example.taskman.ui.task
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
@@ -38,6 +38,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.example.taskman.model.MyTask
+import com.example.taskman.ui.group.GroupControl
+import com.example.taskman.ui.group.GroupTaskDrawerSheet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

@@ -1,4 +1,4 @@
-package com.example.taskman.ui
+package com.example.taskman.ui.auth
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
