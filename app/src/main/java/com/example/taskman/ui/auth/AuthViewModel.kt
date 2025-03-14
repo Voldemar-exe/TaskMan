@@ -3,13 +3,14 @@ package com.example.taskman.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {
 
     private val _state = MutableStateFlow<AuthState>(AuthState.Content())
-    val state get() = _state.asStateFlow()
+    val state: StateFlow<AuthState> = _state.asStateFlow()
 
     fun processIntent(intent: AuthIntent) {
         when (intent) {

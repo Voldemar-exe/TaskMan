@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,7 +25,7 @@ fun App(
             modifier = modifier
                 .padding(paddingValues),
             navController = navController,
-            startDestination = SearchScreen
+            startDestination = Main
         ) {
             composable<Profile> { backStackEntry ->
                 val profile: Profile = backStackEntry.toRoute()
@@ -53,7 +52,9 @@ fun App(
                 val authentication: Authentication = backStackEntry.toRoute()
 
                 AuthenticationScreen(
-                    viewModel = viewModel()
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
                 )
             }
         }
@@ -66,5 +67,3 @@ data class Profile(val name: String?)
 object Main
 @Serializable
 data class Authentication(val type: String)
-@Serializable
-object SearchScreen
