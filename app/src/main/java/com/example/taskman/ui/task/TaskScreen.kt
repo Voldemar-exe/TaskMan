@@ -250,7 +250,6 @@ fun TaskScreenTopBar(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskScreenBottomBar(
     modifier: Modifier = Modifier,

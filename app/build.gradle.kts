@@ -56,13 +56,19 @@ dependencies {
     implementation(libs.androidx.material3)
     // ROOM
 //    implementation(libs.androidx.room.runtime)
-//    implementation(libs.androidx.room.ktx)
-//
+    implementation(libs.androidx.room.ktx)
+
 //    ksp(libs.androidx.room.compiler)
 
     // RETROFIT
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    // KOIN
+
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
 
     // TEST
     testImplementation(libs.junit)

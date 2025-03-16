@@ -11,63 +11,78 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.taskman.model.MyOption
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.taskman.ui.utils.ThemeViewModel
+import org.koin.androidx.compose.koinViewModel
 
-@Preview
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
     userName: String = "User",
-    options: List<MyOption> = listOf(MyOption()),
+    themeViewModel: ThemeViewModel = koinViewModel(),
+    viewModel: ProfileViewModel = koinViewModel(),
+//    options: List<MyOption> = emptyList(),
     onBackClick: () -> Unit = {}
-    ) {
-    var isShowInfo by remember { mutableStateOf(false) }
-    Scaffold(
-        topBar = {
-            ProfileScreenTopBar(
-                userName = userName,
-                onBackClick = onBackClick,
-                onInfoClick = { isShowInfo = true }
-            )
-        }
-    ) { paddingValues ->
-        if (isShowInfo)
-            InfoDialogScreen(
-                onDismissRequest = {
-                    isShowInfo = false
+) {
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    when (val currentState = uiState) {
+        is ProfileState.Content ->
+            Scaffold(
+                topBar = {
+                    ProfileScreenTopBar(
+                        userName = userName,
+                        onBackClick = onBackClick,
+                        onInfoClick = {
+                            viewModel.processIntent(ProfileIntent.InfoClick)
+                        }
+                    )
                 }
-            )
-        LazyColumn(
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)
-        ) {
-            items(options) { option ->
-                OptionElement(
-                    selected = option.isActive,
-                    onOptionClick = {}
-                )
+            ) { paddingValues ->
+                if (currentState.isInfo)
+                    InfoDialogScreen(
+                        onDismissRequest = {
+                            viewModel.processIntent(ProfileIntent.InfoClick)
+                        }
+                    )
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .padding(16.dp)
+                ) {
+                    items(currentState.options) { option ->
+                        OptionElement(
+                            title = option.name,
+                            selected = option.isActive,
+                            onOptionClick = {
+                                viewModel.processIntent(
+                                    ProfileIntent.OptionClick(option)
+                                )
+                                themeViewModel.processOption(option)
+                            }
+                        )
+                    }
+                }
             }
-        }
+
+        ProfileState.Loading -> CircularProgressIndicator()
     }
 }
 
@@ -106,9 +121,9 @@ fun ProfileScreenTopBar(
 @Composable
 fun OptionElement(
     modifier: Modifier = Modifier,
-    title: String = "Настройка",
+    title: String,
     selected: Boolean,
-    onOptionClick: () -> Unit
+    onOptionClick: (Boolean) -> Unit
 ) {
     ListItem(
         modifier = modifier,
@@ -116,9 +131,9 @@ fun OptionElement(
             Text(text = title)
         },
         trailingContent = {
-            RadioButton(
-                selected = selected,
-                onClick = onOptionClick
+            Switch(
+                checked = selected,
+                onCheckedChange = onOptionClick
             )
         }
     )
@@ -127,7 +142,7 @@ fun OptionElement(
 @Composable
 fun InfoDialogScreen(
     modifier: Modifier = Modifier,
-    onDismissRequest: () -> Unit = {}
+    onDismissRequest: () -> Unit
 ) {
     Dialog(
         onDismissRequest = onDismissRequest
