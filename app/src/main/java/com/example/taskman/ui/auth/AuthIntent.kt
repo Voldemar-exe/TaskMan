@@ -6,5 +6,4 @@ sealed interface AuthIntent {
     data class UpdateConfirmPassword(val confirmPassword: String) : AuthIntent
     data object Submit : AuthIntent
     data object ToggleMode : AuthIntent
-    data object Back : AuthIntent
 }

@@ -3,7 +3,6 @@ package com.example.taskman.ui.auth
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,14 +18,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,18 +38,14 @@ fun AuthenticationScreen(
     viewModel: AuthViewModel = viewModel(),
     onBackClick: () -> Unit
 ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
-
-    LaunchedEffect(Unit) {
-        viewModel.processIntent(AuthIntent.Back)
-    }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
             TopAppBar(title = {
                 Text(
                     text =
-                        if ((uiState as? AuthState.Content)?.isRegister == true) "Регистрация"
+                        if (uiState.isRegister) "Регистрация"
                         else "Вход"
                 )
             })
@@ -62,120 +55,101 @@ fun AuthenticationScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            when (uiState) {
-                is AuthState.Loading -> Text("Загрузка...")
-                is AuthState.Content -> ContentScreen(
-                    state = uiState as AuthState.Content,
-                    viewModel = viewModel,
-                    paddingValues = paddingValues,
-                    onBackClick = onBackClick
-                )
-
-                is AuthState.Success -> SuccessScreen((uiState as AuthState.Success).message)
-                is AuthState.Error -> ErrorScreen((uiState as AuthState.Error).errorMessage)
-            }
+            /*uiState.error?.let {
+                ErrorScreen(errorMessage = it)
+            }*/
+            ContentScreen(
+                modifier = Modifier.padding(paddingValues),
+                uiState = uiState,
+                processIntent = viewModel::processIntent,
+                onBackClick = onBackClick
+            )
         }
     }
 }
 
 @Composable
 private fun ContentScreen(
-    state: AuthState.Content,
-    viewModel: AuthViewModel,
-    paddingValues: PaddingValues,
+    modifier: Modifier = Modifier,
+    uiState: AuthState,
+    processIntent: (AuthIntent) -> Unit,
     onBackClick: () -> Unit
 ) {
     Column(
-        modifier = Modifier
-            .padding(paddingValues)
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         OutlinedTextField(
-            value = state.login,
-            onValueChange = { viewModel.processIntent(AuthIntent.UpdateLogin(it)) },
+            value = uiState.login,
+            onValueChange = { processIntent(AuthIntent.UpdateLogin(it)) },
             label = { Text("Введите логин") },
             leadingIcon = { Icon(Icons.Default.Person, null) },
             trailingIcon = {
-                if (state.login.isNotEmpty()) {
-                    IconButton(onClick = { viewModel.processIntent(AuthIntent.UpdateLogin("")) }) {
+                if (uiState.login.isNotEmpty()) {
+                    IconButton(
+                        onClick = { processIntent(AuthIntent.UpdateLogin("")) }
+                    ) {
                         Icon(Icons.Default.Clear, null)
                     }
                 }
             }
         )
         OutlinedTextField(
-            value = state.password,
-            onValueChange = { viewModel.processIntent(AuthIntent.UpdatePassword(it)) },
+            value = uiState.password,
+            onValueChange = { processIntent(AuthIntent.UpdatePassword(it)) },
             label = { Text("Введите пароль") },
             leadingIcon = { Icon(Icons.Default.Lock, null) },
             visualTransformation = PasswordVisualTransformation(),
             trailingIcon = {
-                if (state.password.isNotEmpty()) {
-                    IconButton(onClick = { viewModel.processIntent(AuthIntent.UpdatePassword("")) }) {
+                if (uiState.password.isNotEmpty()) {
+                    IconButton(
+                        onClick = { processIntent(AuthIntent.UpdatePassword("")) }
+                    ) {
                         Icon(Icons.Default.Clear, null)
                     }
                 }
             }
         )
-        if (state.isRegister) {
+        if (uiState.isRegister) {
             OutlinedTextField(
-                value = state.confirmPassword,
-                onValueChange = { viewModel.processIntent(AuthIntent.UpdateConfirmPassword(it)) },
+                value = uiState.confirmPassword,
+                onValueChange = { processIntent(AuthIntent.UpdateConfirmPassword(it)) },
                 label = { Text("Ещё раз введите пароль") },
                 leadingIcon = { Icon(Icons.Default.Lock, null) },
                 visualTransformation = PasswordVisualTransformation(),
                 trailingIcon = {
-                    if (state.confirmPassword.isNotEmpty()) {
-                        IconButton(onClick = {
-                            viewModel.processIntent(
-                                AuthIntent.UpdateConfirmPassword(
-                                    ""
-                                )
-                            )
-                        }) {
+                    if (uiState.confirmPassword.isNotEmpty()) {
+                        IconButton(
+                            onClick = {
+                                processIntent(AuthIntent.UpdateConfirmPassword(""))
+                            }
+                        ) {
                             Icon(Icons.Default.Clear, null)
                         }
                     }
                 }
             )
         }
-        Button(onClick = { viewModel.processIntent(AuthIntent.Submit) }) {
-            Text(if (state.isRegister) "Регистрация" else "Вход")
+        Button(onClick = { processIntent(AuthIntent.Submit) }) {
+            Text(if (uiState.isRegister) "Регистрация" else "Вход")
         }
-        TextButton(onClick = { viewModel.processIntent(AuthIntent.ToggleMode) }) {
-            Text(if (state.isRegister) "Уже есть аккаунт? Войти" else "Зарегистрироваться")
-        }
-        if (state.error != null) {
-            Text(text = state.error, color = MaterialTheme.colorScheme.error)
+        TextButton(onClick = { processIntent(AuthIntent.ToggleMode) }) {
+            Text(if (uiState.isRegister) "Уже есть аккаунт? Войти" else "Зарегистрироваться")
         }
         Spacer(modifier = Modifier.height(16.dp))
         TextButton(onClick = {
-            if (state.isRegister) {
+            if (!uiState.isRegister) {
                 onBackClick()
             } else {
-                viewModel.processIntent(AuthIntent.Back)
+                processIntent(AuthIntent.ToggleMode)
             }
         }) {
             Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = "Назад")
             Spacer(modifier = Modifier.width(4.dp))
             Text("Назад")
         }
-    }
-}
-
-@Composable
-private fun SuccessScreen(message: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = message, style = MaterialTheme.typography.headlineMedium)
-    }
-}
-
-@Composable
-private fun ErrorScreen(errorMessage: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
     }
 }
