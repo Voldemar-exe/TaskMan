@@ -1,4 +1,4 @@
-package com.example.taskman.ui.task
+package com.example.taskman.ui.main
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
@@ -24,22 +24,23 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taskman.model.MyTask
 import com.example.taskman.ui.group.GroupControl
 import com.example.taskman.ui.group.GroupTaskDrawerSheet
+import com.example.taskman.ui.task.TaskControl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -55,23 +56,19 @@ class SampleTaskProvider : PreviewParameterProvider<MyTask> {
 fun TaskScreen(
     modifier: Modifier = Modifier,
     groupName: String = "Test",
-    taskList: List<MyTask> = listOf(
-        MyTask(),
-        MyTask("Test2"),
-        MyTask("Test3"),
-        MyTask("Test4"),
-    ),
-    onCheckClick: (MyTask) -> Unit = {},
+    viewModel: MainViewModel = viewModel(),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    scope: CoroutineScope = rememberCoroutineScope(),
+    drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
     onProfileClick: () -> Unit = {}
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
-    var showEdit by remember { mutableStateOf(false) }
-    var showTaskBottomSheet by remember { mutableStateOf(false) }
-    var showGroupBottomSheet by remember { mutableStateOf(false) }
-
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    LaunchedEffect(uiState.bottomSheet) {
+        if (uiState.bottomSheet == MainState.BottomSheetType.None) {
+            sheetState.hide()
+        }
+    }
 
     ModalNavigationDrawer(
         drawerContent = {
@@ -80,11 +77,17 @@ fun TaskScreen(
                     drawerControl(scope, drawerState)
                 },
                 onAddClick = {
-                    showGroupBottomSheet = true
+                    viewModel.processIntent(
+                        MainIntent.ShowBottomSheet(MainState.BottomSheetType.Task)
+                    )
                 },
                 onGroupClick = {
-                    showEdit = true
-                    showGroupBottomSheet = true
+                    viewModel.processIntent(
+                        MainIntent.ShowBottomSheet(
+                            MainState.BottomSheetType.Group,
+                            true
+                        )
+                    )
                 }
             )
         },
@@ -103,16 +106,19 @@ fun TaskScreen(
             },
             bottomBar = {
                 TaskScreenBottomBar(
-                    onAddClick = { showTaskBottomSheet = true },
+                    onAddClick = {
+                        viewModel.processIntent(
+                            MainIntent.ShowBottomSheet(MainState.BottomSheetType.Group)
+                        )
+                    },
                     onSearchClick = {}
                 )
             }
         ) { paddingValues ->
-            if (showTaskBottomSheet) {
+            if (uiState.bottomSheet == MainState.BottomSheetType.Task) {
                 ModalBottomSheet(
                     onDismissRequest = {
-                        showTaskBottomSheet = false
-                        showEdit = false
+                        viewModel.processIntent(MainIntent.CloseBottomSheet)
                     },
                     sheetState = sheetState
                 ) {
@@ -120,20 +126,18 @@ fun TaskScreen(
                         onBackClick = {
                             scope.launch { sheetState.hide() }.invokeOnCompletion {
                                 if (!sheetState.isVisible) {
-                                    showTaskBottomSheet = false
-                                    showEdit = false
+                                    viewModel.processIntent(MainIntent.CloseBottomSheet)
                                 }
                             }
                         },
-                        isEdit = showEdit
+                        isEdit = uiState.isEditMode
                     )
                 }
             }
-            if (showGroupBottomSheet) {
+            if (uiState.bottomSheet == MainState.BottomSheetType.Group) {
                 ModalBottomSheet(
                     onDismissRequest = {
-                        showGroupBottomSheet = false
-                        showEdit = false
+                        viewModel.processIntent(MainIntent.CloseBottomSheet)
                     },
                     sheetState = sheetState
                 ) {
@@ -141,12 +145,11 @@ fun TaskScreen(
                         onBackClick = {
                             scope.launch { sheetState.hide() }.invokeOnCompletion {
                                 if (!sheetState.isVisible) {
-                                    showGroupBottomSheet = false
-                                    showEdit = false
+                                    viewModel.processIntent(MainIntent.CloseBottomSheet)
                                 }
                             }
                         },
-                        isEdit = showEdit
+                        isEdit = false
                     )
                 }
             }
@@ -154,20 +157,21 @@ fun TaskScreen(
                 modifier = Modifier
                     .padding(paddingValues)
             ) {
-                items(taskList) { task ->
+                items(uiState.tasks) { task ->
                     TaskItem(
                         modifier = Modifier.clickable {
-                            showEdit = true
-                            showTaskBottomSheet = true
+                            viewModel.processIntent(
+                                MainIntent.ShowBottomSheet(
+                                    MainState.BottomSheetType.Task,
+                                    true
+                                )
+                            )
                         },
                         task = task,
-                        onCheckClick = onCheckClick
+                        onCheckClick = viewModel::processIntent
                     )
                 }
             }
-
-            var text by rememberSaveable { mutableStateOf("") }
-
         }
     }
 }
@@ -189,7 +193,7 @@ private fun drawerControl(
 fun TaskItem(
     modifier: Modifier = Modifier,
     task: MyTask,
-    onCheckClick: (MyTask) -> Unit
+    onCheckClick: (MainIntent.MainSwitch) -> Unit
 ) {
     ListItem(
         modifier = modifier,
@@ -211,7 +215,7 @@ fun TaskItem(
         trailingContent = {
             RadioButton(
                 selected = task.isComplete,
-                onClick = { onCheckClick(task) }
+                onClick = { onCheckClick(MainIntent.MainSwitch(task)) }
             )
         }
     )

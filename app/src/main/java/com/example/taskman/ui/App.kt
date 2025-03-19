@@ -1,6 +1,7 @@
 package com.example.taskman.ui
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -11,10 +12,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.taskman.ui.auth.AuthenticationScreen
 import com.example.taskman.ui.auth.ProfileScreen
-import com.example.taskman.ui.task.TaskScreen
+import com.example.taskman.ui.main.TaskScreen
 import kotlinx.serialization.Serializable
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(
     modifier: Modifier = Modifier,

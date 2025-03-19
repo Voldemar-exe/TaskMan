@@ -30,7 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.taskman.model.MyTask
-import com.example.taskman.ui.task.TaskItem
+import com.example.taskman.ui.main.TaskItem
 
 @Preview(showSystemUi = true)
 @Composable
