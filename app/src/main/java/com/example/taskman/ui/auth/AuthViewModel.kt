@@ -1,13 +1,15 @@
 package com.example.taskman.ui.auth
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(private val authService: AuthService) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthState())
     val uiState: StateFlow<AuthState> = _uiState.asStateFlow()
@@ -25,7 +27,8 @@ class AuthViewModel : ViewModel() {
     private fun updateLogin(login: String) {
         _uiState.update { currentState ->
             currentState.copy(
-                login = login
+                login = login,
+                error = null
             )
         }
     }
@@ -33,7 +36,8 @@ class AuthViewModel : ViewModel() {
     private fun updatePassword(password: String) {
         _uiState.update { currentState ->
             currentState.copy(
-                password = password
+                password = password,
+                error = null
             )
         }
     }
@@ -41,16 +45,35 @@ class AuthViewModel : ViewModel() {
     private fun updateConfirmPassword(confirmPassword: String) {
         _uiState.update { currentState ->
             currentState.copy(
-                confirmPassword = confirmPassword
+                confirmPassword = confirmPassword,
+                error = null
             )
         }
     }
 
     private fun submitForm() {
-        Log.i("SUBMIT_REG", "submitForm is called")
-        /*viewModelScope.launch {
+        val currentState = _uiState.value
+        if (currentState.isRegister) {
+            if (currentState.password != currentState.confirmPassword) {
+                _uiState.update { it.copy(error = "Пароли не совпадают") }
+                return
+            }
+        }
 
-        }*/
+        CoroutineScope(Dispatchers.IO).launch {
+            val success = if (currentState.isRegister) {
+                authService.registerUser(currentState.login, currentState.password)
+            } else {
+                authService.loginUser(currentState.login, currentState.password)
+            }
+
+            if (success) {
+                _uiState.update { it.copy(error = null) }
+                // TODO Перейти к следующему экрану
+            } else {
+                _uiState.update { it.copy(error = "Ошибка при ${if (currentState.isRegister) "регистрации" else "входе"}") }
+            }
+        }
     }
 
     private fun toggleMode() {

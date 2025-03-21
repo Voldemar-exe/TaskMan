@@ -65,10 +65,15 @@ dependencies {
     implementation(libs.converter.gson)
 
     // KOIN
-
     implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+
+    // KTOR
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
 
     // TEST
     testImplementation(libs.junit)

@@ -59,6 +59,11 @@ fun App(
                     }
                 )
             }
+
+
+            composable<SearchScreen> {
+                SearchScreen()
+            }
         }
     }
 }
@@ -69,3 +74,5 @@ data class Profile(val name: String?)
 object Main
 @Serializable
 data class Authentication(val type: String)
+@Serializable
+object SearchScreen
