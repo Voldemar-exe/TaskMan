@@ -5,13 +5,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,61 +26,51 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.taskman.ui.utils.ThemeViewModel
+import com.example.taskman.ui.utils.OptionViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
     userName: String = "User",
-    themeViewModel: ThemeViewModel = koinViewModel(),
-    viewModel: ProfileViewModel = koinViewModel(),
-//    options: List<MyOption> = emptyList(),
+    profileViewModel: ProfileViewModel = koinViewModel(),
+    optionViewModel: OptionViewModel = koinViewModel(),
     onBackClick: () -> Unit = {}
 ) {
 
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()
+    val isDarkTheme by optionViewModel.isDarkTheme.collectAsStateWithLifecycle()
 
-    when (val currentState = uiState) {
-        is ProfileState.Content ->
-            Scaffold(
-                topBar = {
-                    ProfileScreenTopBar(
-                        userName = userName,
-                        onBackClick = onBackClick,
-                        onInfoClick = {
-                            viewModel.processIntent(ProfileIntent.InfoClick)
-                        }
-                    )
+    Scaffold(
+        topBar = {
+            ProfileScreenTopBar(
+                userName = userName,
+                onBackClick = onBackClick,
+                onInfoClick = {
+                    profileViewModel.processIntent(ProfileIntent.InfoClick)
                 }
-            ) { paddingValues ->
-                if (currentState.isInfo)
-                    InfoDialogScreen(
-                        onDismissRequest = {
-                            viewModel.processIntent(ProfileIntent.InfoClick)
-                        }
-                    )
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(paddingValues)
-                        .padding(16.dp)
-                ) {
-                    items(currentState.options) { option ->
-                        OptionElement(
-                            title = option.name,
-                            selected = option.isActive,
-                            onOptionClick = {
-                                viewModel.processIntent(
-                                    ProfileIntent.OptionClick(option)
-                                )
-                                themeViewModel.processOption(option)
-                            }
-                        )
-                    }
+            )
+        }
+    ) { paddingValues ->
+        if (profileState.isInfo)
+            InfoDialogScreen(
+                onDismissRequest = {
+                    profileViewModel.processIntent(ProfileIntent.InfoClick)
                 }
+            )
+        LazyColumn(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            item {
+                OptionElement(
+                    title = "Темная тема",
+                    selected = isDarkTheme,
+                    onOptionClick = { optionViewModel.toggleTheme() }
+                )
             }
-
-        ProfileState.Loading -> CircularProgressIndicator()
+        }
     }
 }
 

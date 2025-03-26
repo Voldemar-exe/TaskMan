@@ -8,19 +8,19 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskman.ui.App
 import com.example.taskman.ui.theme.TaskManTheme
-import com.example.taskman.ui.utils.ThemeViewModel
+import com.example.taskman.ui.utils.OptionViewModel
 import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
 
-    private val themeViewModel: ThemeViewModel by inject<ThemeViewModel>()
+    private val optionViewModel: OptionViewModel by inject<OptionViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         setContent {
-            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
+            val isDarkTheme by optionViewModel.isDarkTheme.collectAsStateWithLifecycle()
 
             TaskManTheme(darkTheme = isDarkTheme) {
                 App()

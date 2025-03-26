@@ -3,9 +3,9 @@ package com.example.taskman
 import com.example.taskman.ui.auth.AuthService
 import com.example.taskman.ui.auth.AuthViewModel
 import com.example.taskman.ui.auth.ProfileViewModel
+import com.example.taskman.ui.utils.OptionViewModel
 import com.example.taskman.ui.utils.ThemeRepository
 import com.example.taskman.ui.utils.ThemeRepositoryImpl
-import com.example.taskman.ui.utils.ThemeViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
@@ -23,6 +23,6 @@ val appModule = module {
     }
     single<AuthService> { AuthService(get()) }
     viewModel { AuthViewModel(get<AuthService>()) }
-    viewModel { ThemeViewModel(get()) }
+    viewModel { OptionViewModel(get()) }
     viewModel { ProfileViewModel() }
 }

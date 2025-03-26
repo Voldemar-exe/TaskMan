@@ -8,7 +8,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 class ThemeRepositoryImpl(context: Context) : ThemeRepository {
-    private val sharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+    private val sharedPreferences =
+        context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
     private val themeKey = "is_dark_theme"
 
     override fun saveTheme(isDarkTheme: Boolean) {
