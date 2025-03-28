@@ -6,12 +6,14 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import kotlinx.serialization.Serializable
 
 private const val TAG = "AuthService"
+private const val urlAndPort = "http://10.0.2.2:8443"
 
 class AuthService(private val client: HttpClient) {
 
-
+    @Serializable
     data class RegisterRequest(
         val username: String,
         val passwordHash: String
@@ -20,7 +22,7 @@ class AuthService(private val client: HttpClient) {
     suspend fun registerUser(login: String, password: String): Boolean {
         return try {
             Log.d(TAG, "Sending registration request: login=$login")
-            val response = client.post("http://10.0.2.2:8080/register") {
+            val response = client.post("$urlAndPort/register") {
                 contentType(ContentType.Application.Json)
                 setBody(RegisterRequest(username = login, passwordHash = password))
             }
@@ -32,6 +34,7 @@ class AuthService(private val client: HttpClient) {
         }
     }
 
+    @Serializable
     data class LoginRequest(
         val username: String,
         val passwordHash: String
@@ -40,7 +43,7 @@ class AuthService(private val client: HttpClient) {
     suspend fun loginUser(login: String, password: String): Boolean {
         return try {
             Log.d(TAG, "Sending login request: login=$login")
-            val response = client.post("http://10.0.2.2:8080/login") {
+            val response = client.post("$urlAndPort/login") {
                 contentType(ContentType.Application.Json)
                 setBody(LoginRequest(username = login, passwordHash = password))
             }

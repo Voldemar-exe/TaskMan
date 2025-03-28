@@ -1,4 +1,4 @@
-package com.example.taskman
+package com.example.taskman.di
 
 import com.example.taskman.ui.auth.AuthService
 import com.example.taskman.ui.auth.AuthViewModel
@@ -22,7 +22,7 @@ val appModule = module {
         }
     }
     single<AuthService> { AuthService(get()) }
-    viewModel { AuthViewModel(get<AuthService>()) }
+    viewModel { AuthViewModel(get()) }
     viewModel { OptionViewModel(get()) }
     viewModel { ProfileViewModel() }
 }

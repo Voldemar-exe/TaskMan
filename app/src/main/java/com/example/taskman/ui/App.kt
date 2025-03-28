@@ -47,6 +47,9 @@ fun App(
                         } else {
                             navController.navigate(route = profile)
                         }
+                    },
+                    onSearchClick = {
+                        navController.navigate(SearchScreen)
                     }
                 )
             }
@@ -61,9 +64,9 @@ fun App(
             }
 
 
-            composable<SearchScreen> {
-                SearchScreen()
-            }
+//            composable<SearchScreen> {
+//                SearchScreen()
+//            }
         }
     }
 }

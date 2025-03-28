@@ -60,7 +60,8 @@ fun TaskScreen(
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     scope: CoroutineScope = rememberCoroutineScope(),
     drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
-    onProfileClick: () -> Unit = {}
+    onProfileClick: () -> Unit = {},
+    onSearchClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -111,7 +112,7 @@ fun TaskScreen(
                             MainIntent.ShowBottomSheet(MainState.BottomSheetType.Group)
                         )
                     },
-                    onSearchClick = {}
+                    onSearchClick = onSearchClick
                 )
             }
         ) { paddingValues ->
