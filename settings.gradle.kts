@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "TaskMan"
 include(":app")
-include(":server")
+include(":taskserver")
