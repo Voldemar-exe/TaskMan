@@ -1,4 +1,4 @@
-package com.example
+package com.example.auth
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
@@ -46,6 +46,7 @@ fun Application.configureSecurity() {
                 else null
             }
         }
+
     }
     authentication {
         basic(name = "myauth1") {
