@@ -41,7 +41,7 @@ fun App(
             composable<Main> {
                 TaskScreen(
                     onProfileClick = {
-                        val profile = Profile(name = "ME")
+                        val profile = Profile(name = null)
                         if (profile.name == null) {
                             navController.navigate(Authentication("login"))
                         } else {

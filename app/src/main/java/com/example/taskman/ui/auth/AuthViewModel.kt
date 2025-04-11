@@ -1,8 +1,7 @@
 package com.example.taskman.ui.auth
 
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -60,18 +59,24 @@ class AuthViewModel(private val authService: AuthService) : ViewModel() {
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        viewModelScope.launch {
             val success = if (currentState.isRegister) {
                 authService.registerUser(currentState.login, currentState.password)
             } else {
                 authService.loginUser(currentState.login, currentState.password)
             }
-
-            if (success) {
-                _uiState.update { it.copy(error = null) }
-                // TODO Перейти к следующему экрану
+            if (success.isNullOrBlank()) {
+                _uiState.update {
+                    it.copy(
+                        error = "Ошибка при ${
+                            if (currentState.isRegister) "регистрации"
+                            else "входе"
+                        }"
+                    )
+                }
             } else {
-                _uiState.update { it.copy(error = "Ошибка при ${if (currentState.isRegister) "регистрации" else "входе"}") }
+                _uiState.update { it.copy(error = null) }
+                // TODO Navigation to ProfileScreen
             }
         }
     }
