@@ -30,6 +30,7 @@ dependencies {
     implementation(libs.ktor.server.auth.jwt)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.config.yaml)
+    implementation(libs.ktor.server.http.redirect)
 
     implementation(libs.firebase.auth.provider)
 
@@ -39,6 +40,7 @@ dependencies {
     implementation(libs.logback.classic)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
+    implementation(libs.ktor.network.tls.certificates)
 
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)

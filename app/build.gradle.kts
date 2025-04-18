@@ -63,6 +63,7 @@ dependencies {
     // RETROFIT
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation(libs.okhttp3.logging.interceptor)
 
     // KOIN
     implementation(libs.koin.core)

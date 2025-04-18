@@ -2,9 +2,10 @@ package com.example.auth
 
 import io.ktor.server.application.Application
 import io.ktor.server.request.receive
-import io.ktor.server.response.respondText
+import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
+import kotlinx.serialization.Serializable
 import org.koin.ktor.ext.inject
 
 fun Application.configureAuthRouting() {
@@ -16,17 +17,31 @@ fun Application.configureAuthRouting() {
             val credentials = call.receive<LoginReceiveRemote>()
             val result = authService.login(credentials)
             result.fold(
-                onSuccess = { call.respondText(it.toString()) },
-                onFailure = { call.respondText(it.message ?: "Login failed") }
+                onSuccess = { call.respond(it) },
+                onFailure = {
+                    call.respond(
+                        ErrorResponse("InvalidCredentialsError", "Invalid login or password")
+                    )
+                }
             )
         }
         post("/register") {
             val credentials = call.receive<RegisterReceiveRemote>()
             val result = authService.register(credentials)
             result.fold(
-                onSuccess = { call.respondText(it.toString()) },
-                onFailure = { call.respondText(it.message ?: "Registration failed") }
+                onSuccess = { call.respond(it) },
+                onFailure = {
+                    call.respond(
+                        ErrorResponse("UserExistsError", "User with this login already exists")
+                    )
+                }
             )
         }
     }
 }
+
+@Serializable
+data class ErrorResponse(
+    val error: String,
+    val message: String
+)
