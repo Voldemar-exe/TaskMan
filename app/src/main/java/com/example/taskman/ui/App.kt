@@ -34,7 +34,7 @@ fun App(
                 ProfileScreen(
                     userName = profile.name!!,
                     onBackClick = {
-                        navController.popBackStack()
+                        navController.navigate(Main)
                     }
                 )
             }
@@ -59,6 +59,9 @@ fun App(
                 AuthenticationScreen(
                     onBackClick = {
                         navController.popBackStack()
+                    },
+                    loginUser = {
+                        navController.navigate(it)
                     }
                 )
             }

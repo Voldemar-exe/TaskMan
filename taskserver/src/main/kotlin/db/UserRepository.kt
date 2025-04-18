@@ -12,4 +12,6 @@ interface UserRepository {
     )
 
     fun findByLogin(login: String): User?
+
+    fun deleteByLogin(login: String): Boolean?
 }

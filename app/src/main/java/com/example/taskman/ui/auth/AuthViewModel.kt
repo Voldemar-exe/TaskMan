@@ -1,5 +1,6 @@
 package com.example.taskman.ui.auth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,7 +62,14 @@ class AuthViewModel(private val authService: AuthService) : ViewModel() {
 
         viewModelScope.launch {
             val success = if (currentState.isRegister) {
-                authService.registerUser(currentState.login, currentState.password)
+                authService.registerUser(
+                    RegisterRequest(
+                        currentState.login,
+                        currentState.password,
+                        "",
+                        ""
+                    )
+                )
             } else {
                 authService.loginUser(currentState.login, currentState.password)
             }
@@ -74,9 +82,10 @@ class AuthViewModel(private val authService: AuthService) : ViewModel() {
                         }"
                     )
                 }
+                Log.e("Auth", "Authentication error")
             } else {
-                _uiState.update { it.copy(error = null) }
-                // TODO Navigation to ProfileScreen
+                _uiState.update { it.copy(error = null, success = true) }
+                Log.i("Auth", _uiState.value.toString())
             }
         }
     }

@@ -63,6 +63,7 @@ dependencies {
     // RETROFIT
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation(libs.okhttp3.logging.interceptor)
 
     // KOIN
     implementation(libs.koin.core)
@@ -83,4 +84,10 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.androidx.navigation.testing)
+    androidTestImplementation(libs.retrofit)
+    androidTestImplementation(libs.converter.gson)
+    androidTestImplementation(libs.okhttp3.logging.interceptor)
 }

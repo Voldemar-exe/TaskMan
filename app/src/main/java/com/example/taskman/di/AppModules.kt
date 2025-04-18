@@ -21,7 +21,7 @@ val appModule = module {
             }
         }
     }
-    single<AuthService> { AuthService(get()) }
+    single<AuthService> { AuthService() }
     viewModel { AuthViewModel(get()) }
     viewModel { OptionViewModel(get()) }
     viewModel { ProfileViewModel() }

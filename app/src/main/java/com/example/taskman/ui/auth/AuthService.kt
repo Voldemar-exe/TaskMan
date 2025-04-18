@@ -1,74 +1,69 @@
 package com.example.taskman.ui.auth
 
 import android.util.Log
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import kotlinx.serialization.Serializable
+import com.google.gson.annotations.SerializedName
+
+
+data class RegisterRequest(
+    @SerializedName("login") val login: String,
+    @SerializedName("password") val password: String,
+    @SerializedName("username") val username: String,
+    @SerializedName("email") val email: String
+)
+
+data class LoginRequest(
+    @SerializedName("login") val login: String,
+    @SerializedName("password") val password: String
+)
+
+data class LoginResponseRemote(
+    @SerializedName("token") val token: String
+)
 
 private const val TAG = "AuthService"
-private const val SERVER_URL = "http://10.0.2.2:8080"
 
-class AuthService(private val client: HttpClient) {
+class AuthService {
 
-    @Serializable
-    data class RegisterRequest(
-        val login: String,
-        val password: String
-    )
+    private val apiClient = AuthClient.instance
 
-    suspend fun registerUser(login: String, password: String): String? {
+    suspend fun registerUser(
+        request: RegisterRequest
+    ): String? {
+        Log.d("AuthService", "Register: $request")
         return try {
-            Log.d(TAG, "Sending registration request: login=$login")
-            val response = client.post("$SERVER_URL/register") {
-                contentType(ContentType.Application.Json)
-                setBody(RegisterRequest(login = login, password = password))
-            }
-
-            if (response.status.value in 200..299) {
-                val token = response.body<LoginResponseRemote>().token
-                Log.d(TAG, "Registration successful. Token: $token")
-                token
-            } else {
-                Log.e(TAG, "Registration failed: ${response.status}")
-                null
-            }
+            val response = apiClient.register(request)
+            if (response.isSuccessful) response.body()?.token else null
         } catch (e: Exception) {
             Log.e(TAG, "Registration error", e)
             null
         }
     }
 
-    @Serializable
-    data class LoginRequest(
-        val login: String,
-        val password: String
-    )
-
-    @Serializable
-    data class LoginResponseRemote(
-        val token: String
-    )
+    /**
+     * Удаляет пользователя по логину
+     * @return true если удаление успешно, false в случае ошибки
+     */
+    suspend fun deleteUser(login: String): Boolean {
+        return try {
+            Log.d(TAG, "Deleting user: $login")
+            val response = apiClient.deleteUser(login)
+            if (response.isSuccessful) {
+                Log.d(TAG, "User $login deleted successfully")
+                true
+            } else {
+                Log.e(TAG, "Failed to delete user $login: ${response.code()}")
+                false
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting user $login", e)
+            false
+        }
+    }
 
     suspend fun loginUser(login: String, password: String): String? {
         return try {
-            Log.d(TAG, "Sending login request: login=$login")
-            val response = client.post("$SERVER_URL/login") {
-                contentType(ContentType.Application.Json)
-                setBody(LoginRequest(login = login, password = password).toString())
-            }
-
-            if (response.status.value in 200..299) {
-                val token = response.body<LoginResponseRemote>().token
-                Log.d(TAG, "Login successful. Token: $token")
-                token
-            } else {
-                Log.e(TAG, "Login failed: ${response.status}")
-                null
-            }
+            val response = apiClient.login(LoginRequest(login, password))
+            if (response.isSuccessful) response.body()?.token else null
         } catch (e: Exception) {
             Log.e(TAG, "Login error", e)
             null

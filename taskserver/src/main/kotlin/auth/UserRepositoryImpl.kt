@@ -23,6 +23,11 @@ class UserRepositoryImpl : UserRepository {
         }
     }
 
+    override fun deleteByLogin(login: String): Boolean {
+        // TODO Delete users for tests
+        return false
+    }
+
     override fun createUser(
         login: String,
         passwordHash: String,

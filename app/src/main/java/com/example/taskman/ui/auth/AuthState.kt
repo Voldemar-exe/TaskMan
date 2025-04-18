@@ -5,5 +5,6 @@ data class AuthState(
     val login: String = "",
     val password: String = "",
     val confirmPassword: String = "",
-    val error: String? = null
+    val error: String? = null,
+    val success: Boolean? = null
 )

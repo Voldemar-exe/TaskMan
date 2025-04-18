@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.taskman.ui.Profile
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -41,17 +42,25 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun AuthenticationScreen(
     viewModel: AuthViewModel = koinViewModel(),
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    loginUser: (Profile) -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(uiState.error) {
+    LaunchedEffect(uiState.error, uiState.success) {
         uiState.error?.let { error ->
             scope.launch {
                 snackbarHostState.showSnackbar("Snackbar")
             }
+        }
+        uiState.success?.let {
+            loginUser(
+                Profile(
+                    uiState.login
+                )
+            )
         }
     }
 
@@ -59,9 +68,7 @@ fun AuthenticationScreen(
         topBar = {
             TopAppBar(title = {
                 Text(
-                    text =
-                        if (uiState.isRegister) "Регистрация"
-                        else "Вход"
+                    text = "Вход в аккаунт"
                 )
             })
         }

@@ -7,7 +7,8 @@ import com.example.db.UserRepository
 import org.mindrot.jbcrypt.BCrypt
 
 interface AuthService {
-    suspend fun register(credentials: RegisterReceiveRemote): Result<RegisterResponseRemote>
+    suspend fun register(credentials: RegisterReceiveRemote): Result<LoginResponseRemote>
+    suspend fun deleteByLogin(login: String): Result<DeleteResponse>
     suspend fun login(credentials: LoginReceiveRemote): Result<LoginResponseRemote>
 }
 
@@ -17,7 +18,7 @@ class AuthServiceImpl(
 ) : AuthService {
     override suspend fun register(
         credentials: RegisterReceiveRemote
-    ): Result<RegisterResponseRemote> {
+    ): Result<LoginResponseRemote> {
         return userRepository.findByLogin(credentials.login)?.let {
             Result.failure(IllegalArgumentException("User exists"))
         } ?: run {
@@ -30,7 +31,15 @@ class AuthServiceImpl(
             )
             val token = createToken(credentials.login)
             tokenRepository.saveToken(credentials.login, token)
-            Result.success(RegisterResponseRemote(token))
+            Result.success(LoginResponseRemote(token))
+        }
+    }
+
+    override suspend fun deleteByLogin(login: String): Result<DeleteResponse> {
+        return userRepository.deleteByLogin(login)?.let {
+            Result.failure(IllegalArgumentException("User not exist"))
+        } ?: run {
+            Result.success(DeleteResponse(userRepository.deleteByLogin(login) == true))
         }
     }
 
