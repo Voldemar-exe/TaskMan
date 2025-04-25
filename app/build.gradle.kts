@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlinx.serialization)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -55,10 +56,10 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     // ROOM
-//    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
 
-//    ksp(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
 
     // RETROFIT
     implementation(libs.retrofit)
@@ -90,4 +91,5 @@ dependencies {
     androidTestImplementation(libs.retrofit)
     androidTestImplementation(libs.converter.gson)
     androidTestImplementation(libs.okhttp3.logging.interceptor)
+    implementation(libs.androidx.datastore.preferences)
 }

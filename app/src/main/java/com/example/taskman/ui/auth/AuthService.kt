@@ -2,6 +2,7 @@ package com.example.taskman.ui.auth
 
 import android.util.Log
 import com.google.gson.annotations.SerializedName
+import retrofit2.Response
 
 
 data class RegisterRequest(
@@ -20,23 +21,15 @@ data class LoginResponseRemote(
     @SerializedName("token") val token: String
 )
 
-private const val TAG = "AuthService"
 
-class AuthService {
-
-    private val apiClient = AuthClient.instance
-
+class AuthService(
+    private val apiClient: AuthApi
+) {
     suspend fun registerUser(
         request: RegisterRequest
     ): String? {
         Log.d("AuthService", "Register: $request")
-        return try {
-            val response = apiClient.register(request)
-            if (response.isSuccessful) response.body()?.token else null
-        } catch (e: Exception) {
-            Log.e(TAG, "Registration error", e)
-            null
-        }
+        return safeApiCall { apiClient.register(request) }?.token
     }
 
     /**
@@ -61,12 +54,20 @@ class AuthService {
     }
 
     suspend fun loginUser(login: String, password: String): String? {
+        return safeApiCall { apiClient.login(LoginRequest(login, password)) }?.token
+    }
+
+    private suspend fun <T> safeApiCall(call: suspend () -> Response<T>): T? {
         return try {
-            val response = apiClient.login(LoginRequest(login, password))
-            if (response.isSuccessful) response.body()?.token else null
+            val response = call()
+            if (response.isSuccessful) response.body() else null
         } catch (e: Exception) {
-            Log.e(TAG, "Login error", e)
+            Log.e(TAG, "API error", e)
             null
         }
+    }
+
+    companion object {
+        private const val TAG = "AuthService"
     }
 }

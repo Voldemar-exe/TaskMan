@@ -9,8 +9,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -20,30 +18,32 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.taskman.model.MyTask
+import com.example.taskman.ui.components.GridDialog
 import com.example.taskman.ui.main.TaskItem
+import com.example.taskman.ui.utils.TaskManAppData
 
-@Preview(showSystemUi = true)
 @Composable
 fun GroupControl(
     modifier: Modifier = Modifier,
-    taskList: List<MyTask> = listOf(MyTask()),
-    onAddClick: () -> Unit = {},
-    onBackClick: () -> Unit = {},
-    isEdit: Boolean = false
-    ) {
-
-    var selectedColor by remember { mutableStateOf(Color.Red) }
-    var selectedIcon by remember { mutableStateOf(Icons.Default.Build) }
+    uiState: GroupControlState,
+    processIntent: (GroupControlIntent) -> Unit,
+    allTasks: List<MyTask>,
+    groupId: Int?,
+    onBackClick: () -> Unit
+) {
+    LaunchedEffect(groupId) {
+        if (groupId != null) {
+            processIntent(GroupControlIntent.LoadGroup(groupId))
+        } else {
+            processIntent(GroupControlIntent.ClearGroup)
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -53,13 +53,16 @@ fun GroupControl(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Button(onClick = onAddClick) {
+                Button(onClick = {
+                    processIntent(GroupControlIntent.SaveGroup)
+                    onBackClick()
+                }) {
                     Icon(
                         imageVector = Icons.Default.AddCircle,
                         contentDescription = null
                     )
                     Spacer(modifier = Modifier.padding(horizontal = 4.dp))
-                    Text(text = if (!isEdit) "Добавить" else "Сохранить")
+                    Text(text = if (groupId == null) "Добавить" else "Сохранить")
                 }
                 TextButton(onClick = onBackClick) {
                     Icon(
@@ -79,20 +82,26 @@ fun GroupControl(
         ) {
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
-                value = "",
-                label = {
-                    Text(text = "Название")
-                },
-                onValueChange = {}
+                value = uiState.groupName,
+                onValueChange = { processIntent(GroupControlIntent.UpdateName(it)) },
+                label = { Text("Название") }
             )
             ListItem(
                 headlineContent = {
                     Text(text = "Иконка")
                 },
                 trailingContent = {
-                    Icon(
-                        imageVector = selectedIcon,
-                        contentDescription = null
+                    GridDialog(
+                        items = TaskManAppData.icons,
+                        selectedIcon = uiState.selectedIcon,
+                        selectedColor = uiState.selectedColor,
+                        onItemSelected = {
+                            if (it is Color) {
+                                processIntent(GroupControlIntent.UpdateColor(it))
+                            } else {
+                                processIntent(GroupControlIntent.UpdateIcon(it as Int))
+                            }
+                        }
                     )
                 }
             )
@@ -102,19 +111,36 @@ fun GroupControl(
                     Text(text = "Цвет")
                 },
                 trailingContent = {
-                    // TODO need circle icon
-                    Icon(
-                        imageVector = Icons.Default.ArrowDropDown,
-                        contentDescription = null
+                    GridDialog(
+                        items = TaskManAppData.colors,
+                        selectedIcon = uiState.selectedIcon,
+                        selectedColor = uiState.selectedColor,
+                        onItemSelected = {
+                            if (it is Color) {
+                                processIntent(GroupControlIntent.UpdateColor(it))
+                            } else {
+                                processIntent(GroupControlIntent.UpdateIcon(it as Int))
+                            }
+                        }
                     )
                 }
             )
             HorizontalDivider()
             LazyColumn {
-                items(taskList) { task ->
+                items(
+                    if (groupId == null) allTasks
+                    else uiState.tasksInGroup
+                ) { task ->
                     TaskItem(
                         task = task,
-                        onCheckClick = {}
+                        selected = uiState.tasksInGroup.contains(task),
+                        onCheckClick = {
+                            if (uiState.tasksInGroup.contains(task)) {
+                                processIntent(GroupControlIntent.RemoveTask(task))
+                            } else {
+                                processIntent(GroupControlIntent.AddTask(task))
+                            }
+                        }
                     )
                 }
             }

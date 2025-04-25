@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -22,25 +21,25 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.taskman.R
 import com.example.taskman.model.TaskGroup
 
-@Preview
 @Composable
 fun GroupTaskDrawerSheet(
     modifier: Modifier = Modifier,
-    groups: List<TaskGroup> = listOf(TaskGroup(isActive = true)),
+    activeGroupId: Int,
+    allGroups: List<TaskGroup>,
     onBackClick: () -> Unit = {},
     onAddClick: () -> Unit = {},
-    onGroupClick: () -> Unit = {}
+    isEdit: Boolean,
+    onEditClick: (Boolean) -> Unit,
+    onGroupClick: (TaskGroup) -> Unit = {}
 ) {
-    var isEdit by remember { mutableStateOf(false) }
 
     ModalDrawerSheet(
         modifier = modifier
@@ -56,7 +55,7 @@ fun GroupTaskDrawerSheet(
                 HorizontalDivider()
                 IconToggleButton(
                     checked = isEdit,
-                    onCheckedChange = { isEdit = it }
+                    onCheckedChange = onEditClick
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
@@ -73,23 +72,31 @@ fun GroupTaskDrawerSheet(
                     .padding(paddingValues)
                     .padding(8.dp)
             ) {
+                val groups = listOf(
+                    TaskGroup(
+                        name = "Все",
+                        icon = R.drawable.ic_amount,
+                        color = Color.Black.toArgb().toLong()
+                    )
+                ) + allGroups
+
                 items(groups) { group ->
                     ListItem(
                         modifier = Modifier.clickable{
-                            onGroupClick()
+                            onGroupClick(group)
                         },
                         headlineContent = {
                             Text(text = group.name)
                         },
                         leadingContent = {
-                            // TODO change to icon of group
                            Icon(
-                               imageVector = Icons.Default.Build,
+                               painter = painterResource(group.icon),
+                               tint = Color(group.color),
                                contentDescription = null
                            )
                         },
                         trailingContent = {
-                            if (group.isActive) {
+                            if (group.groupId == activeGroupId) {
                                 Icon(
                                     imageVector = Icons.Default.PlayArrow,
                                     contentDescription = null
