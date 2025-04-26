@@ -32,9 +32,7 @@ delete from group_task gp where gp.group_id=4;]]></console>
     <last-used-providers />
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
-    <open-files>
-      <object connection-id="72a493b6-645e-4725-bafb-c8a4933410ae" object-ref="consoles/taskmanConnection" />
-    </open-files>
+    <open-files />
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
     <connection id="72a493b6-645e-4725-bafb-c8a4933410ae" />
