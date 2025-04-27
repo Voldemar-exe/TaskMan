@@ -1,109 +1,124 @@
 package com.example.taskman.ui.task
 
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.taskman.db.TaskDao
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskTypes
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import com.example.taskman.ui.components.ControlIntent
+import com.example.taskman.ui.components.ControlState
+import com.example.taskman.ui.components.ControlViewModel
+import com.example.taskman.ui.components.IntentResult
+import com.example.taskman.ui.components.TaskControlIntent
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class TaskControlViewModel(
     private val taskDao: TaskDao
-) : ViewModel() {
+) : ControlViewModel(
+    initialState = ControlState(
+        base = ControlState.BaseState(),
+        task = ControlState.TaskState()
+    )
+) {
 
-    private val _uiState = MutableStateFlow(TaskControlState())
-    val uiState: StateFlow<TaskControlState> = _uiState
-
-    fun processIntent(intent: TaskControlIntent) {
-        viewModelScope.launch {
-            when (intent) {
-                is TaskControlIntent.UpdateName -> updateName(intent.name)
-                is TaskControlIntent.UpdateIcon -> updateIcon(intent.icon)
-                is TaskControlIntent.UpdateColor -> updateColor(intent.color)
-                is TaskControlIntent.UpdateType -> updateType(intent.type)
-                is TaskControlIntent.UpdateDate -> updateDate(intent.date)
-                TaskControlIntent.SaveTask -> saveTask()
-                TaskControlIntent.ClearTask -> clearTask()
-                is TaskControlIntent.LoadTask -> loadTask(intent.taskId)
-            }
+    fun processIntent(intent: ControlIntent) {
+        Log.i(TAG, "intent: $intent")
+        when (intent) {
+            is ControlIntent.LoadEntity -> loadEntity(intent.entityId)
+            ControlIntent.SaveEntity -> saveEntity()
+            is TaskControlIntent.UpdateDate -> updateDate(intent.date)
+            is TaskControlIntent.UpdateType -> updateType(intent.type)
+            else -> processBaseIntent(intent)
         }
-    }
-
-    private fun updateName(name: String) {
-        _uiState.update { it.copy(taskName = name) }
-    }
-
-    private fun updateIcon(icon: Int) {
-        _uiState.update { it.copy(selectedIcon = icon) }
-    }
-
-    private fun updateColor(color: Color) {
-        _uiState.update { it.copy(selectedColor = color) }
     }
 
     private fun updateType(type: TaskTypes) {
-        _uiState.update { it.copy(selectedType = type) }
+        _uiState.update {
+            it.copy(task = it.task?.copy(selectedType = type))
+        }
     }
 
     private fun updateDate(date: Long) {
-        _uiState.update { it.copy(selectedDate = date) }
-    }
-
-    private fun saveTask() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            try {
-                val task = MyTask(
-                    taskId = uiState.value.taskId,
-                    name = uiState.value.taskName,
-                    icon = uiState.value.selectedIcon,
-                    color = uiState.value.selectedColor.toArgb().toLong(),
-                    type = uiState.value.selectedType.name,
-                    note = uiState.value.selectedType.note, // TODO: ADD NOTES UI
-                    isComplete = uiState.value.isComplete,
-                    date = uiState.value.selectedDate
-                )
-                if (uiState.value.isEditMode) {
-                    taskDao.updateTask(task)
-                } else {
-                    taskDao.insertTask(task)
-                }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message, isLoading = false) }
-            }
+        _uiState.update {
+            it.copy(task = it.task?.copy(selectedDate = date))
         }
     }
 
-    private fun clearTask() {
-        _uiState.update { TaskControlState() }
-    }
+    override fun saveEntity() {
+        if (!validateData()) return
 
-    private fun loadTask(taskId: Int) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            try {
-                val task = taskDao.getTaskById(taskId)
-                _uiState.update { state ->
-                    state.copy(
-                        taskId = task.taskId,
-                        taskName = task.name,
-                        selectedIcon = task.icon,
-                        selectedColor = Color(task.color),
-                        selectedType = TaskTypes.valueOf(task.type),
-                        isComplete = task.isComplete,
-                        selectedDate = task.date,
-                        isEditMode = true,
-                        isLoading = false
+            startLoading()
+
+            val baseState = _uiState.value.base
+            _uiState.value.task?.let { taskState ->
+                try {
+                    val task = MyTask(
+                        taskId = baseState.entityId ?: 0,
+                        name = baseState.entityName,
+                        icon = baseState.selectedIcon,
+                        color = baseState.selectedColor.toArgb().toLong(),
+                        type = taskState.selectedType.name,
+                        note = taskState.selectedType.note, // TODO: ADD NOTES UI
+                        isComplete = taskState.isComplete,
+                        date = taskState.selectedDate
                     )
+
+                    viewModelScope.launch {
+                        if (baseState.isEditMode) {
+                            taskDao.updateTask(task)
+                        } else {
+                            taskDao.insertTask(task)
+                        }
+                        setResult(IntentResult.Success(ControlIntent.SaveEntity.toString()))
+                    }
+                } catch (e: Exception) {
+                    errorException(e)
                 }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message, isLoading = false) }
             }
         }
     }
+
+    override fun loadEntity(entityId: Int) {
+        viewModelScope.launch {
+            startLoading()
+
+            val baseState = _uiState.value.base
+            _uiState.value.task?.let { taskState ->
+                try {
+                    taskDao.getTaskById(entityId)?.let { task ->
+                        _uiState.update {
+                            it.copy(
+                                base = baseState.copy(
+                                    entityId = task.taskId,
+                                    entityName = task.name,
+                                    selectedIcon = task.icon,
+                                    selectedColor = Color(task.color),
+                                    isLoading = false,
+                                    intentRes = IntentResult.Success(
+                                        ControlIntent.LoadEntity(entityId).toString()
+                                    ),
+                                    isEditMode = true,
+                                ),
+                                task = taskState.copy(
+                                    selectedType = TaskTypes.valueOf(task.type),
+                                    isComplete = task.isComplete,
+                                    selectedDate = task.date
+                                )
+                            )
+                        }
+                        _uiState.update { state ->
+                            state
+                        }
+                    }
+                } catch (e: Exception) {
+                    errorException(e)
+                }
+            }
+        }
+    }
+
 }

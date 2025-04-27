@@ -1,119 +1,143 @@
 package com.example.taskman.ui.group
 
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.taskman.db.GroupDao
 import com.example.taskman.db.GroupTaskCrossRef
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskGroup
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import com.example.taskman.ui.components.ControlIntent
+import com.example.taskman.ui.components.ControlState
+import com.example.taskman.ui.components.ControlViewModel
+import com.example.taskman.ui.components.GroupControlIntent
+import com.example.taskman.ui.components.IntentResult
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class GroupControlViewModel(
     private val groupDao: GroupDao
-) : ViewModel() {
+) : ControlViewModel(
+    initialState = ControlState(
+        base = ControlState.BaseState(),
+        group = ControlState.GroupState()
+    )
+) {
 
-    private val _uiState = MutableStateFlow(GroupControlState())
-    val uiState: StateFlow<GroupControlState> = _uiState
-
-    fun processIntent(intent: GroupControlIntent) {
+    fun processIntent(intent: ControlIntent) {
+        Log.i(TAG, "intent: $intent")
         viewModelScope.launch {
             when (intent) {
-                is GroupControlIntent.UpdateName -> updateGroupName(intent.name)
-                is GroupControlIntent.UpdateIcon -> updateIcon(intent.icon)
-                is GroupControlIntent.UpdateColor -> updateColor(intent.color)
                 is GroupControlIntent.AddTask -> addTask(intent.task)
                 is GroupControlIntent.RemoveTask -> removeTask(intent.task)
-                is GroupControlIntent.LoadGroup -> loadGroup(intent.groupId)
-                GroupControlIntent.SaveGroup -> saveGroup()
-                GroupControlIntent.ClearGroup -> clearGroup()
+                is ControlIntent.SaveEntity -> saveEntity()
+                is ControlIntent.LoadEntity -> loadEntity(intent.entityId)
+                else -> processBaseIntent(intent)
             }
         }
-    }
-
-    private fun updateGroupName(name: String) {
-        _uiState.update { it.copy(groupName = name) }
-    }
-
-    private fun updateIcon(icon: Int) {
-        _uiState.update { it.copy(selectedIcon = icon) }
-    }
-
-    private fun updateColor(color: Color) {
-        _uiState.update { it.copy(selectedColor = color) }
     }
 
     private fun addTask(task: MyTask) {
-        _uiState.update { it.copy(tasksInGroup = it.tasksInGroup + task) }
-    }
-
-    private fun removeTask(task: MyTask) {
-        _uiState.update { it.copy(tasksInGroup = it.tasksInGroup - task) }
-    }
-
-    private suspend fun loadGroup(groupId: Int) {
-        _uiState.update { it.copy(isLoading = true) }
-        try {
-            groupDao.getGroupById(groupId)?.let {
-                _uiState.update { state ->
-                    state.copy(
-                        groupId = groupId,
-                        groupName = it.group.name,
-                        selectedIcon = it.group.icon,
-                        selectedColor = Color(it.group.color),
-                        tasksInGroup = it.tasks,
-                        isLoading = false,
-                        error = null,
-                        isEditMode = true
+        _uiState.value.group?.let { groupState ->
+            _uiState.update { controlState ->
+                controlState.copy(
+                    group = groupState.copy(
+                        tasksInGroup = groupState.tasksInGroup + task
                     )
-                }
+                )
             }
-        } catch (e: Exception) {
-            _uiState.update { it.copy(error = e.message, isLoading = false) }
         }
     }
 
-    private fun clearGroup() {
-        _uiState.update { GroupControlState() }
-    }
-
-    private fun saveGroup() = viewModelScope.launch {
-        _uiState.update { it.copy(isLoading = true) }
-        try {
-            val groupId = if (uiState.value.isEditMode) {
-                val group = TaskGroup(
-                    groupId = uiState.value.groupId!!,
-                    name = uiState.value.groupName,
-                    icon = uiState.value.selectedIcon,
-                    color = uiState.value.selectedColor.toArgb().toLong()
-                )
-                groupDao.updateGroup(group)
-                group.groupId
-            } else {
-                val newGroupId = groupDao.insertGroup(
-                    TaskGroup(
-                        name = uiState.value.groupName,
-                        icon = uiState.value.selectedIcon,
-                        color = uiState.value.selectedColor.toArgb().toLong()
+    private fun removeTask(task: MyTask) {
+        _uiState.value.group?.let { groupState ->
+            _uiState.update { controlState ->
+                controlState.copy(
+                    group = groupState.copy(
+                        tasksInGroup = groupState.tasksInGroup - task
                     )
                 )
-                newGroupId.toInt()
             }
+        }
+    }
 
-            groupDao.deleteAllCrossRefsForGroup(groupId)
+    override fun saveEntity() {
 
-            uiState.value.tasksInGroup.forEach { task ->
-                groupDao.insertGroupTaskCrossRef(
-                    GroupTaskCrossRef(groupId = groupId, taskId = task.taskId)
-                )
+        if (!validateData()) return
+
+        viewModelScope.launch {
+            startLoading()
+            val baseState = _uiState.value.base
+            _uiState.value.group?.let { groupState ->
+                try {
+                    val groupId = if (baseState.isEditMode) {
+                        val group = TaskGroup(
+                            groupId = baseState.entityId ?: 0,
+                            name = baseState.entityName,
+                            icon = baseState.selectedIcon,
+                            color = baseState.selectedColor.toArgb().toLong()
+                        )
+                        groupDao.updateGroup(group)
+                        group.groupId
+                    } else {
+                        val newGroupId = groupDao.insertGroup(
+                            TaskGroup(
+                                name = baseState.entityName,
+                                icon = baseState.selectedIcon,
+                                color = baseState.selectedColor.toArgb().toLong()
+                            )
+                        )
+                        newGroupId.toInt()
+                    }
+
+                    groupDao.deleteAllCrossRefsForGroup(groupId)
+
+                    groupState.tasksInGroup.forEach { task ->
+                        groupDao.insertGroupTaskCrossRef(
+                            GroupTaskCrossRef(groupId = groupId, taskId = task.taskId)
+                        )
+                    }
+                    setResult(IntentResult.Success(ControlIntent.SaveEntity.toString()))
+                } catch (e: Exception) {
+                    errorException(e)
+                }
             }
-            _uiState.update { it.copy(isLoading = false) }
-        } catch (e: Exception) {
-            _uiState.update { it.copy(error = e.message, isLoading = false) }
+        }
+    }
+
+    override fun loadEntity(entityId: Int) {
+
+        viewModelScope.launch {
+            startLoading()
+
+            val baseState = _uiState.value.base
+            _uiState.value.group?.let { groupState ->
+                try {
+                    groupDao.getGroupById(entityId)?.let { groupWithTasks ->
+                        _uiState.update {
+                            it.copy(
+                                base = baseState.copy(
+                                    entityId = groupWithTasks.group.groupId,
+                                    entityName = groupWithTasks.group.name,
+                                    selectedIcon = groupWithTasks.group.icon,
+                                    selectedColor = Color(groupWithTasks.group.color),
+                                    isLoading = false,
+                                    intentRes = IntentResult.Success(
+                                        ControlIntent.LoadEntity(entityId).toString()
+                                    ),
+                                    isEditMode = true
+                                ),
+                                group = groupState.copy(
+                                    tasksInGroup = groupWithTasks.tasks,
+                                )
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    errorException(e)
+                }
+            }
         }
     }
 }

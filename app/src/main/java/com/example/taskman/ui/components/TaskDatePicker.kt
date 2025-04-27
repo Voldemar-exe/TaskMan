@@ -21,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.ktor.util.date.getTimeMillis
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -29,14 +28,13 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskDatePicker(
+    selectedDate: Long,
     onDateSelected: (Long) -> Unit
 ) {
 
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
-    val selectedDate = datePickerState.selectedDateMillis?.let {
-        convertMillisToDate(it)
-    } ?: convertMillisToDate(getTimeMillis())
+    val selectedDate = convertMillisToDate(selectedDate)
 
     Box(
         modifier = Modifier.fillMaxWidth()

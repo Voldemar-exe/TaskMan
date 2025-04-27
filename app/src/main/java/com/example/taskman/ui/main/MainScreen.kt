@@ -148,14 +148,14 @@ fun TaskScreen(
                         TaskControl(
                             uiState = taskControlUiState,
                             processIntent = taskControlViewModel::processIntent,
+                            entityId = sheet.taskId,
                             onBackClick = {
                                 scope.launch { sheetState.hide() }.invokeOnCompletion {
                                     if (!sheetState.isVisible) {
                                         mainViewModel.processIntent(MainIntent.CloseBottomSheet)
                                     }
                                 }
-                            },
-                            taskId = sheet.taskId
+                            }
                         )
                     }
                 }
@@ -178,7 +178,7 @@ fun TaskScreen(
                                 }
                             },
                             allTasks = allTasks,
-                            groupId = sheet.groupId
+                            entityId = sheet.groupId
                         )
                     }
                 }
