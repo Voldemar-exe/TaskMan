@@ -52,6 +52,7 @@ class GroupControlViewModel(
 
     private fun removeTask(task: MyTask) {
         _uiState.value.group?.let { groupState ->
+            if (groupState.tasksInGroup.size < 2) return
             _uiState.update { controlState ->
                 controlState.copy(
                     group = groupState.copy(

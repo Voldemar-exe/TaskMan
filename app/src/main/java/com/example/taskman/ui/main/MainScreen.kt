@@ -169,15 +169,16 @@ fun TaskScreen(
                     ) {
                         GroupControl(
                             uiState = groupControlUiState,
+                            allTasks = allTasks,
                             processIntent = groupControlViewModel::processIntent,
                             onBackClick = {
                                 scope.launch { sheetState.hide() }.invokeOnCompletion {
                                     if (!sheetState.isVisible) {
+                                        mainViewModel.processIntent(MainIntent.LoadTasks)
                                         mainViewModel.processIntent(MainIntent.CloseBottomSheet)
                                     }
                                 }
                             },
-                            allTasks = allTasks,
                             entityId = sheet.groupId
                         )
                     }
@@ -198,7 +199,11 @@ fun TaskScreen(
                             )
                         },
                         task = task,
-                        onCheckClick = mainViewModel::processIntent
+                        onCheckClick = {
+                            mainViewModel.processIntent(
+                                MainIntent.MainSwitch(it)
+                            )
+                        }
                     )
                 }
             }
@@ -224,7 +229,7 @@ fun TaskItem(
     modifier: Modifier = Modifier,
     task: MyTask,
     selected: Boolean = false,
-    onCheckClick: (MainIntent.MainSwitch) -> Unit
+    onCheckClick: (MyTask) -> Unit
 ) {
     ListItem(
         modifier = modifier,
@@ -247,7 +252,7 @@ fun TaskItem(
         trailingContent = {
             RadioButton(
                 selected = task.isComplete || selected,
-                onClick = { onCheckClick(MainIntent.MainSwitch(task)) }
+                onClick = { onCheckClick(task) }
             )
         }
     )
