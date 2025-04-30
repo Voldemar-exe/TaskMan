@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -12,8 +14,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.taskman.ui.auth.AuthenticationScreen
 import com.example.taskman.ui.auth.ProfileScreen
+import com.example.taskman.ui.main.MainIntent
+import com.example.taskman.ui.main.MainViewModel
 import com.example.taskman.ui.main.TaskScreen
+import com.example.taskman.ui.search.SearchScreen
+import com.example.taskman.ui.search.SearchViewModel
 import kotlinx.serialization.Serializable
+import org.koin.androidx.compose.koinViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,6 +29,8 @@ fun App(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
 ) {
+    val mainViewModel = koinViewModel<MainViewModel>()
+
     Scaffold { paddingValues ->
         NavHost(
             modifier = modifier
@@ -40,6 +49,7 @@ fun App(
             }
             composable<Main> {
                 TaskScreen(
+                    mainViewModel = mainViewModel,
                     onProfileClick = {
                         val profile = Profile(name = null)
                         if (profile.name == null) {
@@ -65,11 +75,21 @@ fun App(
                     }
                 )
             }
-
-
-//            composable<SearchScreen> {
-//                SearchScreen()
-//            }
+            composable<SearchScreen> {
+                val searchViewModel = koinViewModel<SearchViewModel>()
+                val uiState = searchViewModel.state.collectAsStateWithLifecycle()
+                val allTasks by mainViewModel.allTasks.collectAsStateWithLifecycle()
+                SearchScreen(
+                    allTasks = allTasks,
+                    state = uiState.value,
+                    onIntent = searchViewModel::onIntent,
+                    onTaskCheckClick = { task ->
+                        mainViewModel.processIntent(
+                            MainIntent.MainSwitch(task)
+                        )
+                    }
+                )
+            }
         }
     }
 }
