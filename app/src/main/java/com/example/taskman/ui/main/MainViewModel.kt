@@ -27,7 +27,7 @@ class MainViewModel(
 
     init {
         viewModelScope.launch {
-            taskDao.getAllTasks().collect { tasks ->
+            taskDao.getAllTasksFlow().collect { tasks ->
                 _allTasks.value = tasks
                 loadTasks()
             }
