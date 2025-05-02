@@ -36,11 +36,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskman.model.MyTask
-import com.example.taskman.ui.group.GroupControl
-import com.example.taskman.ui.group.GroupControlViewModel
-import com.example.taskman.ui.group.GroupTaskDrawerSheet
-import com.example.taskman.ui.task.TaskControl
-import com.example.taskman.ui.task.TaskControlViewModel
+import com.example.taskman.ui.control.group.GroupControl
+import com.example.taskman.ui.control.group.GroupControlViewModel
+import com.example.taskman.ui.control.group.GroupTaskDrawerSheet
+import com.example.taskman.ui.control.task.TaskControl
+import com.example.taskman.ui.control.task.TaskControlViewModel
+import com.example.taskman.ui.utils.TaskManAppData.icons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -243,11 +244,14 @@ fun TaskItem(
             Text(text = task.note)
         },
         leadingContent = {
-            Icon(
-                painter = painterResource(task.icon),
-                tint = Color(task.color),
-                contentDescription = null
-            )
+            // TODO STORE ICON IN DB IN DIFFERENT WAY
+            if (task.icon in icons) {
+                Icon(
+                    painter = painterResource(task.icon),
+                    tint = Color(task.color),
+                    contentDescription = null
+                )
+            }
         },
         trailingContent = {
             RadioButton(

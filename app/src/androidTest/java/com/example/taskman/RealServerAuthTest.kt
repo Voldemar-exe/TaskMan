@@ -8,8 +8,9 @@ import androidx.compose.ui.test.performTextInput
 import androidx.navigation.testing.TestNavHostController
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.taskman.api.auth.AuthClient
+import com.example.taskman.api.auth.AuthService
 import com.example.taskman.ui.Profile
-import com.example.taskman.ui.auth.AuthService
 import com.example.taskman.ui.auth.AuthViewModel
 import com.example.taskman.ui.auth.AuthenticationScreen
 import org.junit.After
@@ -36,7 +37,7 @@ class RealServerAuthTest {
         // Arrange
         composeTestRule.setContent {
             AuthenticationScreen(
-                viewModel = AuthViewModel(AuthService()),
+                viewModel = AuthViewModel(AuthService(AuthClient.instance)),
                 onBackClick = { navController.popBackStack() },
                 loginUser = { profile ->
                     navController.navigate(profile)

@@ -6,4 +6,6 @@ plugins {
     alias(libs.plugins.kotlinx.serialization) apply false
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
     id("com.google.devtools.ksp") version "2.0.21-1.0.27" apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.android.kotlin.multiplatform.library) apply false
 }

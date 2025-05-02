@@ -3,6 +3,7 @@ package com.example.taskman.db
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.Junction
 import androidx.room.Relation
 import com.example.taskman.model.MyTask
@@ -11,6 +12,10 @@ import com.example.taskman.model.TaskGroup
 @Entity(
     tableName = "group_task",
     primaryKeys = ["groupId", "taskId"],
+    indices = [
+        Index("groupId"),
+        Index("taskId")
+    ],
     foreignKeys = [
         ForeignKey(
             entity = TaskGroup::class,

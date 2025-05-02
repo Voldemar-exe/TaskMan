@@ -50,7 +50,4 @@ dependencies {
     implementation(libs.hikaricp)
     implementation(libs.h2)
     implementation(libs.jbcrypt)
-
-    implementation(libs.kotlinx.html)
-    implementation(libs.kotlin.css)
 }

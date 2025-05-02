@@ -42,24 +42,31 @@ android {
 }
 
 dependencies {
+
     // MAIN
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.kotlinx.serialization.json)
+
     // COMPOSE
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.navigation.compose)
+
     // UI
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
     // ROOM
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-
     ksp(libs.androidx.room.compiler)
+
+    // WORKER
+    implementation(libs.androidx.work.runtime.ktx)
+
 
     // RETROFIT
     implementation(libs.retrofit)

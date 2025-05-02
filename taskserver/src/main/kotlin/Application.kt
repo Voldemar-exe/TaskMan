@@ -1,7 +1,15 @@
 package com.example
 
-import com.example.auth.configureAuthRouting
 import com.example.auth.configureSecurity
+import com.example.di.authModule
+import com.example.plugins.configureHTTP
+import com.example.plugins.configureMonitoring
+import com.example.plugins.configureRouting
+import com.example.plugins.configureSerialization
+import com.example.routing.configureAuthRouting
+import com.example.routing.configureDataRouting
+import com.example.routing.configureDatabases
+import com.example.routing.configureFrameworks
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -24,11 +32,11 @@ fun Application.module() {
 
     configureSerialization()
     configureDatabases()
-    configureTemplating()
     configureHTTP()
     configureSecurity()
     configureMonitoring()
     configureFrameworks()
     configureRouting()
     configureAuthRouting()
+    configureDataRouting()
 }
