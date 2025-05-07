@@ -1,5 +1,6 @@
 package com.example.taskman.ui.control.task
 
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import com.example.taskman.ui.components.TaskDatePicker
 import com.example.taskman.ui.components.TaskTypeDropdownMenu
@@ -28,6 +29,8 @@ fun TaskControl(
                 selectedType = taskState.selectedType,
                 onTypeSelected = { processIntent(TaskControlIntent.UpdateType(it)) }
             )
+
+            HorizontalDivider()
 
             TaskDatePicker(
                 selectedDate = taskState.selectedDate,
