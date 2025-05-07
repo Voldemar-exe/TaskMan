@@ -43,14 +43,12 @@ fun ControlScreen(
     LaunchedEffect(entityId) {
         if (entityId != null) {
             processIntent(ControlIntent.LoadEntity(entityId))
-        } else {
-            processIntent(ControlIntent.ClearState)
         }
     }
 
     LaunchedEffect(uiState.base.intentRes) {
         when (uiState.base.intentRes) {
-            IntentResult.None -> null
+            IntentResult.None -> Unit
             is IntentResult.Error -> {
                 snackbarHostState.showSnackbar(
                     message = uiState.base.intentRes.message ?: "Ошибка",
@@ -90,7 +88,12 @@ fun ControlScreen(
                     Spacer(modifier = Modifier.padding(horizontal = 4.dp))
                     Text(text = if (entityId == null) "Добавить" else "Сохранить")
                 }
-                TextButton(onClick = onBackClick) {
+                TextButton(
+                    onClick = {
+                        processIntent(ControlIntent.ClearState)
+                        onBackClick()
+                    }
+                ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = null

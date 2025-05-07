@@ -1,5 +1,6 @@
 package com.example.taskman.ui.control
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.taskman.ui.components.IntentResult
@@ -23,6 +24,10 @@ abstract class ControlViewModel(
         controlState.update {
             it.copy(base = it.base.update())
         }
+    }
+
+    init {
+        Log.i(TAG, "init with $initialState")
     }
 
     protected fun processBaseIntent(intent: ControlIntent) = viewModelScope.launch {
