@@ -13,7 +13,7 @@ class UserRepositoryImpl : UserRepository {
             UsersTable.select { UsersTable.login eq login }
                 .map {
                     User(
-                        login = it[UsersTable.login],
+                        login = it[UsersTable.login].value,
                         passwordHash = it[UsersTable.passwordHash],
                         username = it[UsersTable.username] ?: "",
                         email = it[UsersTable.email] ?: ""

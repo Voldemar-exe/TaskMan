@@ -29,11 +29,9 @@ class TaskControlViewModel(
     private val taskState: ControlState.TaskState
         get() = controlState.value.task ?: throw IllegalStateException("Task state is null in $TAG")
 
-    fun processIntent(intent: ControlIntent) {
+    fun onIntent(intent: ControlIntent) {
         Log.i(TAG, "intent: $intent")
         when (intent) {
-            is ControlIntent.LoadEntity -> loadEntity(intent.entityId)
-            ControlIntent.SaveEntity -> saveEntity()
             is TaskControlIntent.UpdateDate -> updateDate(intent.date)
             is TaskControlIntent.UpdateType -> updateType(intent.type)
             else -> processBaseIntent(intent)
@@ -119,6 +117,18 @@ class TaskControlViewModel(
                 errorException(e)
             }
         }
+    }
+    // TODO MAYBE DELETE BECAUSE SYNC
+    /*override fun deleteEntity(entityId: Int) {
+        viewModelScope.launch {
+            taskDao.deleteTaskById(entityId)?.let {
+                deleteFromServer(entityId)
+            }
+        }
+    }*/
+
+    private suspend fun deleteFromServer(taskId: Int) {
+        taskService.deleteTask(taskId)
     }
 
     private fun createTaskFromState(): MyTask {

@@ -14,12 +14,12 @@ import com.example.taskman.ui.control.TaskControlIntent
 fun TaskControl(
     uiState: ControlState,
     entityId: Int?,
-    processIntent: (ControlIntent) -> Unit,
+    onIntent: (ControlIntent) -> Unit,
     onBackClick: () -> Unit
 ) {
     ControlScreen(
         uiState = uiState,
-        processIntent = processIntent,
+        onIntent = onIntent,
         onBackClick = onBackClick,
         entityId = entityId
     ) {
@@ -27,7 +27,7 @@ fun TaskControl(
         taskState?.let {
             TaskTypeDropdownMenu(
                 selectedType = taskState.selectedType,
-                onTypeSelected = { processIntent(TaskControlIntent.UpdateType(it)) }
+                onTypeSelected = { onIntent(TaskControlIntent.UpdateType(it)) }
             )
 
             HorizontalDivider()
@@ -35,7 +35,7 @@ fun TaskControl(
             TaskDatePicker(
                 selectedDate = taskState.selectedDate,
                 onDateSelected = {
-                    processIntent(TaskControlIntent.UpdateDate(it))
+                    onIntent(TaskControlIntent.UpdateDate(it))
                 }
             )
         }

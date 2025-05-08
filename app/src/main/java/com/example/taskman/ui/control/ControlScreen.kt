@@ -1,15 +1,19 @@
 package com.example.taskman.ui.control
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -33,7 +37,7 @@ import com.example.taskman.ui.utils.TaskManAppData
 fun ControlScreen(
     modifier: Modifier = Modifier,
     uiState: ControlState,
-    processIntent: (ControlIntent) -> Unit,
+    onIntent: (ControlIntent) -> Unit,
     entityId: Int?,
     onBackClick: () -> Unit,
     content: @Composable () -> Unit
@@ -42,7 +46,7 @@ fun ControlScreen(
 
     LaunchedEffect(entityId) {
         if (entityId != null) {
-            processIntent(ControlIntent.LoadEntity(entityId))
+            onIntent(ControlIntent.LoadEntity(entityId))
         }
     }
 
@@ -55,12 +59,12 @@ fun ControlScreen(
                     actionLabel = "OK",
                     duration = SnackbarDuration.Short
                 )
-                processIntent(ControlIntent.ClearError)
+                onIntent(ControlIntent.ClearError)
             }
 
             is IntentResult.Success -> {
                 if (uiState.base.intentRes.message == ControlIntent.SaveEntity.toString()) {
-                    processIntent(ControlIntent.ClearState)
+                    onIntent(ControlIntent.ClearState)
                     onBackClick()
                 }
             }
@@ -69,6 +73,21 @@ fun ControlScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                if (entityId != null)
+                    IconButton(onClick = { onIntent(ControlIntent.DeleteEntity(entityId)) }) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete"
+                        )
+                    }
+            }
+        },
         bottomBar = {
             Column(
                 modifier = Modifier
@@ -78,7 +97,7 @@ fun ControlScreen(
             ) {
                 Button(
                     onClick = {
-                        processIntent(ControlIntent.SaveEntity)
+                        onIntent(ControlIntent.SaveEntity)
                     }
                 ) {
                     Icon(
@@ -90,7 +109,7 @@ fun ControlScreen(
                 }
                 TextButton(
                     onClick = {
-                        processIntent(ControlIntent.ClearState)
+                        onIntent(ControlIntent.ClearState)
                         onBackClick()
                     }
                 ) {
@@ -112,7 +131,7 @@ fun ControlScreen(
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = uiState.base.entityName,
-                onValueChange = { processIntent(ControlIntent.UpdateName(it)) },
+                onValueChange = { onIntent(ControlIntent.UpdateName(it)) },
                 label = { Text("Название") }
             )
             ListItem(
@@ -126,9 +145,9 @@ fun ControlScreen(
                         selectedColor = uiState.base.selectedColor,
                         onItemSelected = {
                             if (it is Color) {
-                                processIntent(ControlIntent.UpdateColor(it))
+                                onIntent(ControlIntent.UpdateColor(it))
                             } else {
-                                processIntent(ControlIntent.UpdateIcon(it as Int))
+                                onIntent(ControlIntent.UpdateIcon(it as Int))
                             }
                         }
                     )
@@ -146,9 +165,9 @@ fun ControlScreen(
                         selectedColor = uiState.base.selectedColor,
                         onItemSelected = {
                             if (it is Color) {
-                                processIntent(ControlIntent.UpdateColor(it))
+                                onIntent(ControlIntent.UpdateColor(it))
                             } else {
-                                processIntent(ControlIntent.UpdateIcon(it as Int))
+                                onIntent(ControlIntent.UpdateIcon(it as Int))
                             }
                         }
                     )

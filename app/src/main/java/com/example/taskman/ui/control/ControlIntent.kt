@@ -12,6 +12,7 @@ sealed interface ControlIntent {
     data object ClearState : ControlIntent
     data class LoadEntity(val entityId: Int) : ControlIntent
     data object SaveEntity : ControlIntent
+    data class DeleteEntity(val entityId: Int) : ControlIntent
 }
 
 sealed interface TaskControlIntent : ControlIntent {

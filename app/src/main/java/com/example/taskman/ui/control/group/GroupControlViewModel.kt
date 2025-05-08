@@ -25,14 +25,12 @@ class GroupControlViewModel(
     )
 ) {
 
-    fun processIntent(intent: ControlIntent) {
+    fun onIntent(intent: ControlIntent) {
         Log.i(TAG, "intent: $intent")
         viewModelScope.launch {
             when (intent) {
                 is GroupControlIntent.AddTask -> addTask(intent.task)
                 is GroupControlIntent.RemoveTask -> removeTask(intent.task)
-                is ControlIntent.SaveEntity -> saveEntity()
-                is ControlIntent.LoadEntity -> loadEntity(intent.entityId)
                 else -> processBaseIntent(intent)
             }
         }

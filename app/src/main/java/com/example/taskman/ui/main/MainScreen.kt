@@ -148,7 +148,7 @@ fun TaskScreen(
                     ) {
                         TaskControl(
                             uiState = taskControlUiState,
-                            processIntent = taskControlViewModel::processIntent,
+                            onIntent = taskControlViewModel::onIntent,
                             entityId = sheet.taskId,
                             onBackClick = {
                                 scope.launch { sheetState.hide() }.invokeOnCompletion {
@@ -171,7 +171,7 @@ fun TaskScreen(
                         GroupControl(
                             uiState = groupControlUiState,
                             allTasks = allTasks,
-                            processIntent = groupControlViewModel::processIntent,
+                            onIntent = groupControlViewModel::onIntent,
                             onBackClick = {
                                 scope.launch { sheetState.hide() }.invokeOnCompletion {
                                     if (!sheetState.isVisible) {

@@ -1,8 +1,11 @@
 package com.example.db
 
+import com.example.db.tables.GroupTaskTable
 import com.example.db.tables.GroupsTable
 import com.example.db.tables.TasksTable
 import com.example.db.tables.TokensTable
+import com.example.db.tables.UserGroupTable
+import com.example.db.tables.UserTaskTable
 import com.example.db.tables.UsersTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -25,7 +28,10 @@ object DatabaseFactory {
                 UsersTable,
                 TokensTable,
                 TasksTable,
-                GroupsTable
+                GroupsTable,
+                GroupTaskTable,
+                UserTaskTable,
+                UserGroupTable
             )
         }
     }

@@ -37,7 +37,7 @@ fun GroupControl(
     uiState: ControlState,
     allTasks: List<MyTask>,
     entityId: Int?,
-    processIntent: (ControlIntent) -> Unit,
+    onIntent: (ControlIntent) -> Unit,
     onBackClick: () -> Unit
 ) {
 
@@ -49,7 +49,7 @@ fun GroupControl(
 
     ControlScreen(
         uiState = uiState,
-        processIntent = processIntent,
+        onIntent = onIntent,
         onBackClick = onBackClick,
         entityId = entityId
     ) {
@@ -61,7 +61,7 @@ fun GroupControl(
                             task = task,
                             selected = true,
                             onCheckClick = {
-                                processIntent(GroupControlIntent.RemoveTask(task))
+                                onIntent(GroupControlIntent.RemoveTask(task))
                             }
                         )
                     }
@@ -98,11 +98,11 @@ fun GroupControl(
                             selected = (uiState.group?.tasksInGroup ?: emptyList()).contains(task),
                             onCheckClick = { task ->
                                 if ((uiState.group?.tasksInGroup ?: emptyList()).contains(task)) {
-                                    processIntent(
+                                    onIntent(
                                         GroupControlIntent.RemoveTask(task)
                                     )
                                 } else {
-                                    processIntent(
+                                    onIntent(
                                         GroupControlIntent.AddTask(task)
                                     )
                                 }

@@ -27,7 +27,12 @@
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="72a493b6-645e-4725-bafb-c8a4933410ae">
-      <console name="taskmanConnection" type="STANDARD" schema="public" session="Main" />
+      <console name="taskmanConnection" type="STANDARD" schema="public" session="Main"><![CDATA[select * from users;
+select * from tasks;
+select * from "groups";
+select * from user_task;
+select * from user_group;
+select * from group_task;]]></console>
     </connection>
     <connection id="1ec357df-f652-4220-9456-be9902b577cd">
       <console name="RootConnection" type="STANDARD" schema="postgres" session="Main" />

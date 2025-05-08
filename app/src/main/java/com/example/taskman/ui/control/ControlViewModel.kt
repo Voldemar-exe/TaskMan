@@ -44,7 +44,9 @@ abstract class ControlViewModel(
                     // TODO reduce this code
                 )
             }
-
+            ControlIntent.SaveEntity -> saveEntity()
+            is ControlIntent.LoadEntity -> loadEntity(intent.entityId)
+            is ControlIntent.DeleteEntity -> Unit //deleteEntity(intent.entityId)
             else -> null
         }
     }
