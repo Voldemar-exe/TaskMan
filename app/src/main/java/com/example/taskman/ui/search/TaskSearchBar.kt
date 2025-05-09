@@ -65,8 +65,8 @@ fun TaskSearchBar(
                     query = query,
                     onQueryChange = onQueryChange,
                     onSearch = {
-                        onSearch()
                         expanded = false
+                        onSearch()
                     },
                     expanded = expanded,
                     onExpandedChange = { expanded = it },

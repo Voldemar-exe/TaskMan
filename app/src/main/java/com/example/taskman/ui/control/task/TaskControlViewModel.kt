@@ -34,6 +34,9 @@ class TaskControlViewModel(
         when (intent) {
             is TaskControlIntent.UpdateDate -> updateDate(intent.date)
             is TaskControlIntent.UpdateType -> updateType(intent.type)
+            is TaskControlIntent.UpdateTaskToServer -> viewModelScope.launch {
+                updateToServer(intent.task)
+            }
             else -> processBaseIntent(intent)
         }
     }
@@ -118,14 +121,14 @@ class TaskControlViewModel(
             }
         }
     }
-    // TODO MAYBE DELETE BECAUSE SYNC
-    /*override fun deleteEntity(entityId: Int) {
+
+    override fun deleteEntity(entityId: Int) {
         viewModelScope.launch {
             taskDao.deleteTaskById(entityId)?.let {
                 deleteFromServer(entityId)
             }
         }
-    }*/
+    }
 
     private suspend fun deleteFromServer(taskId: Int) {
         taskService.deleteTask(taskId)

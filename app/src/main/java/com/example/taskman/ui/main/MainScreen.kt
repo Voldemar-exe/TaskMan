@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskman.model.MyTask
+import com.example.taskman.ui.control.TaskControlIntent
 import com.example.taskman.ui.control.group.GroupControl
 import com.example.taskman.ui.control.group.GroupControlViewModel
 import com.example.taskman.ui.control.group.GroupTaskDrawerSheet
@@ -72,7 +73,7 @@ fun TaskScreen(
     )
 
     LaunchedEffect(mainUiState.selectedGroupId) {
-        mainViewModel.processIntent(MainIntent.LoadTasks)
+        mainViewModel.onIntent(MainIntent.LoadTasks)
     }
 
     LaunchedEffect(mainUiState.bottomSheet) {
@@ -85,23 +86,23 @@ fun TaskScreen(
         drawerContent = {
             GroupTaskDrawerSheet(
                 onBackClick = {
-                    mainViewModel.processIntent(MainIntent.LoadTasks)
+                    mainViewModel.onIntent(MainIntent.LoadTasks)
                     drawerToggle(scope, drawerState)
                 },
                 onAddClick = {
-                    mainViewModel.processIntent(
+                    mainViewModel.onIntent(
                         MainIntent.ShowBottomSheet(MainState.BottomSheetType.Group())
                     )
                 },
                 onGroupClick = {
                     if (mainUiState.isGroupEditMode) {
-                        mainViewModel.processIntent(
+                        mainViewModel.onIntent(
                             MainIntent.ShowBottomSheet(
                                 MainState.BottomSheetType.Group(it.groupId)
                             )
                         )
                     } else {
-                        mainViewModel.processIntent(
+                        mainViewModel.onIntent(
                             MainIntent.SelectGroup(it)
                         )
                         drawerToggle(scope, drawerState)
@@ -110,7 +111,7 @@ fun TaskScreen(
                 allGroups = allGroups,
                 activeGroupId = mainUiState.selectedGroupId,
                 isEdit = mainUiState.isGroupEditMode,
-                onEditClick = { mainViewModel.processIntent(MainIntent.ChangeEditMode(it)) }
+                onEditClick = { mainViewModel.onIntent(MainIntent.ChangeEditMode(it)) }
             )
         },
         drawerState = drawerState
@@ -129,7 +130,7 @@ fun TaskScreen(
             bottomBar = {
                 TaskScreenBottomBar(
                     onAddClick = {
-                        mainViewModel.processIntent(
+                        mainViewModel.onIntent(
                             MainIntent.ShowBottomSheet(MainState.BottomSheetType.Task())
                         )
                     },
@@ -142,7 +143,7 @@ fun TaskScreen(
                 is MainState.BottomSheetType.Task -> {
                     ModalBottomSheet(
                         onDismissRequest = {
-                            mainViewModel.processIntent(MainIntent.CloseBottomSheet)
+                            mainViewModel.onIntent(MainIntent.CloseBottomSheet)
                         },
                         sheetState = sheetState
                     ) {
@@ -153,7 +154,7 @@ fun TaskScreen(
                             onBackClick = {
                                 scope.launch { sheetState.hide() }.invokeOnCompletion {
                                     if (!sheetState.isVisible) {
-                                        mainViewModel.processIntent(MainIntent.CloseBottomSheet)
+                                        mainViewModel.onIntent(MainIntent.CloseBottomSheet)
                                     }
                                 }
                             }
@@ -164,7 +165,7 @@ fun TaskScreen(
                 is MainState.BottomSheetType.Group -> {
                     ModalBottomSheet(
                         onDismissRequest = {
-                            mainViewModel.processIntent(MainIntent.CloseBottomSheet)
+                            mainViewModel.onIntent(MainIntent.CloseBottomSheet)
                         },
                         sheetState = sheetState
                     ) {
@@ -175,8 +176,8 @@ fun TaskScreen(
                             onBackClick = {
                                 scope.launch { sheetState.hide() }.invokeOnCompletion {
                                     if (!sheetState.isVisible) {
-                                        mainViewModel.processIntent(MainIntent.LoadTasks)
-                                        mainViewModel.processIntent(MainIntent.CloseBottomSheet)
+                                        mainViewModel.onIntent(MainIntent.LoadTasks)
+                                        mainViewModel.onIntent(MainIntent.CloseBottomSheet)
                                     }
                                 }
                             },
@@ -193,7 +194,7 @@ fun TaskScreen(
                 items(mainUiState.tasks) { task ->
                     TaskItem(
                         modifier = Modifier.clickable {
-                            mainViewModel.processIntent(
+                            mainViewModel.onIntent(
                                 MainIntent.ShowBottomSheet(
                                     MainState.BottomSheetType.Task(task.taskId)
                                 )
@@ -201,8 +202,13 @@ fun TaskScreen(
                         },
                         task = task,
                         onCheckClick = {
-                            mainViewModel.processIntent(
+                            mainViewModel.onIntent(
                                 MainIntent.MainSwitch(it)
+                            )
+                            taskControlViewModel.onIntent(
+                                TaskControlIntent.UpdateTaskToServer(
+                                    task.copy(isComplete = !task.isComplete)
+                                )
                             )
                         }
                     )

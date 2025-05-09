@@ -39,7 +39,7 @@ class MainViewModel(
         }
     }
 
-    fun processIntent(intent: MainIntent) {
+    fun onIntent(intent: MainIntent) {
         when (intent) {
             is MainIntent.MainSwitch -> toggleTaskCompletion(intent.task)
             is MainIntent.ShowBottomSheet -> showBottomSheet(intent.type)

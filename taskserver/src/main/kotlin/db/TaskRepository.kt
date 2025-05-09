@@ -4,11 +4,9 @@ import com.example.dto.request.TaskDto
 
 
 interface TaskRepository {
-    // TODO ADD BOOLEAN RETURN
     suspend fun allTasks(login: String): List<TaskDto>
     suspend fun addTask(login: String, task: TaskDto): Boolean
-    suspend fun addTaskToGroup(login: String, groupId: Int, taskId: Int)
-    suspend fun updateTask(login: String, task: TaskDto)
-    suspend fun removeTask(login: String, id: Int): Boolean
+    suspend fun updateTask(login: String, task: TaskDto): Boolean
+    suspend fun deleteTask(login: String, id: Int): Boolean
 }
 

@@ -84,7 +84,7 @@ fun App(
                     state = uiState.value,
                     onIntent = searchViewModel::onIntent,
                     onTaskCheckClick = { task ->
-                        mainViewModel.processIntent(
+                        mainViewModel.onIntent(
                             MainIntent.MainSwitch(task)
                         )
                     }

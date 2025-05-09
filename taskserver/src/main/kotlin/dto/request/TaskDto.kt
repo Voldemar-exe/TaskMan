@@ -16,19 +16,7 @@ data class TaskDto(
     val date: Long
 )
 
-/**
- * {
- *    "id": 0,
- *    "name": "string",
- *    "icon": 0,
- *    "color": 0,
- *    "type": "string",
- *    "note": "string",
- *    "isComplete": true,
- *    "date": 0
- * }
- */
-
+@Serializable
 data class GroupDto(
     val id: Int,
     val name: String,
@@ -36,6 +24,7 @@ data class GroupDto(
     val color: Long
 )
 
+@Serializable
 data class GroupTaskDto(
     val groupId: Int,
     val taskId: Int

@@ -46,7 +46,7 @@ abstract class ControlViewModel(
             }
             ControlIntent.SaveEntity -> saveEntity()
             is ControlIntent.LoadEntity -> loadEntity(intent.entityId)
-            is ControlIntent.DeleteEntity -> Unit //deleteEntity(intent.entityId)
+            is ControlIntent.DeleteEntity -> deleteEntity(intent.entityId)
             else -> null
         }
     }
@@ -110,6 +110,8 @@ abstract class ControlViewModel(
     protected abstract fun saveEntity()
 
     protected abstract fun loadEntity(entityId: Int)
+
+    protected abstract fun deleteEntity(entityId: Int)
 
     companion object {
         const val TAG = "ControlViewModel"

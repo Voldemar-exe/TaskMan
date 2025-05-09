@@ -20,6 +20,9 @@ interface GroupDao {
     @Query("DELETE FROM group_task WHERE groupId = :groupId")
     suspend fun deleteAllCrossRefsForGroup(groupId: Int)
 
+    @Query("DELETE FROM `groups` WHERE groupId = :groupId")
+    suspend fun deleteGroupById(groupId: Int)
+
     @Transaction
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGroupTaskCrossRef(crossRef: GroupTaskCrossRef)

@@ -2,7 +2,9 @@ package com.example.routing
 
 import com.example.auth.User
 import com.example.auth.UserRepositoryImpl
+import com.example.db.GroupRepositoryImpl
 import com.example.db.TaskRepositoryImpl
+import com.example.dto.request.GroupDto
 import com.example.dto.request.TaskDto
 import com.example.dto.response.ServerResponse
 import io.ktor.http.HttpStatusCode
@@ -21,6 +23,7 @@ import io.ktor.server.util.getOrFail
 fun Application.configureDataRouting() {
 
     val taskRepository = TaskRepositoryImpl()
+    val groupRepository = GroupRepositoryImpl()
 
     val testUser = User(
         login = "test_login",
@@ -54,16 +57,55 @@ fun Application.configureDataRouting() {
                 put {
                     val task = call.receive<TaskDto>()
                     taskRepository.updateTask(testUser.login, task)
-                    call.respond(HttpStatusCode.UpgradeRequired)
+                    call.respond(HttpStatusCode.OK)
                 }
                 delete {
                     val id = call.parameters.getOrFail("id").toInt()
-                    val success = taskRepository.removeTask(testUser.login, id)
+                    val success = taskRepository.deleteTask(testUser.login, id)
                     if (success) {
                         call.respond(HttpStatusCode.OK)
                     } else {
                         call.respond(HttpStatusCode.NotFound)
                     }
+                }
+            }
+        }
+
+        route("/groups") {
+            get {
+                val groups = groupRepository.getGroupsForUser(testUser.login)
+                call.respond(
+                    ServerResponse(data = groups)
+                )
+            }
+            post {
+                try {
+                    val group = call.receive<GroupDto>()
+                    groupRepository.createGroup(testUser.login, group).let {
+                        call.respond(it)
+                    }
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, "Error: ${e.message}")
+                }
+            }
+            route("/{id}") {
+                route("/tasks") {
+                    post {
+                        val groupId = call.parameters.getOrFail("id").toInt()
+                        val taskIds = call.receive<List<Int>>()
+                        groupRepository.syncTasksForGroup(testUser.login, groupId, taskIds)
+                        call.respond(HttpStatusCode.Created)
+                    }
+                }
+                put {
+                    val group = call.receive<GroupDto>()
+                    groupRepository.updateGroup(testUser.login, group)
+                    call.respond(HttpStatusCode.Created)
+                }
+                delete {
+                    val groupId = call.parameters.getOrFail("id").toInt()
+                    groupRepository.deleteGroup(testUser.login, groupId)
+                    call.respond(HttpStatusCode.OK)
                 }
             }
         }

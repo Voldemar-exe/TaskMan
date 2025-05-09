@@ -1,11 +1,11 @@
 package com.example.db.tables
 
+import com.example.dto.request.GroupDto
 import com.example.dto.request.TaskDto
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.Table
 
 object TasksTable : IntIdTable("tasks") {
     val name = varchar("name", 255)
@@ -52,35 +52,47 @@ class GroupDAO(id: EntityID<Int>) : IntEntity(id) {
     var name by GroupsTable.name
     var icon by GroupsTable.icon
     var color by GroupsTable.color
-    val tasks by TaskDAO via GroupTaskTable
 }
 
-object GroupTaskTable : Table("group_task") {
-    val groupId = integer("group_id").references(GroupsTable.id)
-    val taskId = integer("task_id").references(TasksTable.id)
-    override val primaryKey = PrimaryKey(groupId, taskId)
+fun groupDaoTpDto(dao: GroupDAO) = GroupDto(
+    id = dao.id.value,
+    name = dao.name,
+    icon = dao.icon,
+    color = dao.color
+)
+
+object GroupTaskTable : IntIdTable("group_task") {
+    val groupId = reference("group_id", GroupsTable)
+    val taskId = reference("task_id", TasksTable)
+}
+
+class GroupTaskDAO(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<GroupTaskDAO>(GroupTaskTable)
+
+    var groupId by GroupDAO referencedOn GroupTaskTable.groupId
+    var taskId by TaskDAO referencedOn GroupTaskTable.taskId
 }
 
 object UserTaskTable : IntIdTable("user_task") {
-    val user = reference("user", UsersTable)
-    val task = reference("task", TasksTable)
+    val login = reference("login", UsersTable)
+    val taskId = reference("task_id", TasksTable)
 }
 
 class UserTaskDAO(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<UserTaskDAO>(UserTaskTable)
 
-    var user by UserDAO referencedOn UserTaskTable.user
-    var task by TaskDAO referencedOn UserTaskTable.task
+    var login by UserDAO referencedOn UserTaskTable.login
+    var taskId by TaskDAO referencedOn UserTaskTable.taskId
 }
 
 object UserGroupTable : IntIdTable("user_group") {
-    val user = reference("user", UsersTable)
-    val group = reference("task", GroupsTable)
+    val login = reference("login", UsersTable)
+    val groupId = reference("group_id", GroupsTable)
 }
 
 class UserGroupDAO(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<UserTaskDAO>(UserTaskTable)
+    companion object : IntEntityClass<UserGroupDAO>(UserGroupTable)
 
-    var user by UserDAO referencedOn UserGroupTable.user
-    var group by GroupDAO referencedOn UserGroupTable.group
+    var login by UserDAO referencedOn UserGroupTable.login
+    var groupId by GroupDAO referencedOn UserGroupTable.groupId
 }

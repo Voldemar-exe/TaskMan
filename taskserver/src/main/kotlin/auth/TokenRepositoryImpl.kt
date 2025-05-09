@@ -3,7 +3,7 @@ package com.example.auth
 import com.example.db.TokenRepository
 import com.example.db.tables.TokensTable
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class TokenRepositoryImpl : TokenRepository {
@@ -18,7 +18,7 @@ class TokenRepositoryImpl : TokenRepository {
 
     override fun validateToken(token: String): Boolean {
         return transaction {
-            TokensTable.select { TokensTable.token eq token }.count() > 0
+            TokensTable.selectAll().where { TokensTable.token eq token }.count() > 0
         }
     }
 }

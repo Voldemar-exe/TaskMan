@@ -80,7 +80,12 @@ fun ControlScreen(
                 horizontalArrangement = Arrangement.End
             ) {
                 if (entityId != null)
-                    IconButton(onClick = { onIntent(ControlIntent.DeleteEntity(entityId)) }) {
+                    IconButton(
+                        onClick = {
+                            onIntent(ControlIntent.DeleteEntity(entityId))
+                            onBackClick()
+                        }
+                    ) {
                         Icon(
                             Icons.Default.Delete,
                             contentDescription = "Delete"

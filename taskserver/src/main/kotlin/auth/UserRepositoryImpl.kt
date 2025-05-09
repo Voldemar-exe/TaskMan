@@ -3,14 +3,14 @@ package com.example.auth
 import com.example.db.UserRepository
 import com.example.db.tables.UsersTable
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class UserRepositoryImpl : UserRepository {
 
     override fun findByLogin(login: String): User? {
         return transaction {
-            UsersTable.select { UsersTable.login eq login }
+            UsersTable.selectAll().where { UsersTable.login eq login }
                 .map {
                     User(
                         login = it[UsersTable.login].value,
