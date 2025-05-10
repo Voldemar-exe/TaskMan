@@ -1,14 +1,14 @@
 package com.example.db
 
 import com.example.db.DatabaseFactory.suspendTransaction
-import com.example.db.tables.GroupTaskDAO
+import com.example.db.dao.GroupTaskDAO
+import com.example.db.dao.TaskDAO
+import com.example.db.dao.UserDAO
+import com.example.db.dao.UserTaskDAO
+import com.example.db.dao.taskDaoToDto
 import com.example.db.tables.GroupTaskTable
-import com.example.db.tables.TaskDAO
 import com.example.db.tables.TasksTable
-import com.example.db.tables.UserDAO
-import com.example.db.tables.UserTaskDAO
 import com.example.db.tables.UserTaskTable
-import com.example.db.tables.taskDaoToDto
 import com.example.dto.request.TaskDto
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
