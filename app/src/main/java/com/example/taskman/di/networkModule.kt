@@ -1,16 +1,9 @@
 package com.example.taskman.di
 
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
+import com.example.taskman.ui.auth.AuthDataStore
+import com.example.taskman.ui.auth.AuthStorage
 import org.koin.dsl.module
 
 val networkModule = module {
-    single<HttpClient> {
-        HttpClient {
-            install(ContentNegotiation) {
-                json()
-            }
-        }
-    }
+    single<AuthStorage> { AuthDataStore(get()) }
 }

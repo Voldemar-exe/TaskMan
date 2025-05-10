@@ -1,4 +1,4 @@
-package com.example.taskman.ui.auth
+package com.example.taskman.ui.profile
 
 import com.example.taskman.model.MyOption
 

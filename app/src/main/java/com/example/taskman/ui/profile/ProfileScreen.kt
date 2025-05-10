@@ -1,4 +1,4 @@
-package com.example.taskman.ui.auth
+package com.example.taskman.ui.profile
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,7 +35,7 @@ fun ProfileScreen(
     userName: String = "User",
     profileViewModel: ProfileViewModel = koinViewModel(),
     optionViewModel: OptionViewModel = koinViewModel(),
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit
 ) {
 
     val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()
@@ -46,18 +46,13 @@ fun ProfileScreen(
             ProfileScreenTopBar(
                 userName = userName,
                 onBackClick = onBackClick,
-                onInfoClick = {
-                    profileViewModel.processIntent(ProfileIntent.InfoClick)
+                onExitClick = {
+                    profileViewModel.onIntent(ProfileIntent.ClearProfile)
+                    onBackClick()
                 }
             )
         }
     ) { paddingValues ->
-        if (profileState.isInfo)
-            InfoDialogScreen(
-                onDismissRequest = {
-                    profileViewModel.processIntent(ProfileIntent.InfoClick)
-                }
-            )
         LazyColumn(
             modifier = Modifier
                 .padding(paddingValues)
@@ -80,7 +75,7 @@ fun ProfileScreenTopBar(
     modifier: Modifier = Modifier,
     userName: String,
     onBackClick: () -> Unit,
-    onInfoClick: () -> Unit
+    onExitClick: () -> Unit
 ) {
     CenterAlignedTopAppBar(
         modifier = modifier,
@@ -96,9 +91,9 @@ fun ProfileScreenTopBar(
             Text(text = userName)
         },
         actions = {
-            IconButton(onClick = onInfoClick) {
+            IconButton(onClick = onExitClick) {
                 Icon(
-                    imageVector = Icons.Default.Info,
+                    imageVector = Icons.AutoMirrored.Default.ExitToApp,
                     contentDescription = null
                 )
             }

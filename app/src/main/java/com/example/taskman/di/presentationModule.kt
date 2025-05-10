@@ -5,11 +5,12 @@ import com.example.taskman.api.group.GroupService
 import com.example.taskman.api.task.TaskService
 import com.example.taskman.db.GroupDao
 import com.example.taskman.db.TaskDao
+import com.example.taskman.ui.auth.AuthStorage
 import com.example.taskman.ui.auth.AuthViewModel
-import com.example.taskman.ui.auth.ProfileViewModel
 import com.example.taskman.ui.control.group.GroupControlViewModel
 import com.example.taskman.ui.control.task.TaskControlViewModel
 import com.example.taskman.ui.main.MainViewModel
+import com.example.taskman.ui.profile.ProfileViewModel
 import com.example.taskman.ui.search.SearchViewModel
 import com.example.taskman.ui.utils.OptionViewModel
 import com.example.taskman.ui.utils.ThemeRepository
@@ -19,7 +20,7 @@ import org.koin.dsl.module
 val presentationModule = module {
     viewModel { OptionViewModel(get<ThemeRepository>()) }
     viewModel { AuthViewModel(get<AuthService>()) }
-    viewModel { ProfileViewModel() }
+    viewModel { ProfileViewModel(get<AuthStorage>()) }
     viewModel { MainViewModel(get<TaskDao>(), get<GroupDao>()) }
     viewModel { TaskControlViewModel(get<TaskDao>(), get<TaskService>()) }
     viewModel { GroupControlViewModel(get<GroupDao>(), get<GroupService>()) }

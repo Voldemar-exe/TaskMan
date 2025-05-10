@@ -1,17 +1,12 @@
 package com.example.db
 
-import com.example.auth.User
+import com.example.auth.UserDto
 
 
 interface UserRepository {
-    fun createUser(
-        login: String,
-        passwordHash: String,
-        username: String?,
-        email: String?
-    )
+    suspend fun createUser(user: UserDto): Boolean
 
-    fun findByLogin(login: String): User?
+    suspend fun findByLogin(login: String): UserDto?
 
-    fun deleteByLogin(login: String): Boolean?
+    suspend fun deleteByLogin(login: String): Boolean
 }

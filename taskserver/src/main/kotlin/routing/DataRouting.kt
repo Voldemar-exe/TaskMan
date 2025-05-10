@@ -1,7 +1,5 @@
 package com.example.routing
 
-import com.example.auth.User
-import com.example.auth.UserRepositoryImpl
 import com.example.db.GroupRepositoryImpl
 import com.example.db.TaskRepositoryImpl
 import com.example.dto.request.GroupDto
@@ -9,6 +7,9 @@ import com.example.dto.request.TaskDto
 import com.example.dto.response.ServerResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.delete
@@ -25,87 +26,93 @@ fun Application.configureDataRouting() {
     val taskRepository = TaskRepositoryImpl()
     val groupRepository = GroupRepositoryImpl()
 
-    val testUser = User(
-        login = "test_login",
-        passwordHash = "hash",
-        username = "Test User",
-        email = "test@mail"
-    )
-
-    // TODO REMOVE AFTER TESTS
-    UserRepositoryImpl().findByLogin(testUser.login) ?: UserRepositoryImpl().createUser(
-        testUser.login,
-        testUser.passwordHash,
-        testUser.username,
-        testUser.email
-    )
-
     routing {
-        route("/tasks") {
-            get {
-                val tasks = taskRepository.allTasks(testUser.login)
-                call.respond(
-                    ServerResponse(data = tasks)
-                )
-            }
-            post {
-                val task = call.receive<TaskDto>()
-                taskRepository.addTask(testUser.login, task)
-                call.respond(HttpStatusCode.Created)
-            }
-            route("/{id}") {
-                put {
+        authenticate("auth-jwt") {
+            route("/tasks") {
+                get {
+                    val principal = call.principal<JWTPrincipal>()!!
+                    val login = principal.payload.getClaim("userId").asString()
+                    val tasks = taskRepository.allTasks(login)
+                    call.respond(
+                        ServerResponse(data = tasks)
+                    )
+                }
+                post {
+                    val principal = call.principal<JWTPrincipal>()!!
+                    val login = principal.payload.getClaim("userId").asString()
                     val task = call.receive<TaskDto>()
-                    taskRepository.updateTask(testUser.login, task)
-                    call.respond(HttpStatusCode.OK)
-                }
-                delete {
-                    val id = call.parameters.getOrFail("id").toInt()
-                    val success = taskRepository.deleteTask(testUser.login, id)
-                    if (success) {
-                        call.respond(HttpStatusCode.OK)
-                    } else {
-                        call.respond(HttpStatusCode.NotFound)
-                    }
-                }
-            }
-        }
-
-        route("/groups") {
-            get {
-                val groups = groupRepository.getGroupsForUser(testUser.login)
-                call.respond(
-                    ServerResponse(data = groups)
-                )
-            }
-            post {
-                try {
-                    val group = call.receive<GroupDto>()
-                    groupRepository.createGroup(testUser.login, group).let {
-                        call.respond(it)
-                    }
-                } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, "Error: ${e.message}")
-                }
-            }
-            route("/{id}") {
-                route("/tasks") {
-                    post {
-                        val groupId = call.parameters.getOrFail("id").toInt()
-                        val taskIds = call.receive<List<Int>>()
-                        groupRepository.syncTasksForGroup(testUser.login, groupId, taskIds)
-                        call.respond(HttpStatusCode.Created)
-                    }
-                }
-                put {
-                    val group = call.receive<GroupDto>()
-                    groupRepository.updateGroup(testUser.login, group)
+                    taskRepository.addTask(login, task)
                     call.respond(HttpStatusCode.Created)
                 }
-                delete {
-                    val groupId = call.parameters.getOrFail("id").toInt()
-                    groupRepository.deleteGroup(testUser.login, groupId)
-                    call.respond(HttpStatusCode.OK)
+                route("/{id}") {
+                    put {
+                        val principal = call.principal<JWTPrincipal>()!!
+                        val login = principal.payload.getClaim("userId").asString()
+                        val task = call.receive<TaskDto>()
+                        taskRepository.updateTask(login, task)
+                        call.respond(HttpStatusCode.OK)
+                    }
+                    delete {
+                        val principal = call.principal<JWTPrincipal>()!!
+                        val login = principal.payload.getClaim("userId").asString()
+                        val id = call.parameters.getOrFail("id").toInt()
+                        val success = taskRepository.deleteTask(login, id)
+                        if (success) {
+                            call.respond(HttpStatusCode.OK)
+                        } else {
+                            call.respond(HttpStatusCode.NotFound)
+                        }
+                    }
+                }
+            }
+
+            route("/groups") {
+                get {
+                    val principal = call.principal<JWTPrincipal>()!!
+                    val login = principal.payload.getClaim("userId").asString()
+                    val groups = groupRepository.getGroupsForUser(login)
+                    call.respond(
+                        ServerResponse(data = groups)
+                    )
+                }
+                post {
+                    val principal = call.principal<JWTPrincipal>()!!
+                    val login = principal.payload.getClaim("userId").asString()
+                    try {
+                        val group = call.receive<GroupDto>()
+                        groupRepository.createGroup(login, group).let {
+                            call.respond(it)
+                        }
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, "Error: ${e.message}")
+                    }
+                }
+                route("/{id}") {
+                    route("/tasks") {
+                        post {
+
+                            val principal = call.principal<JWTPrincipal>()!!
+                            val login = principal.payload.getClaim("userId").asString()
+                            val groupId = call.parameters.getOrFail("id").toInt()
+                            val taskIds = call.receive<List<Int>>()
+                            groupRepository.syncTasksForGroup(login, groupId, taskIds)
+                            call.respond(HttpStatusCode.Created)
+                        }
+                    }
+                    put {
+                        val principal = call.principal<JWTPrincipal>()!!
+                        val login = principal.payload.getClaim("userId").asString()
+                        val group = call.receive<GroupDto>()
+                        groupRepository.updateGroup(login, group)
+                        call.respond(HttpStatusCode.Created)
+                    }
+                    delete {
+                        val principal = call.principal<JWTPrincipal>()!!
+                        val login = principal.payload.getClaim("userId").asString()
+                        val groupId = call.parameters.getOrFail("id").toInt()
+                        groupRepository.deleteGroup(login, groupId)
+                        call.respond(HttpStatusCode.OK)
+                    }
                 }
             }
         }

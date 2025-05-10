@@ -5,6 +5,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -12,15 +13,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.example.taskman.api.auth.ProfileData
+import com.example.taskman.ui.auth.AuthStorage
 import com.example.taskman.ui.auth.AuthenticationScreen
-import com.example.taskman.ui.auth.ProfileScreen
 import com.example.taskman.ui.main.MainIntent
 import com.example.taskman.ui.main.MainViewModel
 import com.example.taskman.ui.main.TaskScreen
+import com.example.taskman.ui.profile.ProfileScreen
 import com.example.taskman.ui.search.SearchScreen
 import com.example.taskman.ui.search.SearchViewModel
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,6 +34,7 @@ fun App(
     navController: NavHostController = rememberNavController()
 ) {
     val mainViewModel = koinViewModel<MainViewModel>()
+    val authStorage = koinInject<AuthStorage>()
 
     Scaffold { paddingValues ->
         NavHost(
@@ -39,24 +44,31 @@ fun App(
             startDestination = Main
         ) {
             composable<Profile> { backStackEntry ->
-                val profile: Profile = backStackEntry.toRoute()
+                val profile: Profile = backStackEntry.toRoute<Profile>()
                 ProfileScreen(
-                    userName = profile.name!!,
+                    userName = profile.name,
                     onBackClick = {
                         navController.navigate(Main)
                     }
                 )
             }
             composable<Main> {
+
+                val profile by produceState<ProfileData?>(initialValue = null) {
+                    value = authStorage.getProfile()
+                }
+
                 TaskScreen(
                     mainViewModel = mainViewModel,
                     onProfileClick = {
-                        val profile = Profile(name = null)
-                        if (profile.name == null) {
-                            navController.navigate(Authentication("login"))
-                        } else {
-                            navController.navigate(route = profile)
-                        }
+                        val route = profile?.let { user ->
+                            val displayName = user.username
+                                ?.takeUnless { it.isBlank() }
+                                ?: user.login
+                            Profile(displayName)
+                        } ?: Authentication("login")
+
+                        navController.navigate(route)
                     },
                     onSearchClick = {
                         navController.navigate(SearchScreen)
@@ -95,7 +107,7 @@ fun App(
 }
 
 @Serializable
-data class Profile(val name: String?)
+data class Profile(val name: String)
 @Serializable
 object Main
 @Serializable

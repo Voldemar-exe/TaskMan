@@ -1,41 +1,50 @@
 package com.example.taskman.api.auth
 
 import android.util.Log
-import com.google.gson.annotations.SerializedName
+import com.example.taskman.ui.auth.AuthStorage
+import kotlinx.serialization.Serializable
 import retrofit2.Response
 
-
+@Serializable
 data class RegisterRequest(
-    @SerializedName("login") val login: String,
-    @SerializedName("password") val password: String,
-    @SerializedName("username") val username: String,
-    @SerializedName("email") val email: String
+    val login: String,
+    val password: String,
+    val username: String,
+    val email: String
 )
 
+@Serializable
 data class LoginRequest(
-    @SerializedName("login") val login: String,
-    @SerializedName("password") val password: String
+    val login: String,
+    val password: String
 )
 
+@Serializable
 data class LoginResponseRemote(
-    @SerializedName("token") val token: String
+    val token: String
 )
 
 
 class AuthService(
-    private val apiClient: AuthApi
+    private val apiClient: AuthApi,
+    private val authDataStore: AuthStorage
 ) {
     suspend fun registerUser(
         request: RegisterRequest
     ): String? {
         Log.d("AuthService", "Register: $request")
-        return safeApiCall { apiClient.register(request) }?.token
+        return safeApiCall { apiClient.register(request) }?.let {
+            authDataStore.saveProfile(
+                ProfileData(
+                    it.token,
+                    request.login,
+                    request.username
+                )
+            )
+            request.login
+        }
     }
 
-    /**
-     * Удаляет пользователя по логину
-     * @return true если удаление успешно, false в случае ошибки
-     */
     suspend fun deleteUser(login: String): Boolean {
         return try {
             Log.d(TAG, "Deleting user: $login")
@@ -53,8 +62,17 @@ class AuthService(
         }
     }
 
-    suspend fun loginUser(login: String, password: String): String? {
-        return safeApiCall { apiClient.login(LoginRequest(login, password)) }?.token
+    suspend fun loginUser(request: LoginRequest): String? = safeApiCall {
+        apiClient.login(request)
+    }?.let {
+        authDataStore.saveProfile(
+            ProfileData(
+                it.token,
+                request.login,
+                ""
+            )
+        )
+        request.login
     }
 
     private suspend fun <T> safeApiCall(call: suspend () -> Response<T>): T? {

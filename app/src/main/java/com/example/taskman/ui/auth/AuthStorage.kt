@@ -1,7 +1,9 @@
 package com.example.taskman.ui.auth
 
+import com.example.taskman.api.auth.ProfileData
+
 interface AuthStorage {
-    suspend fun saveToken(token: String)
-    suspend fun getToken(): String?
-    suspend fun clearToken()
+    suspend fun saveProfile(profile: ProfileData)
+    suspend fun getProfile(): ProfileData?
+    suspend fun clearProfile()
 }

@@ -1,45 +1,25 @@
 package com.example.auth
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.server.application.Application
-import io.ktor.server.auth.UserIdPrincipal
-import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.authentication
-import io.ktor.server.auth.basic
-import io.ktor.server.auth.form
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
-import io.ktor.server.auth.principal
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
 
 fun Application.configureSecurity() {
-    // Please read the jwt property from the config file if you are using EngineMain
-    val jwtAudience = "jwt-audience"
-    val jwtDomain = "https://jwt-provider-domain/"
-    val jwtRealm = "ktor sample app"
-    val jwtSecret = "secret"
     authentication {
-        jwt {
-            realm = jwtRealm
-            verifier(
-                JWT
-                    .require(Algorithm.HMAC256(jwtSecret))
-                    .withAudience(jwtAudience)
-                    .withIssuer(jwtDomain)
-                    .build()
-            )
+        jwt(name = "auth-jwt") {
+            realm = "com.example.realm"
+            verifier(JwtConfig.verifier)
             validate { credential ->
-                if (credential.payload.audience.contains(jwtAudience))
+                if (credential.payload.getClaim("userId").asString() != "") {
                     JWTPrincipal(credential.payload)
-                else null
+                } else {
+                    null
+                }
             }
         }
-
     }
-    authentication {
+    /*authentication {
         basic(name = "myauth1") {
             realm = "Ktor Server"
             validate { credentials ->
@@ -55,7 +35,6 @@ fun Application.configureSecurity() {
             userParamName = "user"
             passwordParamName = "password"
             challenge {
-                /**/
             }
         }
     }
@@ -72,5 +51,5 @@ fun Application.configureSecurity() {
                 call.respondText("Hello ${principal.name}")
             }
         }
-    }
+    }*/
 }

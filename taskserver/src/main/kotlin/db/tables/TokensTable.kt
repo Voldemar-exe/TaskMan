@@ -1,16 +1,10 @@
 package com.example.db.tables
 
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.dao.id.IntIdTable
 
-object TokensTable : Table("tokens") {
-    val tokenId = integer("token_id").autoIncrement()
-    val login = varchar("login", 50).references(
-        UsersTable.login,
-        onDelete = ReferenceOption.CASCADE
-    )
+object TokensTable : IntIdTable("tokens") {
+    val login = reference("login", UsersTable)
     val token = varchar("token", 255)
-
-    override val primaryKey: PrimaryKey?
-        get() = PrimaryKey(tokenId)
 }
+
+

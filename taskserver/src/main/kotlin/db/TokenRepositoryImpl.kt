@@ -1,9 +1,9 @@
-package com.example.auth
+package com.example.db
 
-import com.example.db.TokenRepository
+import com.example.db.DatabaseFactory.suspendTransaction
+import com.example.db.dao.TokenDAO
 import com.example.db.tables.TokensTable
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class TokenRepositoryImpl : TokenRepository {
@@ -16,9 +16,8 @@ class TokenRepositoryImpl : TokenRepository {
         }
     }
 
-    override fun validateToken(token: String): Boolean {
-        return transaction {
-            TokensTable.selectAll().where { TokensTable.token eq token }.count() > 0
+    override suspend fun getToken(login: String): String? =
+        suspendTransaction {
+            TokenDAO.find { TokensTable.login eq login }.first().token
         }
-    }
 }

@@ -77,10 +77,10 @@ fun AuthenticationScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            ContentScreen(
+            AuthContentScreen(
                 modifier = Modifier.padding(paddingValues),
                 uiState = uiState,
-                processIntent = viewModel::processIntent,
+                onIntent = viewModel::onIntent,
                 onBackClick = onBackClick
             )
         }
@@ -88,10 +88,10 @@ fun AuthenticationScreen(
 }
 
 @Composable
-private fun ContentScreen(
+private fun AuthContentScreen(
     modifier: Modifier = Modifier,
     uiState: AuthState,
-    processIntent: (AuthIntent) -> Unit,
+    onIntent: (AuthIntent) -> Unit,
     onBackClick: () -> Unit
 ) {
     Column(
@@ -103,13 +103,13 @@ private fun ContentScreen(
     ) {
         OutlinedTextField(
             value = uiState.login,
-            onValueChange = { processIntent(AuthIntent.UpdateLogin(it)) },
+            onValueChange = { onIntent(AuthIntent.UpdateLogin(it)) },
             label = { Text("Введите логин") },
             leadingIcon = { Icon(Icons.Default.Person, null) },
             trailingIcon = {
                 if (uiState.login.isNotEmpty()) {
                     IconButton(
-                        onClick = { processIntent(AuthIntent.UpdateLogin("")) }
+                        onClick = { onIntent(AuthIntent.UpdateLogin("")) }
                     ) {
                         Icon(Icons.Default.Clear, null)
                     }
@@ -118,14 +118,14 @@ private fun ContentScreen(
         )
         OutlinedTextField(
             value = uiState.password,
-            onValueChange = { processIntent(AuthIntent.UpdatePassword(it)) },
+            onValueChange = { onIntent(AuthIntent.UpdatePassword(it)) },
             label = { Text("Введите пароль") },
             leadingIcon = { Icon(Icons.Default.Lock, null) },
             visualTransformation = PasswordVisualTransformation(),
             trailingIcon = {
                 if (uiState.password.isNotEmpty()) {
                     IconButton(
-                        onClick = { processIntent(AuthIntent.UpdatePassword("")) }
+                        onClick = { onIntent(AuthIntent.UpdatePassword("")) }
                     ) {
                         Icon(Icons.Default.Clear, null)
                     }
@@ -135,7 +135,7 @@ private fun ContentScreen(
         if (uiState.isRegister) {
             OutlinedTextField(
                 value = uiState.confirmPassword,
-                onValueChange = { processIntent(AuthIntent.UpdateConfirmPassword(it)) },
+                onValueChange = { onIntent(AuthIntent.UpdateConfirmPassword(it)) },
                 label = { Text("Ещё раз введите пароль") },
                 leadingIcon = { Icon(Icons.Default.Lock, null) },
                 visualTransformation = PasswordVisualTransformation(),
@@ -143,7 +143,7 @@ private fun ContentScreen(
                     if (uiState.confirmPassword.isNotEmpty()) {
                         IconButton(
                             onClick = {
-                                processIntent(AuthIntent.UpdateConfirmPassword(""))
+                                onIntent(AuthIntent.UpdateConfirmPassword(""))
                             }
                         ) {
                             Icon(Icons.Default.Clear, null)
@@ -152,10 +152,10 @@ private fun ContentScreen(
                 }
             )
         }
-        Button(onClick = { processIntent(AuthIntent.Submit) }) {
+        Button(onClick = { onIntent(AuthIntent.Submit) }) {
             Text(if (uiState.isRegister) "Регистрация" else "Вход")
         }
-        TextButton(onClick = { processIntent(AuthIntent.ToggleMode) }) {
+        TextButton(onClick = { onIntent(AuthIntent.ToggleMode) }) {
             Text(if (uiState.isRegister) "Уже есть аккаунт? Войти" else "Зарегистрироваться")
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -163,7 +163,7 @@ private fun ContentScreen(
             if (!uiState.isRegister) {
                 onBackClick()
             } else {
-                processIntent(AuthIntent.ToggleMode)
+                onIntent(AuthIntent.ToggleMode)
             }
         }) {
             Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = "Назад")

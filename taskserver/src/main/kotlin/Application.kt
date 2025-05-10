@@ -4,7 +4,6 @@ import com.example.auth.configureSecurity
 import com.example.di.authModule
 import com.example.plugins.configureHTTP
 import com.example.plugins.configureMonitoring
-import com.example.plugins.configureRouting
 import com.example.plugins.configureSerialization
 import com.example.routing.configureAuthRouting
 import com.example.routing.configureDataRouting
@@ -36,7 +35,6 @@ fun Application.module() {
     configureSecurity()
     configureMonitoring()
     configureFrameworks()
-    configureRouting()
     configureAuthRouting()
     configureDataRouting()
 }
