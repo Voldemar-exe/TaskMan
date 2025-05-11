@@ -45,24 +45,21 @@ class TaskRepositoryImpl : TaskRepository {
             } ?: emptyList()
         }
 
-    override suspend fun addTask(login: String, newTask: TaskDto): Int? = suspendTransaction {
-        UserDAO.findById(login)?.let { userDao ->
-            val task = TaskDAO.new {
-                name = newTask.name
-                icon = newTask.icon
-                color = newTask.color
-                type = newTask.type
-                note = newTask.note
-                isComplete = newTask.isComplete
-                date = newTask.date
-            }.also {
-                UserTaskDAO.new {
-                    this.login = userDao
-                    this.taskId = it
-                }
+    override suspend fun createTask(userDao: UserDAO, newTask: TaskDto): Int = suspendTransaction {
+        TaskDAO.new {
+            name = newTask.name
+            icon = newTask.icon
+            color = newTask.color
+            type = newTask.type
+            note = newTask.note
+            isComplete = newTask.isComplete
+            date = newTask.date
+        }.also {
+            UserTaskDAO.new {
+                this.login = userDao
+                this.taskId = it
             }
-            task.id.value
-        }
+        }.id.value
     }
 
     override suspend fun updateTask(login: String, task: TaskDto): Boolean = suspendTransaction {

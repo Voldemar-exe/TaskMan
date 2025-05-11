@@ -41,25 +41,19 @@ class GroupRepositoryImpl : GroupRepository {
         } ?: emptyList()
     }
 
-    override suspend fun createGroup(
-        login: String,
-        group: GroupDto
-    ): Int = suspendTransaction {
-
-        GroupDAO.new {
-            name = group.name
-            icon = group.icon
-            color = group.color
-        }.let { groupDao ->
-            UserDAO.findById(login)?.let { userRow ->
+    override suspend fun createGroup(userDao: UserDAO, group: GroupDto): Int =
+        suspendTransaction {
+            GroupDAO.new {
+                name = group.name
+                icon = group.icon
+                color = group.color
+            }.also { groupDao ->
                 UserGroupDAO.new {
-                    this.login = userRow
+                    this.login = userDao
                     this.groupId = groupDao
                 }
-            }
-            groupDao.id.value
+            }.id.value
         }
-    }
 
     override suspend fun syncTasksForGroup(
         login: String,

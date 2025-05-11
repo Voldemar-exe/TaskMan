@@ -29,7 +29,11 @@ interface GroupDao {
 
     @Transaction
     @Query("SELECT * FROM 'groups' ORDER BY name")
-    fun getAllGroupsWithTasks(): Flow<List<GroupWithTasks>>
+    fun getAllGroupsWithTasksFlow(): Flow<List<GroupWithTasks>>
+
+    @Transaction
+    @Query("SELECT * FROM 'groups' ORDER BY name")
+    fun getAllGroupsWithTasksList(): List<GroupWithTasks>
 
     @Transaction
     @Query("SELECT * FROM 'groups' WHERE groupId = :groupId")

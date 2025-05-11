@@ -1,5 +1,6 @@
 package com.example.routing
 
+import com.example.db.dao.UserDAO
 import com.example.db.repository.GroupRepositoryImpl
 import com.example.db.repository.TaskRepositoryImpl
 import com.example.shared.dto.GroupDto
@@ -41,8 +42,10 @@ fun Application.configureDataRouting() {
                     val principal = call.principal<JWTPrincipal>()!!
                     val login = principal.payload.getClaim("userId").asString()
                     val task = call.receive<TaskDto>()
-                    taskRepository.addTask(login, task)?.let {
-                        call.respond(it)
+                    UserDAO.findById(login)?.let {
+                        taskRepository.createTask(it, task).also {
+                            call.respond(it)
+                        }
                     }
                 }
                 route("/{id}") {
@@ -81,9 +84,15 @@ fun Application.configureDataRouting() {
                     val login = principal.payload.getClaim("userId").asString()
                     try {
                         val group = call.receive<GroupDto>()
-                        groupRepository.createGroup(login, group).let {
-                            groupRepository.syncTasksForGroup(login, it, group.tasks.map { it.id })
-                            call.respond(it)
+                        UserDAO.findById(login)?.let {
+                            groupRepository.createGroup(it, group).let {
+                                groupRepository.syncTasksForGroup(
+                                    login,
+                                    it,
+                                    group.tasks.map { it.id }
+                                )
+                                call.respond(it)
+                            }
                         }
                     } catch (e: Exception) {
                         call.respond(HttpStatusCode.InternalServerError, "Error: ${e.message}")

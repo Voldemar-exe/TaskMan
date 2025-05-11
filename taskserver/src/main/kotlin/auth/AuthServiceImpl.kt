@@ -24,7 +24,7 @@ class AuthServiceImpl(
             Result.failure(IllegalArgumentException("User exists"))
         } ?: run {
             val passwordHash = BCrypt.hashpw(request.password, BCrypt.gensalt())
-            userRepository.createUser(
+            val user = userRepository.createUser(
                 UserDto(
                     request.login,
                     passwordHash,
@@ -34,7 +34,29 @@ class AuthServiceImpl(
             )
             val token = JwtConfig.generateToken(request.login)
             tokenRepository.saveToken(request.login, token)
-            Result.success(RegisterResponse(token))
+            try {
+                val tasks = request.tasksWithoutGroup.map {
+                    it.copy(id = taskRepository.createTask(user, it))
+                }
+                val groups = request.groupsWithTasks.map {
+                    it.copy(
+                        id = groupRepository.createGroup(user, it),
+                        tasks = it.tasks.map { it.copy(id = taskRepository.createTask(user, it)) }
+                    )
+                }
+                groups.forEach {
+                    groupRepository.syncTasksForGroup(
+                        user.login.value,
+                        it.id,
+                        it.tasks.map { it.id }
+                    )
+                }
+                Result.success(RegisterResponse(token, tasks, groups))
+            } catch (e: Exception) {
+                return Result.failure(
+                    IllegalArgumentException("Create User. Can't put data. Err: ${e.message}")
+                )
+            }
         }
     }
 

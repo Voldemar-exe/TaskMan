@@ -3,25 +3,32 @@ package com.example.taskman.ui.auth
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.shared.dto.GroupDto
+import com.example.shared.dto.TaskDto
 import com.example.shared.request.LoginRequest
 import com.example.shared.request.RegisterRequest
 import com.example.shared.response.LoginResponse
+import com.example.shared.response.RegisterResponse
 import com.example.taskman.api.auth.AuthService
 import com.example.taskman.db.GroupDao
 import com.example.taskman.db.GroupTaskCrossRef
 import com.example.taskman.db.TaskDao
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskGroup
+import com.example.taskman.ui.utils.SessionRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AuthViewModel(
     private val authService: AuthService,
     private val taskDao: TaskDao,
-    private val groupDao: GroupDao
+    private val groupDao: GroupDao,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthState())
@@ -78,72 +85,101 @@ class AuthViewModel(
         }
 
         viewModelScope.launch {
-            val result = runCatching {
-                if (state.isRegister) {
-                    register(state.login, state.password)
-                } else {
-                    login(state.login, state.password)
-                }
-            }
-
-            result.fold(
-                onSuccess = { response ->
+            withContext(Dispatchers.IO) {
+                val result = runCatching {
                     if (state.isRegister) {
-                        val registerResult = response as? String
-                        if (registerResult.isNullOrBlank()) {
+                        register(
+                            state.login,
+                            state.password,
+                            taskDao.getAllTasksWithoutGroups().map { it.toDto() },
+                            groupDao.getAllGroupsWithTasksList().map {
+                                GroupDto(
+                                    it.group.serverId ?: 0,
+                                    it.group.name,
+                                    it.group.icon,
+                                    it.group.color,
+                                    it.tasks.map { it.toDto() }
+                                )
+                            }
+                        )
+                    } else {
+                        login(state.login, state.password)
+                    }
+                }
+
+                result.fold(
+                    onSuccess = { response ->
+                        if (state.isRegister) {
+                            val registerResponse = response as? RegisterResponse
+                            registerResponse?.let {
+                                Log.i(TAG, "${it.tasks}\n ${it.groups} ")
+                                syncLocalData(it.tasks, it.groups)
+                                _uiState.update {
+                                    it.copy(error = null, success = true)
+                                }
+                                return@withContext
+                            }
                             _uiState.update {
                                 it.copy(error = "Ошибка регистрации")
                             }
                         } else {
-                            _uiState.update {
-                                it.copy(error = null, success = true)
+                            val loginResponse = response as? LoginResponse
+                            loginResponse?.let {
+                                Log.i(TAG, "${it.tasks}\n ${it.groups} ")
+                                syncLocalData(it.tasks, it.groups)
+                                _uiState.update {
+                                    it.copy(error = null, success = true)
+                                }
+                                return@withContext
                             }
-                        }
-                    } else {
-                        val loginResponse = response as? LoginResponse
-                        val tasksWithoutGroup = loginResponse?.tasks
-                        val groupsWithTasks = loginResponse?.groups
-                        tasksWithoutGroup?.forEach {
-                            taskDao.insertTask(MyTask(it))
-                        }
-                        groupsWithTasks?.forEach { group ->
-                            val groupId = groupDao.insertGroup(TaskGroup(group))
-
-                            group.tasks.forEach { task ->
-                                val taskId = taskDao.insertTask(MyTask(task))
-                                groupDao.insertGroupTaskCrossRef(
-                                    GroupTaskCrossRef(
-                                        groupId = groupId.toInt(),
-                                        taskId = taskId.toInt()
-                                    )
-                                )
-                            }
-                        }
-
-                        if (loginResponse?.token.isNullOrBlank()) {
                             _uiState.update {
                                 it.copy(error = "Ошибка входа")
                             }
-                        } else {
-                            _uiState.update {
-                                it.copy(error = null, success = true)
-                            }
+                        }
+                    },
+                    onFailure = { throwable ->
+                        Log.e("AuthViewModel", "Network error", throwable)
+                        _uiState.update {
+                            it.copy(error = "Сетевая ошибка. Попробуйте ещё раз.")
                         }
                     }
-                },
-                onFailure = { throwable ->
-                    Log.e("AuthViewModel", "Network error", throwable)
-                    _uiState.update {
-                        it.copy(error = "Сетевая ошибка. Попробуйте ещё раз.")
-                    }
-                }
-            )
+                )
+            }
+        }
+    }
+
+    private suspend fun syncLocalData(
+        tasksWithoutGroup: List<TaskDto>,
+        groupsWithTasks: List<GroupDto>
+    ) {
+        sessionRepository.clearDatabaseData()
+
+        tasksWithoutGroup.forEach {
+            taskDao.insertTask(MyTask(it))
+        }
+        groupsWithTasks.forEach { group ->
+            val groupId = groupDao.insertGroup(TaskGroup(group))
+
+            group.tasks.forEach { task ->
+                val taskId = taskDao.insertTask(MyTask(task))
+                groupDao.insertGroupTaskCrossRef(
+                    GroupTaskCrossRef(
+                        groupId = groupId.toInt(),
+                        taskId = taskId.toInt()
+                    )
+                )
+            }
         }
     }
 
     // TODO ADD USERNAME AND EMAIL
-    private suspend fun register(login: String, password: String): String? =
-        authService.registerUser(RegisterRequest(login, password, "", ""))
+    private suspend fun register(
+        login: String,
+        password: String,
+        tasks: List<TaskDto>,
+        groups: List<GroupDto>
+    ): RegisterResponse? =
+        authService.registerUser(RegisterRequest(login, password, "", "", tasks, groups))
 
     private suspend fun login(login: String, password: String): LoginResponse? =
         authService.loginUser(LoginRequest(login, password))

@@ -2,9 +2,7 @@ package com.example.db.repository
 
 import com.example.db.DatabaseFactory.suspendTransaction
 import com.example.db.dao.UserDAO
-import com.example.db.tables.UsersTable
 import com.example.shared.dto.UserDto
-import org.jetbrains.exposed.sql.insert
 
 class UserRepositoryImpl : UserRepository {
 
@@ -28,11 +26,10 @@ class UserRepositoryImpl : UserRepository {
     }
 
     override suspend fun createUser(user: UserDto) = suspendTransaction {
-        UsersTable.insert {
-            it[login] = user.login
-            it[passwordHash] = user.passwordHash
-            it[username] = user.username
-            it[email] = user.email
-        }.insertedCount > 0
+        UserDAO.new(user.login) {
+            passwordHash = user.passwordHash
+            username = user.username
+            email = user.email
+        }
     }
 }

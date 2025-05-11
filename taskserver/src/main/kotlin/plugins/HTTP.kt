@@ -9,7 +9,6 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.compression.Compression
 import io.ktor.server.plugins.cors.routing.CORS
-import io.ktor.server.plugins.swagger.swaggerUI
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
@@ -17,9 +16,6 @@ import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
 fun Application.configureHTTP() {
-    routing {
-        swaggerUI(path = "openapi")
-    }
     install(SimpleCache) {
         memoryCache {
             invalidateAt = 10.seconds

@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.shared.request.LoginRequest
 import com.example.shared.request.RegisterRequest
 import com.example.shared.response.LoginResponse
+import com.example.shared.response.RegisterResponse
 import com.example.taskman.ui.utils.SessionRepository
 import retrofit2.Response
 
@@ -13,7 +14,7 @@ class AuthService(
 ) {
     suspend fun registerUser(
         request: RegisterRequest
-    ): String? {
+    ): RegisterResponse? {
         Log.d("AuthService", "Register: $request")
         return safeApiCall { apiClient.register(request) }?.let {
             sessionRepository.saveSession(
@@ -23,7 +24,7 @@ class AuthService(
                     request.username
                 )
             )
-            request.login
+            it
         }
     }
 

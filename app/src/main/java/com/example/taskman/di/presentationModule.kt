@@ -19,7 +19,7 @@ import org.koin.dsl.module
 
 val presentationModule = module {
     viewModel { OptionViewModel(get<ThemeRepository>()) }
-    viewModel { AuthViewModel(get<AuthService>(), get(), get()) }
+    viewModel { AuthViewModel(get<AuthService>(), get(), get(), get()) }
     viewModel { ProfileViewModel(get<SessionRepository>()) }
     viewModel { MainViewModel(get<TaskDao>(), get<GroupDao>()) }
     viewModel { TaskControlViewModel(get<TaskDao>(), get<TaskService>()) }
