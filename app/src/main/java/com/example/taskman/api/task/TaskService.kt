@@ -12,8 +12,8 @@ class TaskService(
         return safeApiCall { apiClient.getAll() }
     }
 
-    suspend fun createTask(request: TaskRequest): String? {
-        return safeApiCall { apiClient.create(request) }?.description
+    suspend fun createTask(request: TaskRequest): Int? {
+        return safeApiCall { apiClient.create(request) }
     }
 
     suspend fun updateTask(request: TaskRequest): Boolean {

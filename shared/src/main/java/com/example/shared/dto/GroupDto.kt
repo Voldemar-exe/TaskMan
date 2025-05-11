@@ -8,5 +8,5 @@ data class GroupDto(
     val name: String,
     val icon: Int,
     val color: Long,
-//    val tasks: List<TaskDto>
+    val tasks: List<TaskDto>
 )

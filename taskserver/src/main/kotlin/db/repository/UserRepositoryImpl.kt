@@ -1,9 +1,9 @@
-package com.example.db
+package com.example.db.repository
 
-import com.example.auth.UserDto
 import com.example.db.DatabaseFactory.suspendTransaction
 import com.example.db.dao.UserDAO
 import com.example.db.tables.UsersTable
+import com.example.shared.dto.UserDto
 import org.jetbrains.exposed.sql.insert
 
 class UserRepositoryImpl : UserRepository {

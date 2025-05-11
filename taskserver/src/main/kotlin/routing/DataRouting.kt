@@ -1,7 +1,7 @@
 package com.example.routing
 
-import com.example.db.GroupRepositoryImpl
-import com.example.db.TaskRepositoryImpl
+import com.example.db.repository.GroupRepositoryImpl
+import com.example.db.repository.TaskRepositoryImpl
 import com.example.shared.dto.GroupDto
 import com.example.shared.dto.TaskDto
 import com.example.shared.response.ServerResponse
@@ -20,7 +20,7 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.util.getOrFail
 
-
+// TODO REDUCE CODE, CREATE SERVICE FOR TASK AND GROUP
 fun Application.configureDataRouting() {
 
     val taskRepository = TaskRepositoryImpl()
@@ -32,7 +32,7 @@ fun Application.configureDataRouting() {
                 get {
                     val principal = call.principal<JWTPrincipal>()!!
                     val login = principal.payload.getClaim("userId").asString()
-                    val tasks = taskRepository.allTasks(login)
+                    val tasks = taskRepository.getAllTasksForUser(login)
                     call.respond(
                         ServerResponse(data = tasks)
                     )
@@ -41,8 +41,9 @@ fun Application.configureDataRouting() {
                     val principal = call.principal<JWTPrincipal>()!!
                     val login = principal.payload.getClaim("userId").asString()
                     val task = call.receive<TaskDto>()
-                    taskRepository.addTask(login, task)
-                    call.respond(HttpStatusCode.Created)
+                    taskRepository.addTask(login, task)?.let {
+                        call.respond(it)
+                    }
                 }
                 route("/{id}") {
                     put {
@@ -81,6 +82,7 @@ fun Application.configureDataRouting() {
                     try {
                         val group = call.receive<GroupDto>()
                         groupRepository.createGroup(login, group).let {
+                            groupRepository.syncTasksForGroup(login, it, group.tasks.map { it.id })
                             call.respond(it)
                         }
                     } catch (e: Exception) {

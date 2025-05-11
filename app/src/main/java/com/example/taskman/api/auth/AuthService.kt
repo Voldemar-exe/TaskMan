@@ -3,19 +3,20 @@ package com.example.taskman.api.auth
 import android.util.Log
 import com.example.shared.request.LoginRequest
 import com.example.shared.request.RegisterRequest
-import com.example.taskman.ui.auth.AuthStorage
+import com.example.shared.response.LoginResponse
+import com.example.taskman.ui.utils.SessionRepository
 import retrofit2.Response
 
 class AuthService(
     private val apiClient: AuthApi,
-    private val authDataStore: AuthStorage
+    private val sessionRepository: SessionRepository
 ) {
     suspend fun registerUser(
         request: RegisterRequest
     ): String? {
         Log.d("AuthService", "Register: $request")
         return safeApiCall { apiClient.register(request) }?.let {
-            authDataStore.saveProfile(
+            sessionRepository.saveSession(
                 ProfileData(
                     it.token,
                     request.login,
@@ -43,17 +44,17 @@ class AuthService(
         }
     }
 
-    suspend fun loginUser(request: LoginRequest): String? = safeApiCall {
+    suspend fun loginUser(request: LoginRequest): LoginResponse? = safeApiCall {
         apiClient.login(request)
     }?.let {
-        authDataStore.saveProfile(
+        sessionRepository.saveSession(
             ProfileData(
                 it.token,
                 request.login,
                 ""
             )
         )
-        request.login
+        it
     }
 
     private suspend fun <T> safeApiCall(call: suspend () -> Response<T>): T? {

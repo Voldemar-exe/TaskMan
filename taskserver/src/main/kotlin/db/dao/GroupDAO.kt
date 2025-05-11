@@ -18,5 +18,6 @@ fun groupDaoTpDto(dao: GroupDAO) = GroupDto(
     id = dao.id.value,
     name = dao.name,
     icon = dao.icon,
-    color = dao.color
+    color = dao.color,
+    tasks = emptyList()
 )

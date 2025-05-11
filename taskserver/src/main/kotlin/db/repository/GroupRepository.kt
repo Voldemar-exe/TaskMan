@@ -1,4 +1,4 @@
-package com.example.db
+package com.example.db.repository
 
 import com.example.shared.dto.GroupDto
 import com.example.shared.dto.TaskDto

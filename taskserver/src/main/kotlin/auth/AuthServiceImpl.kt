@@ -1,42 +1,40 @@
 package com.example.auth
 
-import com.example.db.TokenRepository
-import com.example.db.UserRepository
+import com.example.db.repository.GroupRepository
+import com.example.db.repository.TaskRepository
+import com.example.db.repository.TokenRepository
+import com.example.db.repository.UserRepository
+import com.example.shared.dto.UserDto
 import com.example.shared.request.LoginRequest
 import com.example.shared.request.RegisterRequest
 import com.example.shared.response.LoginResponse
-import kotlinx.serialization.Serializable
+import com.example.shared.response.RegisterResponse
 import org.mindrot.jbcrypt.BCrypt
-
-interface AuthService {
-    suspend fun register(credentials: RegisterRequest): Result<LoginResponse>
-    suspend fun findByLogin(login: String): Result<UserDto>
-    suspend fun deleteByLogin(login: String): Result<Boolean>
-    suspend fun login(credentials: LoginRequest): Result<LoginResponse>
-}
 
 class AuthServiceImpl(
     private val userRepository: UserRepository,
-    private val tokenRepository: TokenRepository
+    private val tokenRepository: TokenRepository,
+    private val groupRepository: GroupRepository,
+    private val taskRepository: TaskRepository
 ) : AuthService {
     override suspend fun register(
-        user: RegisterRequest
-    ): Result<LoginResponse> {
-        return userRepository.findByLogin(user.login)?.let {
+        request: RegisterRequest
+    ): Result<RegisterResponse> {
+        return userRepository.findByLogin(request.login)?.let {
             Result.failure(IllegalArgumentException("User exists"))
         } ?: run {
-            val passwordHash = BCrypt.hashpw(user.password, BCrypt.gensalt())
+            val passwordHash = BCrypt.hashpw(request.password, BCrypt.gensalt())
             userRepository.createUser(
                 UserDto(
-                    user.login,
+                    request.login,
                     passwordHash,
-                    user.username,
-                    user.email
+                    request.username,
+                    request.email
                 )
             )
-            val token = JwtConfig.generateToken(user.login)
-            tokenRepository.saveToken(user.login, token)
-            Result.success(LoginResponse(token))
+            val token = JwtConfig.generateToken(request.login)
+            tokenRepository.saveToken(request.login, token)
+            Result.success(RegisterResponse(token))
         }
     }
 
@@ -56,13 +54,17 @@ class AuthServiceImpl(
     }
 
     override suspend fun login(
-        credentials: LoginRequest
+        request: LoginRequest
     ): Result<LoginResponse> {
-        return userRepository.findByLogin(credentials.login)?.let { user ->
-            if (BCrypt.checkpw(credentials.password, user.passwordHash)) {
-                val token = JwtConfig.generateToken(credentials.login)
-                tokenRepository.saveToken(credentials.login, token)
-                Result.success(LoginResponse(token))
+        return userRepository.findByLogin(request.login)?.let { user ->
+            if (BCrypt.checkpw(request.password, user.passwordHash)) {
+                val token = JwtConfig.generateToken(request.login)
+                tokenRepository.saveToken(request.login, token)
+                val tasks = taskRepository.getTasksWithoutGroupForUser(user.login)
+                val groups = groupRepository.getGroupsForUser(user.login).map {
+                    it.copy(tasks = groupRepository.getGroupTasks(user.login, it.id))
+                }
+                Result.success(LoginResponse(token, tasks, groups))
             } else {
                 Result.failure(IllegalArgumentException("Invalid credentials"))
             }
@@ -71,10 +73,3 @@ class AuthServiceImpl(
 
 }
 
-@Serializable
-data class UserDto(
-    val login: String,
-    val passwordHash: String,
-    val username: String?,
-    val email: String?
-)

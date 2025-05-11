@@ -1,7 +1,7 @@
 package com.example.db.dao
 
-import com.example.auth.UserDto
 import com.example.db.tables.UsersTable
+import com.example.shared.dto.UserDto
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.id.EntityID

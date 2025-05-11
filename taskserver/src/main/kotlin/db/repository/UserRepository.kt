@@ -1,6 +1,6 @@
-package com.example.db
+package com.example.db.repository
 
-import com.example.auth.UserDto
+import com.example.shared.dto.UserDto
 
 
 interface UserRepository {

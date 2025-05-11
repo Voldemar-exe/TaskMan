@@ -74,6 +74,7 @@ fun GroupTaskDrawerSheet(
             ) {
                 val groups = listOf(
                     TaskGroup(
+                        serverId = -1,
                         name = "Все",
                         icon = R.drawable.ic_amount,
                         color = Color.Black.toArgb().toLong()

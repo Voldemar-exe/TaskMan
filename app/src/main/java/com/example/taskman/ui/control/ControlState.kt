@@ -15,6 +15,7 @@ data class ControlState(
 ) {
     data class BaseState(
         val entityId: Int? = null,
+        val serverEntityId: Int? = null,
         val entityName: String = "",
         val selectedIcon: Int = R.drawable.ic_work,
         val selectedColor: Color = Color.Red,

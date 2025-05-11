@@ -1,4 +1,4 @@
-package com.example.db
+package com.example.db.repository
 
 interface TokenRepository {
     fun saveToken(login: String, token: String)

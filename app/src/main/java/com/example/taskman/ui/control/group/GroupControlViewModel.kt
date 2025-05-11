@@ -4,7 +4,8 @@ import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.viewModelScope
-import com.example.taskman.api.group.GroupRequest
+import com.example.shared.dto.GroupDto
+import com.example.shared.dto.TaskDto
 import com.example.taskman.api.group.GroupService
 import com.example.taskman.db.GroupDao
 import com.example.taskman.db.GroupTaskCrossRef
@@ -73,6 +74,7 @@ class GroupControlViewModel(
                     if (base.isEditMode) {
                         val entity = TaskGroup(
                             groupId = base.entityId!!,
+                            serverId = base.serverEntityId,
                             name = base.entityName,
                             icon = base.selectedIcon,
                             color = base.selectedColor.toArgb().toLong()
@@ -81,6 +83,7 @@ class GroupControlViewModel(
                         entity.groupId
                     } else {
                         val entity = TaskGroup(
+                            serverId = base.serverEntityId,
                             name = base.entityName,
                             icon = base.selectedIcon,
                             color = base.selectedColor.toArgb().toLong()
@@ -160,25 +163,34 @@ class GroupControlViewModel(
         }
     }
 
-    private suspend fun syncToServer() {
+    private suspend fun syncToServer(): Boolean {
 
-        val reqGroup = GroupRequest(
+        val reqGroup = GroupDto(
             id = baseState.entityId ?: 0,
             name = baseState.entityName,
             icon = baseState.selectedIcon,
-            color = baseState.selectedColor.toArgb().toLong()
+            color = baseState.selectedColor.toArgb().toLong(),
+            tasks = groupState.tasksInGroup.map { task ->
+                TaskDto(
+                    id = task.serverId ?: 0,
+                    name = task.name,
+                    icon = task.icon,
+                    color = task.color,
+                    type = task.type,
+                    note = task.note,
+                    isComplete = task.isComplete,
+                    date = task.date
+                )
+            }
         )
 
-        var groupId = baseState.entityId
-
         if (baseState.isEditMode) {
-            groupService.updateGroup(groupId!!, reqGroup)
+            baseState.serverEntityId?.let {
+                return groupService.updateGroup(it, reqGroup)
+            }
         } else {
-            groupId = groupService.createGroup(reqGroup)
+            return groupService.createGroup(reqGroup) != null
         }
-
-        groupId?.let {
-            groupService.syncTasksForGroup(it, groupState.tasksInGroup.map { it.taskId })
-        }
+        return false
     }
 }

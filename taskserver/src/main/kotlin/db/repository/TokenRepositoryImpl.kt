@@ -1,4 +1,4 @@
-package com.example.db
+package com.example.db.repository
 
 import com.example.db.DatabaseFactory.suspendTransaction
 import com.example.db.dao.TokenDAO

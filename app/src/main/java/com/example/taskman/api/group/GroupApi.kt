@@ -17,10 +17,10 @@ interface GroupApi {
     suspend fun getAll(): Response<List<GroupDto>>
 
     @POST("/groups")
-    suspend fun create(@Body request: GroupRequest): Response<Int>
+    suspend fun create(@Body dto: GroupDto): Response<Int>
 
     @PUT("/groups/{id}")
-    suspend fun update(@Path("id") id: Int, @Body request: GroupRequest): Response<Unit>
+    suspend fun update(@Path("id") id: Int, @Body dto: GroupDto): Response<Unit>
 
     @DELETE("/groups/{id}")
     suspend fun delete(@Path("id") id: Int): Response<HttpStatusCode>

@@ -12,14 +12,14 @@ class GroupService(
     suspend fun getAllGroups(): List<GroupDto>? =
         safeApiCall { apiClient.getAll() }
 
-    suspend fun createGroup(request: GroupRequest): Int? {
-        return safeApiCall { apiClient.create(request) }
+    suspend fun createGroup(dto: GroupDto): Int? {
+        return safeApiCall { apiClient.create(dto) }
     }
 
-    suspend fun updateGroup(id: Int, request: GroupRequest): Boolean {
+    suspend fun updateGroup(id: Int, dto: GroupDto): Boolean {
         return try {
-            Log.d(TAG, "Updating group $id: $request")
-            val response = apiClient.update(id, request)
+            Log.d(TAG, "Updating group $id: $dto")
+            val response = apiClient.update(id, dto)
             if (response.isSuccessful) {
                 Log.d(TAG, "Group updated successfully")
                 true

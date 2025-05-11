@@ -1,4 +1,4 @@
-package com.example.db
+package com.example.db.repository
 
 import com.example.db.DatabaseFactory.suspendTransaction
 import com.example.db.dao.GroupDAO
@@ -67,12 +67,9 @@ class GroupRepositoryImpl : GroupRepository {
         taskIds: List<Int>
     ): Boolean = suspendTransaction {
 
-        val user = UserDAO.findById(login) ?: error("User not found")
-        val group = (UserGroupTable innerJoin GroupsTable).selectAll()
-            .where { UserGroupTable.login eq user.id }
-            .map {
-                GroupDAO.wrapRow(it)
-            }.find { it.id.value == groupId } ?: error("Group not found")
+        val group = UserGroupDAO.find {
+            (UserGroupTable.login eq login) and (UserGroupTable.groupId eq groupId)
+        }.firstOrNull()?.groupId ?: error("Group not found or not owned by user")
 
 
         val currentLinks = GroupTaskDAO.find { GroupTaskTable.groupId eq group.id }

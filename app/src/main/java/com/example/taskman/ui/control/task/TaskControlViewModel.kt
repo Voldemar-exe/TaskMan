@@ -35,8 +35,9 @@ class TaskControlViewModel(
             is TaskControlIntent.UpdateDate -> updateDate(intent.date)
             is TaskControlIntent.UpdateType -> updateType(intent.type)
             is TaskControlIntent.UpdateTaskToServer -> viewModelScope.launch {
-                updateToServer(intent.task)
+                taskService.updateTask(TaskRequest(intent.task))
             }
+
             else -> processBaseIntent(intent)
         }
     }
@@ -61,6 +62,7 @@ class TaskControlViewModel(
             try {
                 val task = MyTask(
                     taskId = baseState.entityId ?: 0,
+                    serverId = baseState.serverEntityId,
                     name = baseState.entityName,
                     icon = baseState.selectedIcon,
                     color = baseState.selectedColor.toArgb().toLong(),
@@ -73,29 +75,18 @@ class TaskControlViewModel(
                 when (controlState.value.base.isEditMode) {
                     true -> {
                         taskDao.updateTask(task)
-                        updateToServer(task)
+                        taskService.updateTask(TaskRequest(task))
                     }
 
                     false -> {
-                        insertToServer(task.copy(taskId = taskDao.insertTask(task).toInt()))
+                        val taskId = taskService.createTask(TaskRequest(task))
+                        taskDao.insertTask(task.copy(serverId = taskId))
                     }
                 }
                 setResult(IntentResult.Success(ControlIntent.SaveEntity.toString()))
             } catch (e: Exception) {
                 errorException(e)
             }
-        }
-    }
-
-    private suspend fun insertToServer(task: MyTask) {
-        taskService.createTask(TaskRequest(task))?.let {
-            Log.i("TEST", it.toString())
-        }
-    }
-
-    private suspend fun updateToServer(task: MyTask) {
-        taskService.updateTask(TaskRequest(task)).let {
-            Log.i("TEST", it.toString())
         }
     }
 
@@ -108,6 +99,7 @@ class TaskControlViewModel(
                         it.copy(
                             base = baseState.copy(
                                 entityId = task.taskId,
+                                serverEntityId = task.serverId,
                                 entityName = task.name,
                                 selectedIcon = task.icon,
                                 selectedColor = Color(task.color),
@@ -134,13 +126,9 @@ class TaskControlViewModel(
     override fun deleteEntity(entityId: Int) {
         viewModelScope.launch {
             taskDao.deleteTaskById(entityId)?.let {
-                deleteFromServer(entityId)
+                taskService.deleteTask(it)
             }
         }
-    }
-
-    private suspend fun deleteFromServer(taskId: Int) {
-        taskService.deleteTask(taskId)
     }
 
     companion object {

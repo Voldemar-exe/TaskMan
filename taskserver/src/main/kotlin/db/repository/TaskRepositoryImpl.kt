@@ -1,4 +1,4 @@
-package com.example.db
+package com.example.db.repository
 
 import com.example.db.DatabaseFactory.suspendTransaction
 import com.example.db.dao.GroupTaskDAO
@@ -15,19 +15,39 @@ import org.jetbrains.exposed.sql.selectAll
 
 class TaskRepositoryImpl : TaskRepository {
 
-    override suspend fun allTasks(login: String): List<TaskDto> = suspendTransaction {
-        UserDAO.findById(login)?.let { userRow ->
+    override suspend fun getAllTasksForUser(login: String): List<TaskDto> = suspendTransaction {
+        UserDAO.findById(login)?.let { userDao ->
             (UserTaskTable innerJoin TasksTable).selectAll()
-                .where { UserTaskTable.login eq userRow.id }
+                .where { UserTaskTable.login eq userDao.id }
                 .map {
                     taskDaoToDto(TaskDAO.wrapRow(it))
                 }
         } ?: emptyList()
     }
 
-    override suspend fun addTask(login: String, newTask: TaskDto): Boolean = suspendTransaction {
+    override suspend fun getTasksWithoutGroupForUser(login: String): List<TaskDto> =
+        suspendTransaction {
+            UserDAO.findById(login)?.let { userDao ->
+
+                val userTasksSubQuery = UserTaskTable
+                    .select(UserTaskTable.taskId)
+                    .where { UserTaskTable.login eq userDao.id }
+
+                (TasksTable leftJoin GroupTaskTable)
+                    .selectAll()
+                    .where {
+                        GroupTaskTable.taskId.isNull() and
+                                (TasksTable.id inSubQuery userTasksSubQuery)
+                    }
+                    .map { row ->
+                        taskDaoToDto(TaskDAO.wrapRow(row))
+                    }
+            } ?: emptyList()
+        }
+
+    override suspend fun addTask(login: String, newTask: TaskDto): Int? = suspendTransaction {
         UserDAO.findById(login)?.let { userDao ->
-            TaskDAO.new {
+            val task = TaskDAO.new {
                 name = newTask.name
                 icon = newTask.icon
                 color = newTask.color
@@ -40,10 +60,9 @@ class TaskRepositoryImpl : TaskRepository {
                     this.login = userDao
                     this.taskId = it
                 }
-                true
             }
+            task.id.value
         }
-        false
     }
 
     override suspend fun updateTask(login: String, task: TaskDto): Boolean = suspendTransaction {

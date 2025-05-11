@@ -15,7 +15,7 @@ data class TaskRequest(
     val date: Long
 ) {
     constructor(myTask: MyTask) : this(
-        id = myTask.taskId,
+        id = myTask.serverId ?: 0,
         name = myTask.name,
         icon = myTask.icon,
         color = myTask.color,
