@@ -1,4 +1,4 @@
-package com.example.dto.response
+package com.example.shared.response
 
 import kotlinx.serialization.Serializable
 

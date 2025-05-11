@@ -3,9 +3,9 @@ package com.example.taskman.ui.auth
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.shared.request.LoginRequest
+import com.example.shared.request.RegisterRequest
 import com.example.taskman.api.auth.AuthService
-import com.example.taskman.api.auth.LoginRequest
-import com.example.taskman.api.auth.RegisterRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

@@ -1,7 +1,7 @@
 package com.example.db.dao
 
 import com.example.db.tables.GroupsTable
-import com.example.dto.request.GroupDto
+import com.example.shared.dto.GroupDto
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID

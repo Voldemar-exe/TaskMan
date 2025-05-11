@@ -59,7 +59,16 @@ class TaskControlViewModel(
         viewModelScope.launch {
             startLoading()
             try {
-                val task = createTaskFromState()
+                val task = MyTask(
+                    taskId = baseState.entityId ?: 0,
+                    name = baseState.entityName,
+                    icon = baseState.selectedIcon,
+                    color = baseState.selectedColor.toArgb().toLong(),
+                    type = taskState.selectedType.name,
+                    note = taskState.selectedType.note,
+                    isComplete = taskState.isComplete,
+                    date = taskState.selectedDate
+                )
 
                 when (controlState.value.base.isEditMode) {
                     true -> {
@@ -132,19 +141,6 @@ class TaskControlViewModel(
 
     private suspend fun deleteFromServer(taskId: Int) {
         taskService.deleteTask(taskId)
-    }
-
-    private fun createTaskFromState(): MyTask {
-        return MyTask(
-            taskId = baseState.entityId ?: 0,
-            name = baseState.entityName,
-            icon = baseState.selectedIcon,
-            color = baseState.selectedColor.toArgb().toLong(),
-            type = taskState.selectedType.name,
-            note = taskState.selectedType.note,
-            isComplete = taskState.isComplete,
-            date = taskState.selectedDate
-        )
     }
 
     companion object {

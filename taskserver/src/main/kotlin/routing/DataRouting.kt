@@ -2,9 +2,9 @@ package com.example.routing
 
 import com.example.db.GroupRepositoryImpl
 import com.example.db.TaskRepositoryImpl
-import com.example.dto.request.GroupDto
-import com.example.dto.request.TaskDto
-import com.example.dto.response.ServerResponse
+import com.example.shared.dto.GroupDto
+import com.example.shared.dto.TaskDto
+import com.example.shared.response.ServerResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authenticate

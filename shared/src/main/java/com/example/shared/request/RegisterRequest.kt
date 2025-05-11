@@ -1,9 +1,9 @@
-package com.example.auth
+package com.example.shared.request
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class RegisterReceiveRemote(
+data class RegisterRequest(
     val login: String,
     val password: String,
     val username: String,

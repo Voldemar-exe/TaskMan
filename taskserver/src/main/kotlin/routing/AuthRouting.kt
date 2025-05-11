@@ -1,9 +1,9 @@
 package com.example.routing
 
 import com.example.auth.AuthService
-import com.example.auth.LoginReceiveRemote
-import com.example.auth.RegisterReceiveRemote
 import com.example.db.TokenRepositoryImpl
+import com.example.shared.request.LoginRequest
+import com.example.shared.request.RegisterRequest
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.request.receive
@@ -18,9 +18,10 @@ fun Application.configureAuthRouting() {
 
     val authService: AuthService by inject<AuthService>()
     val tokenRepository = TokenRepositoryImpl()
+
     routing {
         post("/login") {
-            val request = call.receive<LoginReceiveRemote>()
+            val request = call.receive<LoginRequest>()
             val result = authService.findByLogin(request.login)
             result.fold(
                 onSuccess = { userDto ->
@@ -36,7 +37,7 @@ fun Application.configureAuthRouting() {
             )
         }
         post("/register") {
-            val credentials = call.receive<RegisterReceiveRemote>()
+            val credentials = call.receive<RegisterRequest>()
             val result = authService.register(credentials)
             result.fold(
                 onSuccess = { call.respond(it) },

@@ -1,5 +1,6 @@
 package com.example.taskman.api.task
 
+import com.example.shared.dto.TaskDto
 import io.ktor.http.HttpStatusCode
 import retrofit2.Response
 import retrofit2.http.Body

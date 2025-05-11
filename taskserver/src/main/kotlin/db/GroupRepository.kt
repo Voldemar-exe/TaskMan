@@ -1,7 +1,7 @@
 package com.example.db
 
-import com.example.dto.request.GroupDto
-import com.example.dto.request.TaskDto
+import com.example.shared.dto.GroupDto
+import com.example.shared.dto.TaskDto
 
 interface GroupRepository {
     suspend fun getGroupsForUser(login: String): List<GroupDto>

@@ -1,6 +1,7 @@
 package com.example.taskman.api.task
 
 import android.util.Log
+import com.example.shared.dto.TaskDto
 import retrofit2.Response
 
 class TaskService(

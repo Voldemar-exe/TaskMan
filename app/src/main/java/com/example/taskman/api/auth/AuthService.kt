@@ -1,29 +1,10 @@
 package com.example.taskman.api.auth
 
 import android.util.Log
+import com.example.shared.request.LoginRequest
+import com.example.shared.request.RegisterRequest
 import com.example.taskman.ui.auth.AuthStorage
-import kotlinx.serialization.Serializable
 import retrofit2.Response
-
-@Serializable
-data class RegisterRequest(
-    val login: String,
-    val password: String,
-    val username: String,
-    val email: String
-)
-
-@Serializable
-data class LoginRequest(
-    val login: String,
-    val password: String
-)
-
-@Serializable
-data class LoginResponseRemote(
-    val token: String
-)
-
 
 class AuthService(
     private val apiClient: AuthApi,

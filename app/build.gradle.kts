@@ -48,6 +48,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.kotlinx.serialization.json)
 
+    implementation(project(":shared"))
+
     // COMPOSE
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))

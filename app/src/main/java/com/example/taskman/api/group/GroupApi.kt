@@ -1,6 +1,7 @@
 package com.example.taskman.api.group
 
-import com.example.taskman.api.task.TaskDto
+import com.example.shared.dto.GroupDto
+import com.example.shared.dto.TaskDto
 import io.ktor.http.HttpStatusCode
 import retrofit2.Response
 import retrofit2.http.Body

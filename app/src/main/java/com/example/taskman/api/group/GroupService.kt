@@ -1,7 +1,8 @@
 package com.example.taskman.api.group
 
 import android.util.Log
-import com.example.taskman.api.task.TaskDto
+import com.example.shared.dto.GroupDto
+import com.example.shared.dto.TaskDto
 import retrofit2.Response
 
 class GroupService(

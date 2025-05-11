@@ -2,14 +2,17 @@ package com.example.auth
 
 import com.example.db.TokenRepository
 import com.example.db.UserRepository
+import com.example.shared.request.LoginRequest
+import com.example.shared.request.RegisterRequest
+import com.example.shared.response.LoginResponse
 import kotlinx.serialization.Serializable
 import org.mindrot.jbcrypt.BCrypt
 
 interface AuthService {
-    suspend fun register(credentials: RegisterReceiveRemote): Result<LoginResponseRemote>
+    suspend fun register(credentials: RegisterRequest): Result<LoginResponse>
     suspend fun findByLogin(login: String): Result<UserDto>
     suspend fun deleteByLogin(login: String): Result<Boolean>
-    suspend fun login(credentials: LoginReceiveRemote): Result<LoginResponseRemote>
+    suspend fun login(credentials: LoginRequest): Result<LoginResponse>
 }
 
 class AuthServiceImpl(
@@ -17,8 +20,8 @@ class AuthServiceImpl(
     private val tokenRepository: TokenRepository
 ) : AuthService {
     override suspend fun register(
-        user: RegisterReceiveRemote
-    ): Result<LoginResponseRemote> {
+        user: RegisterRequest
+    ): Result<LoginResponse> {
         return userRepository.findByLogin(user.login)?.let {
             Result.failure(IllegalArgumentException("User exists"))
         } ?: run {
@@ -33,7 +36,7 @@ class AuthServiceImpl(
             )
             val token = JwtConfig.generateToken(user.login)
             tokenRepository.saveToken(user.login, token)
-            Result.success(LoginResponseRemote(token))
+            Result.success(LoginResponse(token))
         }
     }
 
@@ -53,13 +56,13 @@ class AuthServiceImpl(
     }
 
     override suspend fun login(
-        credentials: LoginReceiveRemote
-    ): Result<LoginResponseRemote> {
+        credentials: LoginRequest
+    ): Result<LoginResponse> {
         return userRepository.findByLogin(credentials.login)?.let { user ->
             if (BCrypt.checkpw(credentials.password, user.passwordHash)) {
                 val token = JwtConfig.generateToken(credentials.login)
                 tokenRepository.saveToken(credentials.login, token)
-                Result.success(LoginResponseRemote(token))
+                Result.success(LoginResponse(token))
             } else {
                 Result.failure(IllegalArgumentException("Invalid credentials"))
             }

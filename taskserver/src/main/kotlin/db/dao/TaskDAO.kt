@@ -1,7 +1,7 @@
 package com.example.db.dao
 
 import com.example.db.tables.TasksTable
-import com.example.dto.request.TaskDto
+import com.example.shared.dto.TaskDto
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
