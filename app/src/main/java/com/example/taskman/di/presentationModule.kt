@@ -11,6 +11,7 @@ import com.example.taskman.ui.control.task.TaskControlViewModel
 import com.example.taskman.ui.main.MainViewModel
 import com.example.taskman.ui.profile.ProfileViewModel
 import com.example.taskman.ui.search.SearchViewModel
+import com.example.taskman.ui.utils.HistoryRepository
 import com.example.taskman.ui.utils.OptionViewModel
 import com.example.taskman.ui.utils.SessionRepository
 import com.example.taskman.ui.utils.ThemeRepository
@@ -24,5 +25,5 @@ val presentationModule = module {
     viewModel { MainViewModel(get<TaskDao>(), get<GroupDao>()) }
     viewModel { TaskControlViewModel(get<TaskDao>(), get<TaskService>()) }
     viewModel { GroupControlViewModel(get<GroupDao>(), get<GroupService>()) }
-    viewModel { SearchViewModel(get<TaskDao>()) }
+    viewModel { SearchViewModel(get<TaskDao>(), get<HistoryRepository>()) }
 }

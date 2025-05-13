@@ -7,8 +7,6 @@ import com.example.shared.dto.GroupDto
 import com.example.shared.dto.TaskDto
 import com.example.shared.request.LoginRequest
 import com.example.shared.request.RegisterRequest
-import com.example.shared.response.LoginResponse
-import com.example.shared.response.RegisterResponse
 import com.example.taskman.api.auth.AuthService
 import com.example.taskman.db.GroupDao
 import com.example.taskman.db.GroupTaskCrossRef
@@ -36,12 +34,15 @@ class AuthViewModel(
 
     companion object {
         private const val TAG = "AuthViewModel"
+        private const val EMAIL_PATTERN = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
     }
 
     fun onIntent(intent: AuthIntent) {
         Log.i(TAG, "$intent")
         when (intent) {
             is AuthIntent.UpdateLogin -> updateLogin(intent.login)
+            is AuthIntent.UpdateEmail -> updateEmail(intent.email)
+            is AuthIntent.UpdateUsername -> updateUsername(intent.username)
             is AuthIntent.UpdatePassword -> updatePassword(intent.password)
             is AuthIntent.UpdateConfirmPassword -> updateConfirmPassword(intent.confirmPassword)
             is AuthIntent.Submit -> submitForm()
@@ -50,102 +51,122 @@ class AuthViewModel(
     }
 
     private fun updateLogin(login: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                login = login,
-                error = null
-            )
-        }
+        _uiState.update { it.copy(login = login, error = null) }
+    }
+
+    private fun updateEmail(email: String) {
+        _uiState.update { it.copy(email = email, error = null) }
+    }
+
+    private fun updateUsername(username: String) {
+        _uiState.update { it.copy(username = username, error = null) }
     }
 
     private fun updatePassword(password: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                password = password,
-                error = null
-            )
-        }
+        _uiState.update { it.copy(password = password, error = null) }
     }
 
     private fun updateConfirmPassword(confirmPassword: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                confirmPassword = confirmPassword,
-                error = null
-            )
+        _uiState.update { it.copy(confirmPassword = confirmPassword, error = null) }
+    }
+
+    private fun toggleMode() {
+        _uiState.update { it.copy(isRegister = !it.isRegister, error = null) }
+    }
+
+    private fun validateInput(): String? {
+        val state = _uiState.value
+        return when {
+//            state.login.length < 3 -> "Логин должен содержать минимум 3 символа"
+//            state.isRegister && !state.email.matches(EMAIL_PATTERN.toRegex()) ->
+//                "Некорректный email адрес"
+//            state.isRegister && state.username.length < 2 ->
+//                "Имя пользователя должно содержать минимум 2 символа"
+//            state.password.length < 6 -> "Пароль должен содержать минимум 6 символов"
+            state.isRegister && state.password != state.confirmPassword ->
+                "Пароли не совпадают"
+
+            else -> null
         }
     }
 
     private fun submitForm() {
-        val state = _uiState.value
-
-        if (state.isRegister && state.password != state.confirmPassword) {
-            _uiState.update { it.copy(error = "Пароли не совпадают") }
+        val validationError = validateInput()
+        if (validationError != null) {
+            _uiState.update { it.copy(error = validationError) }
             return
         }
 
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val result = runCatching {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
+            try {
+                val state = _uiState.value
+                withContext(Dispatchers.IO) {
                     if (state.isRegister) {
-                        register(
-                            state.login,
-                            state.password,
-                            taskDao.getAllTasksWithoutGroups().map { it.toDto() },
-                            groupDao.getAllGroupsWithTasksList().map {
-                                GroupDto(
-                                    it.group.serverId ?: 0,
-                                    it.group.name,
-                                    it.group.icon,
-                                    it.group.color,
-                                    it.tasks.map { it.toDto() }
-                                )
-                            }
-                        )
+                        handleRegistration(state)
                     } else {
-                        login(state.login, state.password)
+                        handleLogin(state)
                     }
                 }
 
-                result.fold(
-                    onSuccess = { response ->
-                        if (state.isRegister) {
-                            val registerResponse = response as? RegisterResponse
-                            registerResponse?.let {
-                                Log.i(TAG, "${it.tasks}\n ${it.groups} ")
-                                syncLocalData(it.tasks, it.groups)
-                                _uiState.update {
-                                    it.copy(error = null, success = true)
-                                }
-                                return@withContext
-                            }
-                            _uiState.update {
-                                it.copy(error = "Ошибка регистрации")
-                            }
-                        } else {
-                            val loginResponse = response as? LoginResponse
-                            loginResponse?.let {
-                                Log.i(TAG, "${it.tasks}\n ${it.groups} ")
-                                syncLocalData(it.tasks, it.groups)
-                                _uiState.update {
-                                    it.copy(error = null, success = true)
-                                }
-                                return@withContext
-                            }
-                            _uiState.update {
-                                it.copy(error = "Ошибка входа")
-                            }
-                        }
-                    },
-                    onFailure = { throwable ->
-                        Log.e("AuthViewModel", "Network error", throwable)
-                        _uiState.update {
-                            it.copy(error = "Сетевая ошибка. Попробуйте ещё раз.")
-                        }
-                    }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = null,
+                        success = true
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e(
+                    TAG,
+                    "Error during ${
+                        if (_uiState.value.isRegister) "registration" else "login"
+                    }",
+                    e
                 )
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = e.message ?: "Произошла ошибка. Попробуйте ещё раз."
+                    )
+                }
             }
         }
+    }
+
+    private suspend fun handleRegistration(state: AuthState) {
+        val tasks = taskDao.getAllTasksWithoutGroups().map { it.toDto() }
+        val groups = groupDao.getAllGroupsWithTasksList().map { group ->
+            GroupDto(
+                group.group.serverId ?: 0,
+                group.group.name,
+                group.group.icon,
+                group.group.color,
+                group.tasks.map { it.toDto() }
+            )
+        }
+
+        val response = authService.registerUser(
+            RegisterRequest(
+                login = state.login,
+                password = state.password,
+                email = state.email,
+                username = state.username,
+                tasksWithoutGroup = tasks,
+                groupsWithTasks = groups
+            )
+        ) ?: error("Ошибка регистрации")
+
+        syncLocalData(response.tasks, response.groups)
+    }
+
+    private suspend fun handleLogin(state: AuthState) {
+        val response = authService.loginUser(
+            LoginRequest(state.login, state.password)
+        ) ?: error("Ошибка входа")
+
+        syncLocalData(response.tasks, response.groups)
     }
 
     private suspend fun syncLocalData(
@@ -157,9 +178,9 @@ class AuthViewModel(
         tasksWithoutGroup.forEach {
             taskDao.insertTask(MyTask(it))
         }
+
         groupsWithTasks.forEach { group ->
             val groupId = groupDao.insertGroup(TaskGroup(group))
-
             group.tasks.forEach { task ->
                 val taskId = taskDao.insertTask(MyTask(task))
                 groupDao.insertGroupTaskCrossRef(
@@ -171,26 +192,4 @@ class AuthViewModel(
             }
         }
     }
-
-    // TODO ADD USERNAME AND EMAIL
-    private suspend fun register(
-        login: String,
-        password: String,
-        tasks: List<TaskDto>,
-        groups: List<GroupDto>
-    ): RegisterResponse? =
-        authService.registerUser(RegisterRequest(login, password, "", "", tasks, groups))
-
-    private suspend fun login(login: String, password: String): LoginResponse? =
-        authService.loginUser(LoginRequest(login, password))
-
-    private fun toggleMode() {
-        _uiState.update { currentState ->
-            currentState.copy(
-                isRegister = !currentState.isRegister,
-                error = null
-            )
-        }
-    }
-
 }

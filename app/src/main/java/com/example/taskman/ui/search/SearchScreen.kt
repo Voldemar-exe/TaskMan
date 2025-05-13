@@ -28,39 +28,28 @@ import com.example.taskman.ui.main.TaskItem
 @Composable
 fun SearchScreen(
     allTasks: List<MyTask>,
+    history: List<String>,
     state: SearchState,
     onIntent: (SearchIntent) -> Unit,
     onTaskCheckClick: (MyTask) -> Unit
 ) {
-
     Scaffold(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxSize(),
+        topBar = {
+            TaskSearchBar(
+                state = state,
+                onIntent = onIntent,
+                searchHistory = history
+            )
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            TaskSearchBar(
-                query = state.searchText,
-                onQueryChange = {
-                    onIntent(SearchIntent.ChangeSearchText(it))
-                },
-                onSearch = {
-                    onIntent(SearchIntent.Search)
-                },
-                searchResults = state.searchHistory,
-                onResultClick = {
-                    onIntent(SearchIntent.ChangeSearchText(it))
-                    onIntent(SearchIntent.Search)
-                },
-                clearHistory = {
-                    onIntent(SearchIntent.ClearSearchHistory)
-                },
-                clearSearch = {
-                    onIntent(SearchIntent.ClearSearch)
-                }
-            )
             if (state.isLoading) CircularProgressIndicator()
             when (state.result) {
                 IntentResult.None -> NoResultsPlaceholder()
@@ -69,15 +58,17 @@ fun SearchScreen(
                 }
 
                 is IntentResult.Success -> {
-                    LazyColumn {
-                        // TODO REMOVE THIS TERRIBLE CODE. IT JUST FOR NOW
-                        items(
-                            allTasks.filter { it.taskId in state.searchedTasks.map { it.taskId } }
-                        ) { task ->
-                            TaskItem(
-                                task = task,
-                                onCheckClick = onTaskCheckClick
-                            )
+                    if (!state.expandedTaskList) {
+                        LazyColumn {
+                            // TODO REMOVE THIS TERRIBLE CODE. IT JUST FOR NOW
+                            items(
+                                allTasks.filter { it.name.contains(state.inputText, true) }
+                            ) { task ->
+                                TaskItem(
+                                    task = task,
+                                    onCheckClick = onTaskCheckClick
+                                )
+                            }
                         }
                     }
                 }

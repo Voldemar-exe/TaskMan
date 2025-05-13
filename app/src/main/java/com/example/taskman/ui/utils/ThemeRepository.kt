@@ -4,6 +4,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface ThemeRepository {
     fun saveTheme(isDarkTheme: Boolean)
-    fun isDarkTheme() : Boolean
-    fun getThemeFlow() : Flow<Boolean>
+    fun isDarkTheme(): Boolean
+    fun getThemeFlow(): Flow<Boolean>
 }

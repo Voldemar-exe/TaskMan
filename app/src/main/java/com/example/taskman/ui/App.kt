@@ -16,6 +16,8 @@ import androidx.navigation.toRoute
 import com.example.taskman.api.auth.ProfileData
 import com.example.taskman.ui.auth.AuthStorage
 import com.example.taskman.ui.auth.AuthenticationScreen
+import com.example.taskman.ui.control.group.GroupControlViewModel
+import com.example.taskman.ui.control.task.TaskControlViewModel
 import com.example.taskman.ui.main.MainIntent
 import com.example.taskman.ui.main.MainViewModel
 import com.example.taskman.ui.main.TaskScreen
@@ -34,6 +36,9 @@ fun App(
     navController: NavHostController = rememberNavController()
 ) {
     val mainViewModel = koinViewModel<MainViewModel>()
+    val taskControlViewModel = koinViewModel<TaskControlViewModel>()
+    val groupControlViewModel = koinViewModel<GroupControlViewModel>()
+    val searchViewModel = koinViewModel<SearchViewModel>()
     val authStorage = koinInject<AuthStorage>()
 
     Scaffold { paddingValues ->
@@ -60,6 +65,8 @@ fun App(
 
                 TaskScreen(
                     mainViewModel = mainViewModel,
+                    taskControlViewModel = taskControlViewModel,
+                    groupControlViewModel = groupControlViewModel,
                     onProfileClick = {
                         val route = profile?.let { user ->
                             val displayName = user.username
@@ -88,12 +95,13 @@ fun App(
                 )
             }
             composable<SearchScreen> {
-                val searchViewModel = koinViewModel<SearchViewModel>()
-                val uiState = searchViewModel.state.collectAsStateWithLifecycle()
+                val uiState by searchViewModel.state.collectAsStateWithLifecycle()
+                val history by searchViewModel.history.collectAsStateWithLifecycle()
                 val allTasks by mainViewModel.allTasks.collectAsStateWithLifecycle()
                 SearchScreen(
                     allTasks = allTasks,
-                    state = uiState.value,
+                    history = history,
+                    state = uiState,
                     onIntent = searchViewModel::onIntent,
                     onTaskCheckClick = { task ->
                         mainViewModel.onIntent(

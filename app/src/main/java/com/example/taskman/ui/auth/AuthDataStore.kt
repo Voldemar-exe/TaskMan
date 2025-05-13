@@ -27,15 +27,16 @@ class AuthDataStore(context: Context) : AuthStorage {
         private const val TAG = "AuthDataStore"
     }
 
-    override suspend fun saveProfile(profile: ProfileData) {
+    override suspend fun saveProfile(profileData: ProfileData) {
         dataStore.edit {
-            it[TOKEN] = profile.token
-            it[LOGIN] = profile.login
-            it[USERNAME] = profile.username ?: ""
+            it[TOKEN] = profileData.token
+            it[LOGIN] = profileData.login
+            it[USERNAME] = profileData.username ?: ""
         }
         Log.d(
-            TAG, "Saved profile → token=${profile.token.take(5)}...," +
-                    " login=${profile.login}, username=${profile.username}"
+            TAG,
+            "Saved profile → token=${profileData.token.take(5)}...," +
+                    " login=${profileData.login}, username=${profileData.username}"
         )
     }
 
@@ -43,8 +44,11 @@ class AuthDataStore(context: Context) : AuthStorage {
         val prefs = dataStore.data
             .catch { e ->
                 Log.e(TAG, "Error reading preferences, emitting empty", e)
-                if (e is IOException) emit(emptyPreferences())
-                else throw e
+                if (e is IOException) {
+                    emit(emptyPreferences())
+                } else {
+                    throw e
+                }
             }
             .first()
 
@@ -54,11 +58,14 @@ class AuthDataStore(context: Context) : AuthStorage {
 
         val profile = if (!token.isNullOrBlank() && !login.isNullOrBlank()) {
             ProfileData(token, login, username)
-        } else null
+        } else {
+            null
+        }
 
         if (profile != null) {
             Log.d(
-                TAG, "Loaded profile → token=${profile.token.take(5)}...," +
+                TAG,
+                "Loaded profile → token=${profile.token.take(5)}...," +
                         " login=${profile.login}, username=${profile.username}"
             )
         } else {
@@ -66,6 +73,16 @@ class AuthDataStore(context: Context) : AuthStorage {
         }
 
         return profile
+    }
+
+    override suspend fun updateProfile(profileData: ProfileData) {
+        dataStore.edit { prefs ->
+            prefs[TOKEN] = profileData.token.ifBlank { prefs[TOKEN] ?: "" }
+            prefs[LOGIN] = profileData.login.ifBlank { prefs[LOGIN] ?: "" }
+            prefs[USERNAME] = profileData.username?.ifBlank {
+                prefs[USERNAME] ?: ""
+            } ?: prefs[USERNAME] ?: ""
+        }
     }
 
     override suspend fun clearProfile() {

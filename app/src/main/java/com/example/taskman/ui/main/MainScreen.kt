@@ -45,15 +45,14 @@ import com.example.taskman.ui.control.task.TaskControlViewModel
 import com.example.taskman.ui.utils.TaskManAppData.icons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskScreen(
     modifier: Modifier = Modifier,
-    mainViewModel: MainViewModel = koinViewModel<MainViewModel>(),
-    taskControlViewModel: TaskControlViewModel = koinViewModel<TaskControlViewModel>(),
-    groupControlViewModel: GroupControlViewModel = koinViewModel<GroupControlViewModel>(),
+    mainViewModel: MainViewModel,
+    taskControlViewModel: TaskControlViewModel,
+    groupControlViewModel: GroupControlViewModel,
     onProfileClick: () -> Unit = {},
     onSearchClick: () -> Unit = {}
 ) {

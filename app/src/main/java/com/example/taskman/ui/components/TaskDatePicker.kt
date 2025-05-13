@@ -72,7 +72,7 @@ fun TaskDatePicker(
                 },
                 dismissButton = {
                     TextButton(onClick = { showDatePicker = false }) {
-                        Text("Cancel")
+                        Text("Отмена")
                     }
                 }
             ) {

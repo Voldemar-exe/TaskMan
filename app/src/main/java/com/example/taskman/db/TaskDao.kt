@@ -33,5 +33,4 @@ interface TaskDao {
 
     @Update
     suspend fun updateTask(task: MyTask)
-
 }

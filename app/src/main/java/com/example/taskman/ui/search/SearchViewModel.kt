@@ -1,67 +1,79 @@
 package com.example.taskman.ui.search
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.taskman.db.TaskDao
 import com.example.taskman.ui.components.IntentResult
+import com.example.taskman.ui.utils.HistoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SearchViewModel(
-    private val taskDao: TaskDao
+    private val taskDao: TaskDao,
+    private val historyRepository: HistoryRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(SearchState())
     val state: StateFlow<SearchState> = _state.asStateFlow()
 
+    val history: StateFlow<List<String>> = historyRepository.getHistoryFlow()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = historyRepository.getHistory()
+        )
+
+    companion object {
+        private const val TAG = "SearchViewModel"
+    }
+
     fun onIntent(intent: SearchIntent) {
+        Log.i(TAG, "$intent")
+
         when (intent) {
-            is SearchIntent.ChangeSearchText ->
-                _state.update { it.copy(searchText = intent.text) }
+            is SearchIntent.ChangeInputText ->
+                _state.update { it.copy(inputText = intent.text) }
 
             SearchIntent.Search ->
-                performSearch(_state.value.searchText)
+                performSearch(_state.value.inputText)
 
-            SearchIntent.ClearSearch ->
-                _state.update { it.copy(searchText = "", searchedTasks = emptyList()) }
+            SearchIntent.ClearSearchQuery ->
+                _state.update { it.copy(inputText = "", searchedTasks = emptyList()) }
 
-            SearchIntent.ClearSearchHistory ->
-                _state.update { it.copy(searchHistory = emptyList()) }
+            SearchIntent.ClearSearchHistory -> viewModelScope.launch {
+                historyRepository.clearHistory()
+            }
 
+            is SearchIntent.OnExpandedChange ->
+                _state.update { it.copy(expandedTaskList = intent.expanded) }
         }
     }
 
-    private fun performSearch(query: String) {
+    fun performSearch(query: String) {
         if (query.isEmpty()) return
-
-        viewModelScope.launch {
-            try {
-                _state.update { it.copy(isLoading = true) }
-                val tasks = taskDao.getAllTasksList()
-                _state.update { state ->
-                    state.copy(
-                        searchedTasks = tasks.filter { it.name.contains(query, true) },
-                        result =
-                            if (tasks.isEmpty()) IntentResult.None
-                            else IntentResult.Success(SearchIntent.Search.toString()),
-                        isLoading = false,
-                        searchHistory =
-                            if (!state.searchHistory.contains(query)) {
-                                listOf(query) + state.searchHistory.take(9)
-                            } else {
-                                state.searchHistory
-                            }
-                    )
-                }
-            } catch (e: Exception) {
-                _state.update { state ->
-                    state.copy(
-                        result = IntentResult.Error(e.message),
-                        isLoading = false
-                    )
-                }
+        try {
+            _state.update { it.copy(isLoading = true) }
+            historyRepository.addToHistory(query)
+            _state.update { state ->
+                state.copy(
+                    result = IntentResult.Success(SearchIntent.Search.toString()),
+                    expandedTaskList = false,
+                    isLoading = false,
+                    searchHistory = history.value
+                )
+            }
+        } catch (e: Exception) {
+            _state.update { state ->
+                state.copy(
+                    expandedTaskList = false,
+                    result = IntentResult.Error(e.message),
+                    isLoading = false
+                )
             }
         }
     }

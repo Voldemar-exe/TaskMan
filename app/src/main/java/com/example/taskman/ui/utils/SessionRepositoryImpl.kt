@@ -20,11 +20,18 @@ class SessionRepositoryImpl(
         authStorage.clearProfile()
     }
 
+    override suspend fun saveSession(profileData: ProfileData) {
+        authStorage.saveProfile(profileData)
+    }
+
+    override suspend fun getProfileData(): ProfileData? = authStorage.getProfile()
+
+    override suspend fun updateProfileData(profileData: ProfileData) {
+        authStorage.updateProfile(profileData)
+    }
+
     override suspend fun clearDatabaseData() = withContext(Dispatchers.IO) {
         db.clearAllTables()
     }
 
-    override suspend fun saveSession(profileData: ProfileData) {
-        authStorage.saveProfile(profileData)
-    }
 }
