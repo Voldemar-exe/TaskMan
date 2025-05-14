@@ -33,6 +33,7 @@ fun SearchScreen(
     onIntent: (SearchIntent) -> Unit,
     onTaskCheckClick: (MyTask) -> Unit
 ) {
+
     Scaffold(
         modifier = Modifier
             .padding(8.dp)
@@ -53,17 +54,15 @@ fun SearchScreen(
             if (state.isLoading) CircularProgressIndicator()
             when (state.result) {
                 IntentResult.None -> NoResultsPlaceholder()
+
                 is IntentResult.Error -> ErrorPlaceholder(state.result.message ?: "Ошибка") {
                     onIntent(SearchIntent.Search)
                 }
 
                 is IntentResult.Success -> {
-                    if (!state.expandedTaskList) {
+                    if (!state.expandedSearch) {
                         LazyColumn {
-                            // TODO REMOVE THIS TERRIBLE CODE. IT JUST FOR NOW
-                            items(
-                                allTasks.filter { it.name.contains(state.inputText, true) }
-                            ) { task ->
+                            items(state.searchedTasks) { task ->
                                 TaskItem(
                                     task = task,
                                     onCheckClick = onTaskCheckClick

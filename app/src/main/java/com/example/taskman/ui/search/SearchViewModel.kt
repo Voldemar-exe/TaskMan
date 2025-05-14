@@ -50,7 +50,7 @@ class SearchViewModel(
             }
 
             is SearchIntent.OnExpandedChange ->
-                _state.update { it.copy(expandedTaskList = intent.expanded) }
+                _state.update { it.copy(expandedSearch = intent.expanded) }
         }
     }
 
@@ -59,18 +59,29 @@ class SearchViewModel(
         try {
             _state.update { it.copy(isLoading = true) }
             historyRepository.addToHistory(query)
-            _state.update { state ->
-                state.copy(
-                    result = IntentResult.Success(SearchIntent.Search.toString()),
-                    expandedTaskList = false,
-                    isLoading = false,
-                    searchHistory = history.value
-                )
+            viewModelScope.launch {
+                val searchedTasks = taskDao.getAllTasksList()
+                    .filter { it.name.contains(query, true) }
+
+                _state.update { state ->
+                    state.copy(
+                        result =
+                            if (searchedTasks.isEmpty()) {
+                                IntentResult.None
+                            } else {
+                                IntentResult.Success(SearchIntent.Search.toString())
+                            },
+                        expandedSearch = false,
+                        isLoading = false,
+                        searchedTasks = searchedTasks,
+                        searchHistory = history.value
+                    )
+                }
             }
         } catch (e: Exception) {
             _state.update { state ->
                 state.copy(
-                    expandedTaskList = false,
+                    expandedSearch = false,
                     result = IntentResult.Error(e.message),
                     isLoading = false
                 )
