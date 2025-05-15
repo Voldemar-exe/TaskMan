@@ -2,6 +2,7 @@ package com.example.taskman.ui.main
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -30,21 +31,28 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskman.model.MyTask
+import com.example.taskman.model.TaskTypes
 import com.example.taskman.ui.control.TaskControlIntent
 import com.example.taskman.ui.control.group.GroupControl
 import com.example.taskman.ui.control.group.GroupControlViewModel
 import com.example.taskman.ui.control.group.GroupTaskDrawerSheet
 import com.example.taskman.ui.control.task.TaskControl
 import com.example.taskman.ui.control.task.TaskControlViewModel
+import com.example.taskman.ui.theme.Orange
 import com.example.taskman.ui.utils.TaskManAppData.icons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,9 +128,7 @@ fun TaskScreen(
             topBar = {
                 TaskScreenTopBar(
                     groupName = mainUiState.selectedGroupName,
-                    onMenuClick = {
-                        drawerToggle(scope, drawerState)
-                    },
+                    onMenuClick = { drawerToggle(scope, drawerState) },
                     onProfileClick = onProfileClick
                 )
             },
@@ -190,7 +196,7 @@ fun TaskScreen(
                 modifier = Modifier
                     .padding(paddingValues)
             ) {
-                items(mainUiState.tasks) { task ->
+                items(mainUiState.tasks.sortedBy { it.taskId }.reversed()) { task ->
                     TaskItem(
                         modifier = Modifier.clickable {
                             mainViewModel.onIntent(
@@ -230,6 +236,24 @@ private fun drawerToggle(
     }
 }
 
+private fun getRemainingTimeInfo(taskTimestamp: Long): Pair<String, Color> {
+    val currentTime = System.currentTimeMillis()
+    val diffMillis = taskTimestamp - currentTime
+    val daysLeft = TimeUnit.MILLISECONDS.toDays(diffMillis)
+
+    return when {
+        diffMillis < 0 -> Pair("Просрочено", Color.Red)
+        daysLeft == 0L -> Pair("Сегодня", Orange)
+        daysLeft == 1L -> Pair("Завтра", Orange)
+        daysLeft in 2L..4L -> Pair("$daysLeft дня", Orange)
+        daysLeft in 3L..6L -> Pair("$daysLeft дней", Color.Unspecified)
+        else -> Pair(
+            SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(taskTimestamp),
+            Color.Unspecified
+        )
+    }
+}
+
 @Composable
 fun TaskItem(
     modifier: Modifier = Modifier,
@@ -237,21 +261,26 @@ fun TaskItem(
     selected: Boolean = false,
     onCheckClick: (MyTask) -> Unit
 ) {
+    val (dateText, textColor) = remember(task.date) {
+        getRemainingTimeInfo(task.date)
+    }
+
     ListItem(
         modifier = modifier,
         headlineContent = {
             Text(text = task.name)
         },
         overlineContent = {
-            Text(text = task.type)
+            Text(text = dateText, color = textColor)
         },
         supportingContent = {
-            Text(text = task.note)
+            Text(text = TaskTypes.valueOf(task.type).ru)
         },
         leadingContent = {
             // TODO STORE ICON IN DB IN DIFFERENT WAY
             if (task.icon in icons) {
                 Icon(
+                    modifier = Modifier.size(36.dp),
                     painter = painterResource(task.icon),
                     tint = Color(task.color),
                     contentDescription = null
