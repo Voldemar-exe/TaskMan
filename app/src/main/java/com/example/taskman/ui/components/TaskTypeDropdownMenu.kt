@@ -22,14 +22,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
-import com.example.taskman.model.TaskTypes
+import com.example.taskman.model.TaskType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskTypeDropdownMenu(
     modifier: Modifier = Modifier,
-    selectedType: TaskTypes,
-    onTypeSelected: (TaskTypes) -> Unit
+    selectedType: TaskType,
+    onTypeSelected: (TaskType) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     val rotationState by animateFloatAsState(
@@ -72,7 +72,7 @@ fun TaskTypeDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            TaskTypes.entries.forEach { taskType ->
+            TaskType.entries.forEach { taskType ->
                 DropdownMenuItem(
                     text = { Text(text = taskType.ru) },
                     onClick = {

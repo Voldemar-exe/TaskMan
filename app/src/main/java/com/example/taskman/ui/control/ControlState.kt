@@ -4,7 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import com.example.taskman.R
 import com.example.taskman.model.MyTask
-import com.example.taskman.model.TaskTypes
+import com.example.taskman.model.TaskType
 import com.example.taskman.ui.components.IntentResult
 
 @Immutable
@@ -25,7 +25,7 @@ data class ControlState(
     )
 
     data class TaskState(
-        val selectedType: TaskTypes = TaskTypes.Work,
+        val selectedType: TaskType = TaskType.Work,
         val selectedDate: Long = System.currentTimeMillis(),
         val isComplete: Boolean = false
     )

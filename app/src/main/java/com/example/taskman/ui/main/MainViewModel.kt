@@ -59,11 +59,14 @@ class MainViewModel(
                     )
                 }
 
+            is MainIntent.SelectTaskTypes ->
+                _uiState.update { it.copy(selectedTaskTypes = intent.taskTypes) }
+
             is MainIntent.ChangeEditMode ->
                 _uiState.update { it.copy(isGroupEditMode = intent.isEdit) }
 
             is MainIntent.LoadTasks -> loadTasks()
-            is MainIntent.ChangeTab ->
+            is MainIntent.SelectTab ->
                 _uiState.update { it.copy(selectedTabIndex = intent.tabIndex) }
         }
     }
@@ -103,13 +106,17 @@ class MainViewModel(
                 else -> allTasks.value
             }
             _uiState.update {
-                val filteredTasks = when (it.selectedTabIndex) {
+                var filteredByTabTasks = when (it.selectedTabIndex) {
                     1 -> loadedTasks.filter { !it.isComplete }
                     2 -> loadedTasks.filter { it.isComplete }
                     else -> loadedTasks
                 }
 
-                it.copy(tasks = filteredTasks.sortedBy { it.taskId }.reversed())
+                it.selectedTaskTypes.forEach { selectedType ->
+                    filteredByTabTasks = filteredByTabTasks.filter { it.type == selectedType.name }
+                }
+
+                it.copy(tasks = filteredByTabTasks.sortedBy { it.taskId }.reversed())
             }
         }
     }

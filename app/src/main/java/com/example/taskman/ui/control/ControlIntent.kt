@@ -2,7 +2,7 @@ package com.example.taskman.ui.control
 
 import androidx.compose.ui.graphics.Color
 import com.example.taskman.model.MyTask
-import com.example.taskman.model.TaskTypes
+import com.example.taskman.model.TaskType
 
 sealed interface ControlIntent {
     data class UpdateName(val name: String) : ControlIntent
@@ -16,7 +16,7 @@ sealed interface ControlIntent {
 }
 
 sealed interface TaskControlIntent : ControlIntent {
-    data class UpdateType(val type: TaskTypes) : TaskControlIntent
+    data class UpdateType(val type: TaskType) : TaskControlIntent
     data class UpdateDate(val date: Long) : TaskControlIntent
     data class UpdateTaskToServer(val task: MyTask) : TaskControlIntent
 }

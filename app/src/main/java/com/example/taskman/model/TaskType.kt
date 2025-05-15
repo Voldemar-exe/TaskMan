@@ -1,6 +1,6 @@
 package com.example.taskman.model
 
-enum class TaskTypes(
+enum class TaskType(
     val ru: String,
     val note: String
 ) {

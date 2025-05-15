@@ -8,7 +8,7 @@ import com.example.taskman.api.task.TaskRequest
 import com.example.taskman.api.task.TaskService
 import com.example.taskman.db.TaskDao
 import com.example.taskman.model.MyTask
-import com.example.taskman.model.TaskTypes
+import com.example.taskman.model.TaskType
 import com.example.taskman.ui.components.IntentResult
 import com.example.taskman.ui.control.ControlIntent
 import com.example.taskman.ui.control.ControlState
@@ -42,7 +42,7 @@ class TaskControlViewModel(
         }
     }
 
-    private fun updateType(type: TaskTypes) {
+    private fun updateType(type: TaskType) {
         controlState.update {
             it.copy(task = taskState.copy(selectedType = type))
         }
@@ -110,7 +110,7 @@ class TaskControlViewModel(
                                 isEditMode = true,
                             ),
                             task = taskState.copy(
-                                selectedType = TaskTypes.valueOf(task.type),
+                                selectedType = TaskType.valueOf(task.type),
                                 isComplete = task.isComplete,
                                 selectedDate = task.date
                             )

@@ -13,14 +13,19 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.RadioButton
@@ -34,16 +39,20 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.taskman.R
 import com.example.taskman.model.MyTask
-import com.example.taskman.model.TaskTypes
+import com.example.taskman.model.TaskType
 import com.example.taskman.ui.control.TaskControlIntent
 import com.example.taskman.ui.control.group.GroupControl
 import com.example.taskman.ui.control.group.GroupControlViewModel
@@ -83,7 +92,11 @@ fun TaskScreen(
         initialValue = DrawerValue.Closed
     )
 
-    LaunchedEffect(mainUiState.selectedGroupId) {
+    LaunchedEffect(
+        mainUiState.selectedGroupId,
+        mainUiState.selectedTaskTypes,
+        mainUiState.selectedTaskId
+    ) {
         mainViewModel.onIntent(MainIntent.LoadTasks)
     }
 
@@ -138,12 +151,13 @@ fun TaskScreen(
             },
             bottomBar = {
                 TaskScreenBottomBar(
+                    onFilter = { mainViewModel.onIntent(MainIntent.SelectTaskTypes(it)) },
+                    onSearchClick = onSearchClick,
                     onAddClick = {
                         mainViewModel.onIntent(
                             MainIntent.ShowBottomSheet(MainBottomSheetType.Task())
                         )
-                    },
-                    onSearchClick = onSearchClick
+                    }
                 )
             }
         ) { paddingValues ->
@@ -194,16 +208,14 @@ fun TaskScreen(
                 }
             }
 
-            val tabs = listOf("Все", "Незавершённые", "Завершённые")
-
             Column(modifier = Modifier.padding(paddingValues)) {
                 HorizontalDivider()
                 SecondaryTabRow(selectedTabIndex = mainUiState.selectedTabIndex) {
-                    tabs.forEachIndexed { index, title ->
+                    mainUiState.tabs.forEachIndexed { index, title ->
                         Tab(
                             selected = mainUiState.selectedTabIndex == index,
                             onClick = {
-                                mainViewModel.onIntent(MainIntent.ChangeTab(index))
+                                mainViewModel.onIntent(MainIntent.SelectTab(index))
                                 mainViewModel.onIntent(MainIntent.LoadTasks)
                             },
                             text = { Text(text = title, fontSize = 12.sp, maxLines = 1) }
@@ -216,7 +228,9 @@ fun TaskScreen(
                         TaskItem(
                             modifier = Modifier.clickable {
                                 mainViewModel.onIntent(
-                                    MainIntent.ShowBottomSheet(MainBottomSheetType.Task(task.taskId))
+                                    MainIntent.ShowBottomSheet(
+                                        MainBottomSheetType.Task(task.taskId)
+                                    )
                                 )
                             },
                             task = task,
@@ -238,7 +252,6 @@ fun TaskScreen(
 
 @Composable
 fun TaskList() {
-
 }
 
 private fun drawerToggle(
@@ -292,7 +305,7 @@ fun TaskItem(
             Text(text = dateText, color = textColor)
         },
         supportingContent = {
-            Text(text = TaskTypes.valueOf(task.type).ru)
+            Text(text = TaskType.valueOf(task.type).ru)
         },
         leadingContent = {
             // TODO STORE ICON IN DB IN DIFFERENT WAY
@@ -350,18 +363,65 @@ fun TaskScreenTopBar(
 @Composable
 fun TaskScreenBottomBar(
     modifier: Modifier = Modifier,
+    onFilter: (List<TaskType>) -> Unit,
     onSearchClick: () -> Unit,
     onAddClick: () -> Unit
 ) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedTaskTypes = remember { mutableStateListOf<TaskType>() }
 
     BottomAppBar(
         modifier = modifier,
         actions = {
+            IconButton(onClick = { expanded = true }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_filter),
+                    contentDescription = "Filter"
+                )
+            }
             IconButton(onClick = onSearchClick) {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = null
                 )
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = {
+                    onFilter(selectedTaskTypes.toList())
+                    expanded = false
+                }
+            ) {
+                TaskType.entries.forEach { type ->
+                    DropdownMenuItem(
+                        text = { Text(text = type.ru) },
+                        enabled = false,
+                        onClick = {
+                            if (type !in selectedTaskTypes) {
+                                selectedTaskTypes.add(type)
+                            } else {
+                                selectedTaskTypes.remove(type)
+                            }
+                            onFilter(selectedTaskTypes.toList())
+                        },
+                        colors = MenuDefaults.itemColors(
+                            disabledTextColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        trailingIcon = {
+                            Checkbox(
+                                checked = type in selectedTaskTypes,
+                                onCheckedChange = {
+                                    if (it) {
+                                        selectedTaskTypes.add(type)
+                                    } else {
+                                        selectedTaskTypes.remove(type)
+                                    }
+                                    onFilter(selectedTaskTypes.toList())
+                                }
+                            )
+                        }
+                    )
+                }
             }
         },
         floatingActionButton = {
