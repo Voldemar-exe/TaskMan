@@ -2,7 +2,7 @@ package com.example.taskman.ui.control.task
 
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
-import com.example.taskman.ui.components.TaskDatePicker
+import com.example.taskman.ui.components.TaskManDatePicker
 import com.example.taskman.ui.components.TaskTypeDropdownMenu
 import com.example.taskman.ui.control.ControlIntent
 import com.example.taskman.ui.control.ControlScreen
@@ -32,7 +32,7 @@ fun TaskControl(
 
             HorizontalDivider()
 
-            TaskDatePicker(
+            TaskManDatePicker(
                 selectedDate = taskState.selectedDate,
                 onDateSelected = {
                     onIntent(TaskControlIntent.UpdateDate(it))
