@@ -42,22 +42,43 @@ class MainViewModel(
     fun onIntent(intent: MainIntent) {
         when (intent) {
             is MainIntent.MainSwitch -> toggleTaskCompletion(intent.task)
-            is MainIntent.ShowBottomSheet -> showBottomSheet(intent.type)
-            MainIntent.CloseBottomSheet -> closeBottomSheet()
-            is MainIntent.SelectTask -> selectTask(intent.taskId)
-            is MainIntent.SelectGroup -> selectGroup(intent.group)
-            is MainIntent.ChangeEditMode -> changeEditMode(intent.isEdit)
+            is MainIntent.ShowBottomSheet ->
+                _uiState.update { it.copy(bottomSheet = intent.type) }
+
+            MainIntent.CloseBottomSheet ->
+                _uiState.update { it.copy(bottomSheet = MainBottomSheetType.None) }
+
+            is MainIntent.SelectTask ->
+                _uiState.update { it.copy(selectedTaskId = intent.taskId) }
+
+            is MainIntent.SelectGroup ->
+                _uiState.update {
+                    it.copy(
+                        selectedGroupId = intent.group.groupId,
+                        selectedGroupName = intent.group.name
+                    )
+                }
+
+            is MainIntent.ChangeEditMode ->
+                _uiState.update { it.copy(isGroupEditMode = intent.isEdit) }
+
             is MainIntent.LoadTasks -> loadTasks()
+            is MainIntent.ChangeTab ->
+                _uiState.update { it.copy(selectedTabIndex = intent.tabIndex) }
         }
     }
 
     private fun toggleTaskCompletion(task: MyTask) = viewModelScope.launch {
         _uiState.update { state ->
-            state.copy(tasks = state.tasks.map {
-                if (it.taskId == task.taskId) {
-                    it.copy(isComplete = !it.isComplete)
-                } else it
-            })
+            state.copy(
+                tasks = state.tasks.map {
+                    if (it.taskId == task.taskId) {
+                        it.copy(isComplete = !it.isComplete)
+                    } else {
+                        it
+                    }
+                }
+            )
         }
         try {
             taskDao.updateTask(
@@ -68,55 +89,28 @@ class MainViewModel(
         }
     }
 
-    private fun showBottomSheet(
-        type: MainState.BottomSheetType
-    ) {
-        _uiState.update {
-            it.copy(
-                bottomSheet = type
-            )
-        }
-    }
-
-    private fun closeBottomSheet() {
-        _uiState.update {
-            it.copy(
-                bottomSheet = MainState.BottomSheetType.None
-            )
-        }
-    }
-
-    private fun changeEditMode(isEdit: Boolean) {
-        _uiState.update {
-            it.copy(
-                isGroupEditMode = isEdit
-            )
-        }
-    }
-
-    private fun selectTask(taskId: Int) {
-        _uiState.update { it.copy(selectedTaskId = taskId) }
-    }
-
-    private fun selectGroup(group: TaskGroup) {
-        _uiState.update {
-            it.copy(
-                selectedGroupId = group.groupId,
-                selectedGroupName = group.name
-            )
-        }
-    }
-
     private fun loadTasks() {
         viewModelScope.launch {
-            val tasks = when {
-                _uiState.value.selectedGroupId != 0 -> {
+            val loadedTasks = when {
+                _uiState.value.selectedGroupId > 0 -> {
                     groupDao.getGroupById(_uiState.value.selectedGroupId)?.tasks ?: emptyList()
+                }
+
+                _uiState.value.selectedGroupId == -2 -> {
+                    allTasks.value.filter { it.isComplete }
                 }
 
                 else -> allTasks.value
             }
-            _uiState.update { it.copy(tasks = tasks) }
+            _uiState.update {
+                val filteredTasks = when (it.selectedTabIndex) {
+                    1 -> loadedTasks.filter { !it.isComplete }
+                    2 -> loadedTasks.filter { it.isComplete }
+                    else -> loadedTasks
+                }
+
+                it.copy(tasks = filteredTasks.sortedBy { it.taskId }.reversed())
+            }
         }
     }
 }

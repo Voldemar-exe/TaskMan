@@ -41,15 +41,10 @@ fun GroupTaskDrawerSheet(
     onGroupClick: (TaskGroup) -> Unit = {}
 ) {
 
-    ModalDrawerSheet(
-        modifier = modifier
-        ) {
+    ModalDrawerSheet(modifier = modifier) {
         Scaffold(
             topBar = {
-                GroupTaskTopBar(
-                    onBackClick = onBackClick,
-                    onAddClick = onAddClick
-                )
+                GroupTaskTopBar(onBackClick = onBackClick, onAddClick = onAddClick)
             },
             bottomBar = {
                 HorizontalDivider()
@@ -74,41 +69,58 @@ fun GroupTaskDrawerSheet(
             ) {
                 val groups = listOf(
                     TaskGroup(
-                        serverId = -1,
+                        groupId = -1,
+                        serverId = null,
                         name = "Все",
                         icon = R.drawable.ic_amount,
                         color = Color.Black.toArgb().toLong()
+                    ),
+                    TaskGroup(
+                        groupId = -2,
+                        serverId = null,
+                        name = "Завершенные",
+                        icon = R.drawable.ic_goal,
+                        color = Color.Gray.toArgb().toLong()
                     )
                 ) + allGroups
 
                 items(groups) { group ->
-                    ListItem(
-                        modifier = Modifier.clickable{
-                            onGroupClick(group)
-                        },
-                        headlineContent = {
-                            Text(text = group.name)
-                        },
-                        leadingContent = {
-                           Icon(
-                               painter = painterResource(group.icon),
-                               tint = Color(group.color),
-                               contentDescription = null
-                           )
-                        },
-                        trailingContent = {
-                            if (group.groupId == activeGroupId) {
-                                Icon(
-                                    imageVector = Icons.Default.PlayArrow,
-                                    contentDescription = null
-                                )
-                            }
-                        }
+                    GroupListItem(
+                        isActive = activeGroupId == group.groupId,
+                        group = group,
+                        onGroupClick = onGroupClick
                     )
                 }
             }
         }
     }
+}
+
+@Composable
+fun GroupListItem(
+    isActive: Boolean,
+    group: TaskGroup,
+    onGroupClick: (TaskGroup) -> Unit
+) {
+    ListItem(
+        modifier = Modifier.clickable { onGroupClick(group) },
+        headlineContent = { Text(text = group.name) },
+        leadingContent = {
+            Icon(
+                painter = painterResource(group.icon),
+                tint = Color(group.color),
+                contentDescription = null
+            )
+        },
+        trailingContent = {
+            if (isActive) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = null
+                )
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -1,6 +1,7 @@
 package com.example.taskman.ui.main
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,7 +25,9 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -37,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskTypes
@@ -84,7 +88,7 @@ fun TaskScreen(
     }
 
     LaunchedEffect(mainUiState.bottomSheet) {
-        if (mainUiState.bottomSheet == MainState.BottomSheetType.None) {
+        if (mainUiState.bottomSheet == MainBottomSheetType.None) {
             sheetState.hide()
         }
     }
@@ -98,14 +102,14 @@ fun TaskScreen(
                 },
                 onAddClick = {
                     mainViewModel.onIntent(
-                        MainIntent.ShowBottomSheet(MainState.BottomSheetType.Group())
+                        MainIntent.ShowBottomSheet(MainBottomSheetType.Group())
                     )
                 },
                 onGroupClick = {
                     if (mainUiState.isGroupEditMode) {
                         mainViewModel.onIntent(
                             MainIntent.ShowBottomSheet(
-                                MainState.BottomSheetType.Group(it.groupId)
+                                MainBottomSheetType.Group(it.groupId)
                             )
                         )
                     } else {
@@ -136,7 +140,7 @@ fun TaskScreen(
                 TaskScreenBottomBar(
                     onAddClick = {
                         mainViewModel.onIntent(
-                            MainIntent.ShowBottomSheet(MainState.BottomSheetType.Task())
+                            MainIntent.ShowBottomSheet(MainBottomSheetType.Task())
                         )
                     },
                     onSearchClick = onSearchClick
@@ -144,8 +148,8 @@ fun TaskScreen(
             }
         ) { paddingValues ->
             when (val sheet = mainUiState.bottomSheet) {
-                MainState.BottomSheetType.None -> null
-                is MainState.BottomSheetType.Task -> {
+                MainBottomSheetType.None -> null
+                is MainBottomSheetType.Task -> {
                     ModalBottomSheet(
                         onDismissRequest = {
                             mainViewModel.onIntent(MainIntent.CloseBottomSheet)
@@ -167,11 +171,9 @@ fun TaskScreen(
                     }
                 }
 
-                is MainState.BottomSheetType.Group -> {
+                is MainBottomSheetType.Group -> {
                     ModalBottomSheet(
-                        onDismissRequest = {
-                            mainViewModel.onIntent(MainIntent.CloseBottomSheet)
-                        },
+                        onDismissRequest = { mainViewModel.onIntent(MainIntent.CloseBottomSheet) },
                         sheetState = sheetState
                     ) {
                         GroupControl(
@@ -192,35 +194,51 @@ fun TaskScreen(
                 }
             }
 
-            LazyColumn(
-                modifier = Modifier
-                    .padding(paddingValues)
-            ) {
-                items(mainUiState.tasks.sortedBy { it.taskId }.reversed()) { task ->
-                    TaskItem(
-                        modifier = Modifier.clickable {
-                            mainViewModel.onIntent(
-                                MainIntent.ShowBottomSheet(
-                                    MainState.BottomSheetType.Task(task.taskId)
+            val tabs = listOf("Все", "Незавершённые", "Завершённые")
+
+            Column(modifier = Modifier.padding(paddingValues)) {
+                HorizontalDivider()
+                SecondaryTabRow(selectedTabIndex = mainUiState.selectedTabIndex) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = mainUiState.selectedTabIndex == index,
+                            onClick = {
+                                mainViewModel.onIntent(MainIntent.ChangeTab(index))
+                                mainViewModel.onIntent(MainIntent.LoadTasks)
+                            },
+                            text = { Text(text = title, fontSize = 12.sp, maxLines = 1) }
+                        )
+                    }
+                }
+
+                LazyColumn {
+                    items(mainUiState.tasks) { task ->
+                        TaskItem(
+                            modifier = Modifier.clickable {
+                                mainViewModel.onIntent(
+                                    MainIntent.ShowBottomSheet(MainBottomSheetType.Task(task.taskId))
                                 )
-                            )
-                        },
-                        task = task,
-                        onCheckClick = {
-                            mainViewModel.onIntent(
-                                MainIntent.MainSwitch(it)
-                            )
-                            taskControlViewModel.onIntent(
-                                TaskControlIntent.UpdateTaskToServer(
-                                    task.copy(isComplete = !task.isComplete)
+                            },
+                            task = task,
+                            onCheckClick = {
+                                mainViewModel.onIntent(MainIntent.MainSwitch(it))
+                                taskControlViewModel.onIntent(
+                                    TaskControlIntent.UpdateTaskToServer(
+                                        task.copy(isComplete = !task.isComplete)
+                                    )
                                 )
-                            )
-                        }
-                    )
+                            }
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+fun TaskList() {
+
 }
 
 private fun drawerToggle(
