@@ -1,149 +1,311 @@
 package com.example.taskman.ui.profile
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ExitToApp
+import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.Build
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.taskman.ui.utils.OptionViewModel
-import org.koin.androidx.compose.koinViewModel
+import com.example.taskman.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    modifier: Modifier = Modifier,
-    userName: String = "User",
-    profileViewModel: ProfileViewModel = koinViewModel(),
-    optionViewModel: OptionViewModel = koinViewModel(),
+    isDarkTheme: Boolean,
+    toggleTheme: () -> Unit,
+    state: ProfileState,
+    onIntent: (ProfileIntent) -> Unit,
     onBackClick: () -> Unit
 ) {
-
-    val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()
-    val isDarkTheme by optionViewModel.isDarkTheme.collectAsStateWithLifecycle()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
-        topBar = {
-            ProfileScreenTopBar(
-                userName = userName,
-                onBackClick = onBackClick,
-                onExitClick = {
-                    profileViewModel.onIntent(ProfileIntent.ClearProfile)
-                    onBackClick()
-                }
-            )
-        }
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = { ProfileTopBar(state, onIntent, scrollBehavior, onBackClick) }
     ) { paddingValues ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
-            item {
-                OptionElement(
-                    title = "Темная тема",
-                    selected = isDarkTheme,
-                    onOptionClick = { optionViewModel.toggleTheme() }
-                )
-            }
+            ProfileCard(state)
+            OptionsCard(isDarkTheme, toggleTheme)
+            ActionsCard(onIntent, onBackClick)
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreenTopBar(
-    modifier: Modifier = Modifier,
-    userName: String,
-    onBackClick: () -> Unit,
-    onExitClick: () -> Unit
+fun ProfileTopBar(
+    state: ProfileState,
+    onIntent: (ProfileIntent) -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior,
+    onBackClick: () -> Unit
 ) {
-    CenterAlignedTopAppBar(
-        modifier = modifier,
+    LargeTopAppBar(
+        title = {
+            Text(
+                text = state.userName.ifEmpty { state.login },
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
         navigationIcon = {
             IconButton(onClick = onBackClick) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = null
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = "Назад"
                 )
             }
-        },
-        title = {
-            Text(text = userName)
         },
         actions = {
-            IconButton(onClick = onExitClick) {
+            IconButton(onClick = {
+                onIntent(ProfileIntent.ClearProfile)
+                onBackClick()
+            }) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Default.ExitToApp,
-                    contentDescription = null
+                    imageVector = Icons.AutoMirrored.Rounded.ExitToApp,
+                    contentDescription = "Выход"
+                )
+            }
+        },
+        scrollBehavior = scrollBehavior
+    )
+}
+
+@Composable
+fun ProfileCard(state: ProfileState) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Аккаунт", style = MaterialTheme.typography.titleMedium)
+                Icon(
+                    imageVector = Icons.Rounded.AccountCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            HorizontalDivider()
+
+            SettingsItem(
+                title = "Почта",
+                subtitle = state.email.takeIf { it.isNotBlank() } ?: "Не указана",
+                icon = Icons.Rounded.Email
+            )
+        }
+    }
+}
+
+@Composable
+fun OptionsCard(
+    isDarkTheme: Boolean,
+    toggleTheme: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Настройки", style = MaterialTheme.typography.titleMedium)
+                Icon(
+                    imageVector = Icons.Rounded.Settings,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            HorizontalDivider()
+
+            SwitchSetting(
+                title = "Темная тема",
+                iconId =
+                    if (isDarkTheme) {
+                        R.drawable.ic_dark_mode
+                    } else {
+                        R.drawable.ic_light_mode
+                    },
+                checked = isDarkTheme,
+                onCheckedChange = { toggleTheme() }
+            )
+        }
+    }
+}
+
+@Composable
+fun ActionsCard(
+    onIntent: (ProfileIntent) -> Unit,
+    onBackClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Действия", style = MaterialTheme.typography.titleMedium)
+                Icon(
+                    imageVector = Icons.Rounded.Build,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            HorizontalDivider()
+
+            Button(
+                onClick = {
+                    onIntent(ProfileIntent.DeleteProfileData)
+                    onBackClick()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                )
+            ) {
+                Text("Удалить данные")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(
+                onClick = {
+                    onIntent(ProfileIntent.DeleteProfile)
+                    onBackClick()
+                },
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text(
+                    "Удалить аккаунт",
+                    color = MaterialTheme.colorScheme.error
                 )
             }
         }
-    )
+    }
 }
 
 @Composable
-fun OptionElement(
-    modifier: Modifier = Modifier,
+private fun SettingsItem(
     title: String,
-    selected: Boolean,
-    onOptionClick: (Boolean) -> Unit
+    subtitle: String,
+    icon: ImageVector
 ) {
-    ListItem(
-        modifier = modifier,
-        headlineContent = {
-            Text(text = title)
-        },
-        trailingContent = {
-            Switch(
-                checked = selected,
-                onCheckedChange = onOptionClick
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.padding(end = 12.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    )
+        // TODO MAYBE ADD CHANGE FOR EMAIL AND USERNAME
+        /*Icon(
+            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )*/
+    }
 }
 
 @Composable
-fun InfoDialogScreen(
-    modifier: Modifier = Modifier,
-    onDismissRequest: () -> Unit
+private fun SwitchSetting(
+    title: String,
+    iconId: Int,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
 ) {
-    Dialog(
-        onDismissRequest = onDismissRequest
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Card(
-            modifier = modifier
-                .size(250.dp)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(text = "Справка")
-                Text(text = "Информация", fontSize = 10.sp)
-                TextButton(onClick = onDismissRequest) {
-                    Text(text = "Закрыть")
-                }
-            }
-        }
+        Icon(
+            painter = painterResource(iconId),
+            contentDescription = null,
+            modifier = Modifier.padding(end = 12.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = title,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            modifier = Modifier.padding(start = 8.dp)
+        )
     }
 }

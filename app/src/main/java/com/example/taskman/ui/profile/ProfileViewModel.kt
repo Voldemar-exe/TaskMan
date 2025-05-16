@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.taskman.api.auth.ProfileData
+import com.example.taskman.api.profile.ProfileService
 import com.example.taskman.ui.utils.SessionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ProfileViewModel(
+    private val profileService: ProfileService,
     private val sessionRepository: SessionRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProfileState())
@@ -28,6 +30,29 @@ class ProfileViewModel(
         loadProfile()
     }
 
+    fun onIntent(intent: ProfileIntent) {
+        Log.i(TAG, "$intent")
+        when (intent) {
+            is ProfileIntent.InfoClick ->
+                _uiState.update { it.copy(isInfo = !it.isInfo) }
+
+            is ProfileIntent.UpdateUserName ->
+                _uiState.update { it.copy(userName = intent.userName, error = null) }
+
+            is ProfileIntent.UpdateEmail ->
+                _uiState.update { it.copy(email = intent.email, error = null) }
+
+            is ProfileIntent.UpdateLogin ->
+                _uiState.update { it.copy(login = intent.login, error = null) }
+
+            is ProfileIntent.SaveProfile -> saveProfile()
+
+            is ProfileIntent.ClearProfile -> clearProfile()
+            ProfileIntent.DeleteProfile -> deleteProfile()
+            ProfileIntent.DeleteProfileData -> deleteProfileData()
+        }
+    }
+
     private fun loadProfile() {
         viewModelScope.launch {
             try {
@@ -38,7 +63,7 @@ class ProfileViewModel(
                 profile?.let {
                     _uiState.update {
                         it.copy(
-                            userName = profile.username ?: "",
+                            userName = profile.username.orEmpty(),
 //                            email = profile.email,
                             login = profile.login,
                             isLoading = false,
@@ -69,28 +94,6 @@ class ProfileViewModel(
             else -> null
         }
     }
-
-    fun onIntent(intent: ProfileIntent) {
-        Log.i(TAG, "$intent")
-        when (intent) {
-            is ProfileIntent.InfoClick ->
-                _uiState.update { it.copy(isInfo = !it.isInfo) }
-
-            is ProfileIntent.UpdateUserName ->
-                _uiState.update { it.copy(userName = intent.userName, error = null) }
-
-            is ProfileIntent.UpdateEmail ->
-                _uiState.update { it.copy(email = intent.email, error = null) }
-
-            is ProfileIntent.UpdateLogin ->
-                _uiState.update { it.copy(login = intent.login, error = null) }
-
-            is ProfileIntent.SaveProfile -> saveProfile()
-
-            is ProfileIntent.ClearProfile -> clearProfile()
-        }
-    }
-
     private fun saveProfile() {
         val validationError = validateInput()
         if (validationError != null) {
@@ -159,6 +162,22 @@ class ProfileViewModel(
                         error = "Ошибка очистки профиля"
                     )
                 }
+            }
+        }
+    }
+
+    private fun deleteProfileData() = viewModelScope.launch {
+        sessionRepository.getProfileData()?.let {
+            if (profileService.deleteUserData(it.login)) {
+                sessionRepository.clearSession()
+            }
+        }
+    }
+
+    private fun deleteProfile() = viewModelScope.launch {
+        sessionRepository.getProfileData()?.let {
+            if (profileService.deleteUser(it.login)) {
+                sessionRepository.clearSession()
             }
         }
     }

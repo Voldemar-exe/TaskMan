@@ -28,23 +28,6 @@ class AuthService(
         }
     }
 
-    suspend fun deleteUser(login: String): Boolean {
-        return try {
-            Log.d(TAG, "Deleting user: $login")
-            val response = apiClient.deleteUser(login)
-            if (response.isSuccessful) {
-                Log.d(TAG, "User $login deleted successfully")
-                true
-            } else {
-                Log.e(TAG, "Failed to delete user $login: ${response.code()}")
-                false
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error deleting user $login", e)
-            false
-        }
-    }
-
     suspend fun loginUser(request: LoginRequest): LoginResponse? = safeApiCall {
         apiClient.login(request)
     }?.let {

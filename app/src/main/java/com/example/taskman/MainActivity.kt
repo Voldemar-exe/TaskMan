@@ -23,7 +23,10 @@ class MainActivity : ComponentActivity() {
             val isDarkTheme by optionViewModel.isDarkTheme.collectAsStateWithLifecycle()
 
             TaskManTheme(darkTheme = isDarkTheme) {
-                App()
+                App(
+                    isDarkTheme = isDarkTheme,
+                    toggleTheme = { optionViewModel.toggleTheme() }
+                )
             }
         }
     }

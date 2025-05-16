@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import com.example.taskman.api.RetrofitClient
 import com.example.taskman.api.auth.AuthClient
 import com.example.taskman.api.group.GroupClient
+import com.example.taskman.api.profile.ProfileClient
 import com.example.taskman.api.task.TaskClient
 import com.example.taskman.db.GroupDao
 import com.example.taskman.db.TaskDao
@@ -27,6 +28,7 @@ val dataModule = module {
     single { get<RetrofitClient>().let { AuthClient.instance } }
     single { get<RetrofitClient>().let { TaskClient.instance } }
     single { get<RetrofitClient>().let { GroupClient.instance } }
+    single { get<RetrofitClient>().let { ProfileClient.instance } }
     single<ThemeRepository> { ThemeRepositoryImpl(get()) }
     single<HistoryRepository> { HistoryRepositoryImpl(get()) }
     single<TaskManDatabase> { TaskManDatabase.getInstance(get()) }

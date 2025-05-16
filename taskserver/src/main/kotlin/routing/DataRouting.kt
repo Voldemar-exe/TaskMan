@@ -3,6 +3,7 @@ package com.example.routing
 import com.example.db.dao.UserDAO
 import com.example.db.repository.GroupRepositoryImpl
 import com.example.db.repository.TaskRepositoryImpl
+import com.example.db.repository.UserRepositoryImpl
 import com.example.shared.dto.GroupDto
 import com.example.shared.dto.TaskDto
 import com.example.shared.response.ServerResponse
@@ -23,9 +24,9 @@ import io.ktor.server.util.getOrFail
 
 // TODO REDUCE CODE, CREATE SERVICE FOR TASK AND GROUP
 fun Application.configureDataRouting() {
-
     val taskRepository = TaskRepositoryImpl()
     val groupRepository = GroupRepositoryImpl()
+    val userRepository = UserRepositoryImpl()
 
     routing {
         authenticate("auth-jwt") {
@@ -101,7 +102,6 @@ fun Application.configureDataRouting() {
                 route("/{id}") {
                     route("/tasks") {
                         post {
-
                             val principal = call.principal<JWTPrincipal>()!!
                             val login = principal.payload.getClaim("userId").asString()
                             val groupId = call.parameters.getOrFail("id").toInt()
@@ -122,6 +122,22 @@ fun Application.configureDataRouting() {
                         val login = principal.payload.getClaim("userId").asString()
                         val groupId = call.parameters.getOrFail("id").toInt()
                         groupRepository.deleteGroup(login, groupId)
+                        call.respond(HttpStatusCode.OK)
+                    }
+                }
+            }
+            route("/users/{login}") {
+                delete {
+                    val principal = call.principal<JWTPrincipal>()!!
+                    val login = principal.payload.getClaim("userId").asString()
+                    userRepository.deleteByLogin(login)
+                    call.respond(HttpStatusCode.OK)
+                }
+                route("/data") {
+                    delete {
+                        val principal = call.principal<JWTPrincipal>()!!
+                        val login = principal.payload.getClaim("userId").asString()
+                        userRepository.deleteByLogin(login)
                         call.respond(HttpStatusCode.OK)
                     }
                 }

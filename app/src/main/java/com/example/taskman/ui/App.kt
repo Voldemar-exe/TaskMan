@@ -27,19 +27,20 @@ import com.example.taskman.ui.main.MainIntent
 import com.example.taskman.ui.main.MainScreen
 import com.example.taskman.ui.main.MainViewModel
 import com.example.taskman.ui.profile.ProfileScreen
+import com.example.taskman.ui.profile.ProfileViewModel
 import com.example.taskman.ui.search.SearchScreen
 import com.example.taskman.ui.search.SearchViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(
     modifier: Modifier = Modifier,
+    isDarkTheme: Boolean,
+    toggleTheme: () -> Unit,
     navController: NavHostController = rememberNavController()
 ) {
-
     val mainViewModel = koinViewModel<MainViewModel>()
 
     Scaffold { paddingValues ->
@@ -49,7 +50,6 @@ fun App(
             navController = navController,
             startDestination = Splash
         ) {
-
             composable<Splash> {
                 SplashScreen {
                     navController.navigate(Main) {
@@ -59,12 +59,16 @@ fun App(
             }
 
             composable<Profile> { backStackEntry ->
+                val profileViewModel = koinViewModel<ProfileViewModel>()
+                val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()
+
                 val profile: Profile = backStackEntry.toRoute<Profile>()
                 ProfileScreen(
-                    userName = profile.name,
-                    onBackClick = {
-                        navController.navigate(Main)
-                    }
+                    isDarkTheme = isDarkTheme,
+                    toggleTheme = toggleTheme,
+                    state = profileState,
+                    onIntent = profileViewModel::onIntent,
+                    onBackClick = { navController.navigate(Main) }
                 )
             }
             composable<Main> {
