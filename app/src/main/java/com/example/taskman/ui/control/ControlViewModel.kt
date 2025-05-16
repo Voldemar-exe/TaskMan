@@ -14,6 +14,10 @@ abstract class ControlViewModel(
     initialState: ControlState
 ) : ViewModel() {
 
+    companion object {
+        const val TAG = "ControlViewModel"
+    }
+
     protected val controlState = MutableStateFlow(initialState)
     val uiState = controlState.asStateFlow()
 
@@ -44,6 +48,7 @@ abstract class ControlViewModel(
                     // TODO reduce this code
                 )
             }
+
             ControlIntent.SaveEntity -> saveEntity()
             is ControlIntent.LoadEntity -> loadEntity(intent.entityId)
             is ControlIntent.DeleteEntity -> deleteEntity(intent.entityId)
@@ -113,7 +118,4 @@ abstract class ControlViewModel(
 
     protected abstract fun deleteEntity(entityId: Int)
 
-    companion object {
-        const val TAG = "ControlViewModel"
-    }
 }

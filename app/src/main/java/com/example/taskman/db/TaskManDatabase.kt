@@ -6,8 +6,6 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskGroup
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @Database(
     entities = [
@@ -21,10 +19,6 @@ import kotlinx.coroutines.withContext
 abstract class TaskManDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDao
     abstract fun groupDao(): GroupDao
-
-    suspend fun clearAll() = withContext(Dispatchers.IO) {
-        clearAllTables()
-    }
 
     companion object {
         @Volatile

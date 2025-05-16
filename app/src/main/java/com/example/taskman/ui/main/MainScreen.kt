@@ -39,7 +39,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskman.R
 import com.example.taskman.model.MyTask
+import com.example.taskman.model.TaskGroup
 import com.example.taskman.model.TaskType
 import com.example.taskman.ui.control.TaskControlIntent
 import com.example.taskman.ui.control.group.GroupControl
@@ -69,73 +69,124 @@ import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskScreen(
-    modifier: Modifier = Modifier,
+fun MainScreen(
     mainViewModel: MainViewModel,
     taskControlViewModel: TaskControlViewModel,
     groupControlViewModel: GroupControlViewModel,
-    onProfileClick: () -> Unit = {},
-    onSearchClick: () -> Unit = {}
+    onProfileClick: () -> Unit,
+    onSearchClick: () -> Unit
 ) {
     val allTasks by mainViewModel.allTasks.collectAsStateWithLifecycle()
     val allGroups by mainViewModel.allGroups.collectAsStateWithLifecycle()
 
-    val mainUiState by mainViewModel.uiState.collectAsStateWithLifecycle()
-    val taskControlUiState by taskControlViewModel.uiState.collectAsStateWithLifecycle()
-    val groupControlUiState by groupControlViewModel.uiState.collectAsStateWithLifecycle()
+    val mainState by mainViewModel.uiState.collectAsStateWithLifecycle()
+    val taskControlState by taskControlViewModel.uiState.collectAsStateWithLifecycle()
+    val groupControlState by groupControlViewModel.uiState.collectAsStateWithLifecycle()
 
     val sheetState: SheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
     val scope: CoroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(mainState.bottomSheet) {
+        if (mainState.bottomSheet == MainBottomSheetType.None) {
+            scope.launch { sheetState.hide() }.invokeOnCompletion {
+                if (!sheetState.isVisible) {
+                    mainViewModel.onIntent(MainIntent.CloseBottomSheet)
+                }
+            }
+        }
+    }
+
+    TaskScreen(
+        allGroups = allGroups,
+        state = mainState,
+        onIntent = mainViewModel::onIntent,
+        onProfileClick = onProfileClick,
+        onSearchClick = onSearchClick,
+        onCheckClick = {
+            mainViewModel.onIntent(MainIntent.ToggleTaskCompletion(it))
+            taskControlViewModel.onIntent(
+                TaskControlIntent.UpdateTaskToServer(
+                    it.copy(isComplete = !it.isComplete)
+                )
+            )
+        }
+    )
+
+    when (val sheet = mainState.bottomSheet) {
+        MainBottomSheetType.None -> Unit
+        is MainBottomSheetType.Task -> {
+            ModalBottomSheet(
+                onDismissRequest = { mainViewModel.onIntent(MainIntent.CloseBottomSheet) },
+                sheetState = sheetState
+            ) {
+                TaskControl(
+                    uiState = taskControlState,
+                    onIntent = taskControlViewModel::onIntent,
+                    entityId = sheet.taskId,
+                    onBackClick = { mainViewModel.onIntent(MainIntent.CloseBottomSheet) }
+                )
+            }
+        }
+
+        is MainBottomSheetType.Group -> {
+            ModalBottomSheet(
+                onDismissRequest = { mainViewModel.onIntent(MainIntent.CloseBottomSheet) },
+                sheetState = sheetState
+            ) {
+                GroupControl(
+                    uiState = groupControlState,
+                    allTasks = allTasks,
+                    onIntent = groupControlViewModel::onIntent,
+                    onBackClick = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) {
+                                mainViewModel.onIntent(MainIntent.LoadTasks)
+                                mainViewModel.onIntent(MainIntent.CloseBottomSheet)
+                            }
+                        }
+                    },
+                    entityId = sheet.groupId
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TaskScreen(
+    modifier: Modifier = Modifier,
+    allGroups: List<TaskGroup>,
+    state: MainState,
+    onIntent: (MainIntent) -> Unit,
+    onProfileClick: () -> Unit,
+    onSearchClick: () -> Unit,
+    onCheckClick: (MyTask) -> Unit
+) {
+    val scope = rememberCoroutineScope()
     val drawerState: DrawerState = rememberDrawerState(
         initialValue = DrawerValue.Closed
     )
 
-    LaunchedEffect(
-        mainUiState.selectedGroupId,
-        mainUiState.selectedTaskTypes,
-        mainUiState.selectedTaskId
-    ) {
-        mainViewModel.onIntent(MainIntent.LoadTasks)
-    }
-
-    LaunchedEffect(mainUiState.bottomSheet) {
-        if (mainUiState.bottomSheet == MainBottomSheetType.None) {
-            sheetState.hide()
+    LaunchedEffect(state.isShowDrawer) {
+        scope.launch {
+            if (state.isShowDrawer && drawerState.isClosed) {
+                drawerState.open()
+            } else {
+                drawerState.close()
+            }
         }
     }
 
     ModalNavigationDrawer(
         drawerContent = {
             GroupTaskDrawerSheet(
-                onBackClick = {
-                    mainViewModel.onIntent(MainIntent.LoadTasks)
-                    drawerToggle(scope, drawerState)
-                },
-                onAddClick = {
-                    mainViewModel.onIntent(
-                        MainIntent.ShowBottomSheet(MainBottomSheetType.Group())
-                    )
-                },
-                onGroupClick = {
-                    if (mainUiState.isGroupEditMode) {
-                        mainViewModel.onIntent(
-                            MainIntent.ShowBottomSheet(
-                                MainBottomSheetType.Group(it.groupId)
-                            )
-                        )
-                    } else {
-                        mainViewModel.onIntent(
-                            MainIntent.SelectGroup(it)
-                        )
-                        drawerToggle(scope, drawerState)
-                    }
-                },
+                onIntent = onIntent,
                 allGroups = allGroups,
-                activeGroupId = mainUiState.selectedGroupId,
-                isEdit = mainUiState.isGroupEditMode,
-                onEditClick = { mainViewModel.onIntent(MainIntent.ChangeEditMode(it)) }
+                activeGroupId = state.selectedGroupId,
+                isEdit = state.isGroupEditMode
             )
         },
         drawerState = drawerState
@@ -144,104 +195,42 @@ fun TaskScreen(
             modifier = modifier,
             topBar = {
                 TaskScreenTopBar(
-                    groupName = mainUiState.selectedGroupName,
-                    onMenuClick = { drawerToggle(scope, drawerState) },
+                    groupName = state.selectedGroupName,
+                    onMenuClick = { onIntent(MainIntent.ShowDrawer(true)) },
                     onProfileClick = onProfileClick
                 )
             },
             bottomBar = {
                 TaskScreenBottomBar(
-                    onFilter = { mainViewModel.onIntent(MainIntent.SelectTaskTypes(it)) },
+                    selectedTaskTypes = state.selectedTaskTypes.toList(),
+                    onSelectTask = { onIntent(MainIntent.SelectTaskType(it)) },
                     onSearchClick = onSearchClick,
                     onAddClick = {
-                        mainViewModel.onIntent(
-                            MainIntent.ShowBottomSheet(MainBottomSheetType.Task())
-                        )
+                        onIntent(MainIntent.ShowBottomSheet(MainBottomSheetType.Task()))
                     }
                 )
             }
         ) { paddingValues ->
-            when (val sheet = mainUiState.bottomSheet) {
-                MainBottomSheetType.None -> null
-                is MainBottomSheetType.Task -> {
-                    ModalBottomSheet(
-                        onDismissRequest = {
-                            mainViewModel.onIntent(MainIntent.CloseBottomSheet)
-                        },
-                        sheetState = sheetState
-                    ) {
-                        TaskControl(
-                            uiState = taskControlUiState,
-                            onIntent = taskControlViewModel::onIntent,
-                            entityId = sheet.taskId,
-                            onBackClick = {
-                                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                    if (!sheetState.isVisible) {
-                                        mainViewModel.onIntent(MainIntent.CloseBottomSheet)
-                                    }
-                                }
-                            }
-                        )
-                    }
-                }
-
-                is MainBottomSheetType.Group -> {
-                    ModalBottomSheet(
-                        onDismissRequest = { mainViewModel.onIntent(MainIntent.CloseBottomSheet) },
-                        sheetState = sheetState
-                    ) {
-                        GroupControl(
-                            uiState = groupControlUiState,
-                            allTasks = allTasks,
-                            onIntent = groupControlViewModel::onIntent,
-                            onBackClick = {
-                                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                    if (!sheetState.isVisible) {
-                                        mainViewModel.onIntent(MainIntent.LoadTasks)
-                                        mainViewModel.onIntent(MainIntent.CloseBottomSheet)
-                                    }
-                                }
-                            },
-                            entityId = sheet.groupId
-                        )
-                    }
-                }
-            }
-
             Column(modifier = Modifier.padding(paddingValues)) {
                 HorizontalDivider()
-                SecondaryTabRow(selectedTabIndex = mainUiState.selectedTabIndex) {
-                    mainUiState.tabs.forEachIndexed { index, title ->
-                        Tab(
-                            selected = mainUiState.selectedTabIndex == index,
-                            onClick = {
-                                mainViewModel.onIntent(MainIntent.SelectTab(index))
-                                mainViewModel.onIntent(MainIntent.LoadTasks)
-                            },
-                            text = { Text(text = title, fontSize = 12.sp, maxLines = 1) }
-                        )
-                    }
+                if (state.selectedGroupId != -2) {
+                    TaskTabs(
+                        selectedTabIndex = state.selectedTabIndex,
+                        onTabSelect = { onIntent(MainIntent.SelectTab(it)) }
+                    )
                 }
-
                 LazyColumn {
-                    items(mainUiState.tasks) { task ->
+                    items(state.visibleTasks) { task ->
                         TaskItem(
                             modifier = Modifier.clickable {
-                                mainViewModel.onIntent(
+                                onIntent(
                                     MainIntent.ShowBottomSheet(
                                         MainBottomSheetType.Task(task.taskId)
                                     )
                                 )
                             },
                             task = task,
-                            onCheckClick = {
-                                mainViewModel.onIntent(MainIntent.MainSwitch(it))
-                                taskControlViewModel.onIntent(
-                                    TaskControlIntent.UpdateTaskToServer(
-                                        task.copy(isComplete = !task.isComplete)
-                                    )
-                                )
-                            }
+                            onCheckClick = onCheckClick
                         )
                     }
                 }
@@ -250,19 +239,21 @@ fun TaskScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskList() {
-}
-
-private fun drawerToggle(
-    scope: CoroutineScope,
-    drawerState: DrawerState
+fun TaskTabs(
+    selectedTabIndex: Int,
+    onTabSelect: (Int) -> Unit
 ) {
-    scope.launch {
-        if (drawerState.isClosed) {
-            drawerState.open()
-        } else {
-            drawerState.close()
+    val tabs: List<String> = listOf("Все", "Незавершённые", "Завершённые")
+
+    SecondaryTabRow(selectedTabIndex = selectedTabIndex) {
+        tabs.forEachIndexed { index, title ->
+            Tab(
+                selected = selectedTabIndex == index,
+                onClick = { onTabSelect(index) },
+                text = { Text(text = title, fontSize = 12.sp, maxLines = 1) }
+            )
         }
     }
 }
@@ -363,17 +354,17 @@ fun TaskScreenTopBar(
 @Composable
 fun TaskScreenBottomBar(
     modifier: Modifier = Modifier,
-    onFilter: (List<TaskType>) -> Unit,
+    selectedTaskTypes: List<TaskType>,
+    onSelectTask: (TaskType) -> Unit,
     onSearchClick: () -> Unit,
     onAddClick: () -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    val selectedTaskTypes = remember { mutableStateListOf<TaskType>() }
+    var expandedWorkType by remember { mutableStateOf(false) }
 
     BottomAppBar(
         modifier = modifier,
         actions = {
-            IconButton(onClick = { expanded = true }) {
+            IconButton(onClick = { expandedWorkType = true }) {
                 Icon(
                     painter = painterResource(R.drawable.ic_filter),
                     contentDescription = "Filter"
@@ -385,44 +376,12 @@ fun TaskScreenBottomBar(
                     contentDescription = null
                 )
             }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = {
-                    onFilter(selectedTaskTypes.toList())
-                    expanded = false
-                }
-            ) {
-                TaskType.entries.forEach { type ->
-                    DropdownMenuItem(
-                        text = { Text(text = type.ru) },
-                        enabled = false,
-                        onClick = {
-                            if (type !in selectedTaskTypes) {
-                                selectedTaskTypes.add(type)
-                            } else {
-                                selectedTaskTypes.remove(type)
-                            }
-                            onFilter(selectedTaskTypes.toList())
-                        },
-                        colors = MenuDefaults.itemColors(
-                            disabledTextColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        trailingIcon = {
-                            Checkbox(
-                                checked = type in selectedTaskTypes,
-                                onCheckedChange = {
-                                    if (it) {
-                                        selectedTaskTypes.add(type)
-                                    } else {
-                                        selectedTaskTypes.remove(type)
-                                    }
-                                    onFilter(selectedTaskTypes.toList())
-                                }
-                            )
-                        }
-                    )
-                }
-            }
+            WorkTypeDropdownMenu(
+                expanded = expandedWorkType,
+                selectedTaskTypes = selectedTaskTypes,
+                onSelectTask = onSelectTask,
+                onExpandedChange = { expandedWorkType = it }
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddClick) {
@@ -433,4 +392,34 @@ fun TaskScreenBottomBar(
             }
         }
     )
+}
+
+@Composable
+fun WorkTypeDropdownMenu(
+    expanded: Boolean,
+    selectedTaskTypes: List<TaskType>,
+    onSelectTask: (TaskType) -> Unit,
+    onExpandedChange: (Boolean) -> Unit
+) {
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { onExpandedChange(false) }
+    ) {
+        TaskType.entries.forEach { type ->
+            DropdownMenuItem(
+                text = { Text(text = type.ru) },
+                enabled = false,
+                onClick = { onSelectTask(type) },
+                colors = MenuDefaults.itemColors(
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface
+                ),
+                trailingIcon = {
+                    Checkbox(
+                        checked = type in selectedTaskTypes,
+                        onCheckedChange = { onSelectTask(type) }
+                    )
+                }
+            )
+        }
+    }
 }

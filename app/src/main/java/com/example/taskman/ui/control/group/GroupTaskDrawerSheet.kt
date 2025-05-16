@@ -16,79 +16,71 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.taskman.R
 import com.example.taskman.model.TaskGroup
+import com.example.taskman.ui.main.MainBottomSheetType
+import com.example.taskman.ui.main.MainIntent
 
 @Composable
 fun GroupTaskDrawerSheet(
     modifier: Modifier = Modifier,
+    onIntent: (MainIntent) -> Unit,
     activeGroupId: Int,
     allGroups: List<TaskGroup>,
-    onBackClick: () -> Unit = {},
-    onAddClick: () -> Unit = {},
-    isEdit: Boolean,
-    onEditClick: (Boolean) -> Unit,
-    onGroupClick: (TaskGroup) -> Unit = {}
+    isEdit: Boolean
 ) {
-
     ModalDrawerSheet(modifier = modifier) {
         Scaffold(
             topBar = {
-                GroupTaskTopBar(onBackClick = onBackClick, onAddClick = onAddClick)
+                GroupTaskTopBar(
+                    onBackClick = {
+                        onIntent(MainIntent.LoadTasks)
+                        onIntent(MainIntent.ShowDrawer(false))
+                    },
+                    onAddClick = {
+                        onIntent(MainIntent.ShowBottomSheet(MainBottomSheetType.Group()))
+                    }
+                )
             },
             bottomBar = {
                 HorizontalDivider()
                 IconToggleButton(
                     checked = isEdit,
-                    onCheckedChange = onEditClick
+                    onCheckedChange = { onIntent(MainIntent.ChangeEditMode(it)) }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = null,
-                        tint =
-                            if (isEdit) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.secondary
+                        contentDescription = null
                     )
                 }
             }
         ) { paddingValues ->
-            LazyColumn(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .padding(8.dp)
-            ) {
-                val groups = listOf(
-                    TaskGroup(
-                        groupId = -1,
-                        serverId = null,
-                        name = "Все",
-                        icon = R.drawable.ic_amount,
-                        color = Color.Black.toArgb().toLong()
-                    ),
-                    TaskGroup(
-                        groupId = -2,
-                        serverId = null,
-                        name = "Завершенные",
-                        icon = R.drawable.ic_goal,
-                        color = Color.Gray.toArgb().toLong()
-                    )
-                ) + allGroups
-
-                items(groups) { group ->
+            LazyColumn(modifier = Modifier
+                .padding(paddingValues)
+                .padding(8.dp)) {
+                items(allGroups) { group ->
                     GroupListItem(
                         isActive = activeGroupId == group.groupId,
                         group = group,
-                        onGroupClick = onGroupClick
+                        onGroupClick = {
+                            if (isEdit) {
+                                onIntent(
+                                    MainIntent.ShowBottomSheet(
+                                        MainBottomSheetType.Group(it.groupId)
+                                    )
+                                )
+                            } else {
+                                onIntent(MainIntent.SelectGroup(it))
+                                onIntent(MainIntent.ShowDrawer(false))
+                            }
+                        }
                     )
                 }
             }

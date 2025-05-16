@@ -27,7 +27,7 @@ class TaskControlViewModel(
     )
 ) {
     private val taskState: ControlState.TaskState
-        get() = controlState.value.task ?: throw IllegalStateException("Task state is null in $TAG")
+        get() = controlState.value.task ?: error("Task state is null in $TAG")
 
     fun onIntent(intent: ControlIntent) {
         Log.i(TAG, "intent: $intent")

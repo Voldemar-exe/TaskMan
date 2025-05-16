@@ -14,17 +14,21 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.taskman.api.auth.ProfileData
+import com.example.taskman.navigation.Authentication
+import com.example.taskman.navigation.Main
+import com.example.taskman.navigation.Profile
+import com.example.taskman.navigation.SearchScreen
+import com.example.taskman.navigation.Splash
 import com.example.taskman.ui.auth.AuthStorage
 import com.example.taskman.ui.auth.AuthenticationScreen
 import com.example.taskman.ui.control.group.GroupControlViewModel
 import com.example.taskman.ui.control.task.TaskControlViewModel
 import com.example.taskman.ui.main.MainIntent
+import com.example.taskman.ui.main.MainScreen
 import com.example.taskman.ui.main.MainViewModel
-import com.example.taskman.ui.main.TaskScreen
 import com.example.taskman.ui.profile.ProfileScreen
 import com.example.taskman.ui.search.SearchScreen
 import com.example.taskman.ui.search.SearchViewModel
-import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -35,19 +39,25 @@ fun App(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
 ) {
+
     val mainViewModel = koinViewModel<MainViewModel>()
-    val taskControlViewModel = koinViewModel<TaskControlViewModel>()
-    val groupControlViewModel = koinViewModel<GroupControlViewModel>()
-    val searchViewModel = koinViewModel<SearchViewModel>()
-    val authStorage = koinInject<AuthStorage>()
 
     Scaffold { paddingValues ->
         NavHost(
             modifier = modifier
                 .padding(paddingValues),
             navController = navController,
-            startDestination = Main
+            startDestination = Splash
         ) {
+
+            composable<Splash> {
+                SplashScreen {
+                    navController.navigate(Main) {
+                        popUpTo(Splash) { inclusive = true }
+                    }
+                }
+            }
+
             composable<Profile> { backStackEntry ->
                 val profile: Profile = backStackEntry.toRoute<Profile>()
                 ProfileScreen(
@@ -58,12 +68,15 @@ fun App(
                 )
             }
             composable<Main> {
+                val taskControlViewModel = koinViewModel<TaskControlViewModel>()
+                val groupControlViewModel = koinViewModel<GroupControlViewModel>()
+                val authStorage = koinInject<AuthStorage>()
 
                 val profile by produceState<ProfileData?>(initialValue = null) {
                     value = authStorage.getProfile()
                 }
 
-                TaskScreen(
+                MainScreen(
                     mainViewModel = mainViewModel,
                     taskControlViewModel = taskControlViewModel,
                     groupControlViewModel = groupControlViewModel,
@@ -95,6 +108,7 @@ fun App(
                 )
             }
             composable<SearchScreen> {
+                val searchViewModel = koinViewModel<SearchViewModel>()
                 val uiState by searchViewModel.state.collectAsStateWithLifecycle()
                 val history by searchViewModel.history.collectAsStateWithLifecycle()
                 val allTasks by mainViewModel.allTasks.collectAsStateWithLifecycle()
@@ -105,7 +119,7 @@ fun App(
                     onIntent = searchViewModel::onIntent,
                     onTaskCheckClick = { task ->
                         mainViewModel.onIntent(
-                            MainIntent.MainSwitch(task)
+                            MainIntent.ToggleTaskCompletion(task)
                         )
                     }
                 )
@@ -113,12 +127,3 @@ fun App(
         }
     }
 }
-
-@Serializable
-data class Profile(val name: String)
-@Serializable
-object Main
-@Serializable
-data class Authentication(val type: String)
-@Serializable
-object SearchScreen

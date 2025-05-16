@@ -34,7 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.taskman.ui.Profile
+import com.example.taskman.navigation.Profile
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
