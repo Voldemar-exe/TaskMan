@@ -35,7 +35,6 @@ class UserRepositoryImpl : UserRepository {
         val user = UserDAO.findById(login)
 
         if (user == null) return@suspendTransaction false
-
         user.delete()
         true
     }

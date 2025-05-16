@@ -130,6 +130,7 @@ fun Application.configureDataRouting() {
                 delete {
                     val principal = call.principal<JWTPrincipal>()!!
                     val login = principal.payload.getClaim("userId").asString()
+                    userRepository.deleteDataByLogin(login)
                     userRepository.deleteByLogin(login)
                     call.respond(HttpStatusCode.OK)
                 }
@@ -137,7 +138,7 @@ fun Application.configureDataRouting() {
                     delete {
                         val principal = call.principal<JWTPrincipal>()!!
                         val login = principal.payload.getClaim("userId").asString()
-                        userRepository.deleteByLogin(login)
+                        userRepository.deleteDataByLogin(login)
                         call.respond(HttpStatusCode.OK)
                     }
                 }
