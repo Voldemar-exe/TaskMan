@@ -204,7 +204,7 @@ fun TaskScreen(
         ) { paddingValues ->
             Column(modifier = Modifier.padding(paddingValues)) {
                 HorizontalDivider()
-                if (state.visibleTasks.isNotEmpty() && state.selectedGroupId != -2) {
+                if (state.selectedGroupId != -2) {
                     TaskTabs(
                         selectedTabIndex = state.selectedTabIndex,
                         onTabSelect = { onIntent(MainIntent.SelectTab(it)) }

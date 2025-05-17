@@ -72,11 +72,13 @@ fun GroupTaskDrawerSheet(
                         selected = activeGroupId == group.groupId,
                         onClick = {
                             if (isEdit) {
-                                onIntent(
-                                    MainIntent.ShowBottomSheet(
-                                        MainBottomSheetType.Group(group.groupId)
+                                if (group.groupId > 0) {
+                                    onIntent(
+                                        MainIntent.ShowBottomSheet(
+                                            MainBottomSheetType.Group(group.groupId)
+                                        )
                                     )
-                                )
+                                }
                             } else {
                                 onIntent(MainIntent.SelectGroup(group))
                                 onBackClick()
