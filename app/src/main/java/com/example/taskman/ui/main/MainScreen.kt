@@ -157,7 +157,6 @@ fun MainScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskScreen(
-    modifier: Modifier = Modifier,
     allGroups: List<TaskGroup>,
     state: MainState,
     onIntent: (MainIntent) -> Unit,
@@ -183,7 +182,6 @@ fun TaskScreen(
         drawerState = drawerState
     ) {
         Scaffold(
-            modifier = modifier,
             topBar = {
                 TaskScreenTopBar(
                     groupName = state.selectedGroupName,

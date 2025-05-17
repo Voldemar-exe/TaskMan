@@ -52,7 +52,6 @@ class TaskRepositoryImpl : TaskRepository {
                 icon = newTask.icon
                 color = newTask.color
                 type = newTask.type
-                note = newTask.note
                 isComplete = newTask.isComplete
                 date = newTask.date
             }.also {
@@ -73,7 +72,6 @@ class TaskRepositoryImpl : TaskRepository {
                 it.icon = task.icon
                 it.color = task.color
                 it.type = task.type
-                it.note = task.note
                 it.isComplete = task.isComplete
                 it.date = task.date
             }?.let {

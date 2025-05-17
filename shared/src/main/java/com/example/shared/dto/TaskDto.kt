@@ -9,7 +9,6 @@ data class TaskDto(
     val icon: Int,
     val color: Long,
     val type: String,
-    val note: String,
     val isComplete: Boolean,
     val date: Long
 )

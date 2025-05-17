@@ -10,7 +10,6 @@ data class TaskRequest(
     val icon: Int,
     val color: Long,
     val type: String,
-    val note: String,
     val isComplete: Boolean,
     val date: Long
 ) {
@@ -20,7 +19,6 @@ data class TaskRequest(
         icon = myTask.icon,
         color = myTask.color,
         type = myTask.type,
-        note = myTask.note,
         isComplete = myTask.isComplete,
         date = myTask.date
     )

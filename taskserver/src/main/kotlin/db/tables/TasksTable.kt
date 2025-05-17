@@ -7,7 +7,6 @@ object TasksTable : IntIdTable("tasks") {
     val icon = integer("icon")
     val color = long("color")
     val type = varchar("type", 50)
-    val note = varchar("note", 255)
     val isComplete = bool("is_complete")
     val date = long("date")
 }

@@ -10,7 +10,8 @@ data class TaskGroup(
     val serverId: Int?,
     val name: String,
     val icon: Int,
-    val color: Long
+    val color: Long,
+    val isSynced: Boolean = false
 ) {
     constructor(dto: GroupDto) : this(
         serverId = dto.id,

@@ -13,7 +13,6 @@ class TaskDAO(id: EntityID<Int>) : IntEntity(id) {
     var icon by TasksTable.icon
     var color by TasksTable.color
     var type by TasksTable.type
-    var note by TasksTable.note
     var isComplete by TasksTable.isComplete
     var date by TasksTable.date
 }
@@ -24,7 +23,6 @@ fun taskDaoToDto(dao: TaskDAO) = TaskDto(
     icon = dao.icon,
     color = dao.color,
     type = dao.type,
-    note = dao.note,
     isComplete = dao.isComplete,
     date = dao.date
 )

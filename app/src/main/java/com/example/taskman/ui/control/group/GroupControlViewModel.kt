@@ -172,7 +172,6 @@ class GroupControlViewModel(
                 icon = task.icon,
                 color = task.color,
                 type = task.type,
-                note = task.note,
                 isComplete = task.isComplete,
                 date = task.date
             )

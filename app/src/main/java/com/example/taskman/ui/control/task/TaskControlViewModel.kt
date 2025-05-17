@@ -67,7 +67,6 @@ class TaskControlViewModel(
                     icon = baseState.selectedIcon,
                     color = baseState.selectedColor.toArgb().toLong(),
                     type = taskState.selectedType.name,
-                    note = taskState.selectedType.note,
                     isComplete = taskState.isComplete,
                     date = taskState.selectedDate
                 )

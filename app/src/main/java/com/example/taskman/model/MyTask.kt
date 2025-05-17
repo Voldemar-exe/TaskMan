@@ -13,9 +13,9 @@ data class MyTask(
     val icon: Int,
     val color: Long,
     val type: String,
-    val note: String,
     val isComplete: Boolean,
-    val date: Long
+    val date: Long,
+    val isSynced: Boolean = false
 ) {
     constructor(dto: TaskDto) : this(
         serverId = dto.id,
@@ -23,7 +23,6 @@ data class MyTask(
         icon = dto.icon,
         color = dto.color,
         type = dto.type,
-        note = dto.note,
         isComplete = dto.isComplete,
         date = dto.date
     )
@@ -34,7 +33,6 @@ data class MyTask(
         this.icon,
         this.color,
         this.type,
-        this.note,
         this.isComplete,
         this.date
     )
