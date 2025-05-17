@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 interface GroupDao {
 
     @Transaction
-    @Query("SELECT * FROM 'groups' ORDER BY name")
+    @Query("SELECT * FROM `groups` ORDER BY name")
     fun getAllGroups(): Flow<List<TaskGroup>>
 
     @Query("DELETE FROM group_task WHERE groupId = :groupId")
@@ -28,15 +28,15 @@ interface GroupDao {
     suspend fun insertGroupTaskCrossRef(crossRef: GroupTaskCrossRef)
 
     @Transaction
-    @Query("SELECT * FROM 'groups' ORDER BY name")
+    @Query("SELECT * FROM `groups`")
     fun getAllGroupsWithTasksFlow(): Flow<List<GroupWithTasks>>
 
     @Transaction
-    @Query("SELECT * FROM 'groups' ORDER BY name")
+    @Query("SELECT * FROM `groups` ORDER BY name")
     fun getAllGroupsWithTasksList(): List<GroupWithTasks>
 
     @Transaction
-    @Query("SELECT * FROM 'groups' WHERE groupId = :groupId")
+    @Query("SELECT * FROM `groups` WHERE groupId = :groupId")
     suspend fun getGroupById(groupId: Int): GroupWithTasks?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

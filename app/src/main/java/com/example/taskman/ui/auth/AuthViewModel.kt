@@ -99,43 +99,29 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-
-            try {
-                val state = _uiState.value
-                withContext(Dispatchers.IO) {
-                    if (state.isRegister) {
-                        handleRegistration(state)
-                    } else {
-                        handleLogin(state)
+            val state = _uiState.value
+            withContext(Dispatchers.IO) {
+                val isSuccess = if (state.isRegister) {
+                    handleRegistration(state)
+                } else {
+                    handleLogin(state)
+                }
+                if (isSuccess) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = null,
+                            success = true
+                        )
                     }
-                }
-
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = null,
-                        success = true
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e(
-                    TAG,
-                    "Error during ${
-                        if (_uiState.value.isRegister) "registration" else "login"
-                    }",
-                    e
-                )
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = e.message ?: "Произошла ошибка. Попробуйте ещё раз."
-                    )
+                } else {
+                    _uiState.update { it.copy(isLoading = false) }
                 }
             }
         }
     }
 
-    private suspend fun handleRegistration(state: AuthState) {
+    private suspend fun handleRegistration(state: AuthState): Boolean {
         val tasks = taskDao.getAllTasksWithoutGroups().map { it.toDto() }
         val groups = groupDao.getAllGroupsWithTasksList().map { group ->
             GroupDto(
@@ -156,17 +142,29 @@ class AuthViewModel(
                 tasksWithoutGroup = tasks,
                 groupsWithTasks = groups
             )
-        ) ?: error("Ошибка регистрации")
+        )
+
+        if (response == null) {
+            _uiState.update { it.copy(success = null, error = "Ошибка регистрации") }
+            return false
+        }
 
         syncLocalData(response.tasks, response.groups)
+        return true
     }
 
-    private suspend fun handleLogin(state: AuthState) {
+    private suspend fun handleLogin(state: AuthState): Boolean {
         val response = authService.loginUser(
             LoginRequest(state.login, state.password)
-        ) ?: error("Ошибка входа")
+        )
+
+        if (response == null) {
+            _uiState.update { it.copy(success = null, error = "Ошибка входа") }
+            return false
+        }
 
         syncLocalData(response.tasks, response.groups)
+        return true
     }
 
     private suspend fun syncLocalData(

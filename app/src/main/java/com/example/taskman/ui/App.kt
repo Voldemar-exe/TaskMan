@@ -5,33 +5,29 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
-import com.example.taskman.api.auth.ProfileData
 import com.example.taskman.navigation.Authentication
 import com.example.taskman.navigation.Main
 import com.example.taskman.navigation.Profile
 import com.example.taskman.navigation.SearchScreen
 import com.example.taskman.navigation.Splash
-import com.example.taskman.ui.auth.AuthStorage
-import com.example.taskman.ui.auth.AuthenticationScreen
+import com.example.taskman.ui.auth.AuthScreen
 import com.example.taskman.ui.control.group.GroupControlViewModel
 import com.example.taskman.ui.control.task.TaskControlViewModel
 import com.example.taskman.ui.main.MainIntent
 import com.example.taskman.ui.main.MainScreen
 import com.example.taskman.ui.main.MainViewModel
+import com.example.taskman.ui.profile.ProfileIntent
 import com.example.taskman.ui.profile.ProfileScreen
 import com.example.taskman.ui.profile.ProfileViewModel
 import com.example.taskman.ui.search.SearchScreen
 import com.example.taskman.ui.search.SearchViewModel
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +38,7 @@ fun App(
     navController: NavHostController = rememberNavController()
 ) {
     val mainViewModel = koinViewModel<MainViewModel>()
+    val profileViewModel = koinViewModel<ProfileViewModel>()
 
     Scaffold { paddingValues ->
         NavHost(
@@ -59,10 +56,8 @@ fun App(
             }
 
             composable<Profile> { backStackEntry ->
-                val profileViewModel = koinViewModel<ProfileViewModel>()
                 val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()
 
-                val profile: Profile = backStackEntry.toRoute<Profile>()
                 ProfileScreen(
                     isDarkTheme = isDarkTheme,
                     toggleTheme = toggleTheme,
@@ -74,24 +69,18 @@ fun App(
             composable<Main> {
                 val taskControlViewModel = koinViewModel<TaskControlViewModel>()
                 val groupControlViewModel = koinViewModel<GroupControlViewModel>()
-                val authStorage = koinInject<AuthStorage>()
-
-                val profile by produceState<ProfileData?>(initialValue = null) {
-                    value = authStorage.getProfile()
-                }
 
                 MainScreen(
                     mainViewModel = mainViewModel,
                     taskControlViewModel = taskControlViewModel,
                     groupControlViewModel = groupControlViewModel,
                     onProfileClick = {
-                        val route = profile?.let { user ->
-                            val displayName = user.username
-                                ?.takeUnless { it.isBlank() }
-                                ?: user.login
-                            Profile(displayName)
-                        } ?: Authentication("login")
-
+                        val login = profileViewModel.uiState.value.login
+                        val route = if (login.isNotEmpty()) {
+                            Profile(login)
+                        } else {
+                            Authentication("login")
+                        }
                         navController.navigate(route)
                     },
                     onSearchClick = {
@@ -99,14 +88,13 @@ fun App(
                     }
                 )
             }
-            composable<Authentication> { backStackEntry ->
-                val authentication: Authentication = backStackEntry.toRoute()
-
-                AuthenticationScreen(
+            composable<Authentication> {
+                AuthScreen(
                     onBackClick = {
                         navController.popBackStack()
                     },
                     loginUser = {
+                        profileViewModel.onIntent(ProfileIntent.LoadProfile)
                         navController.navigate(it)
                     }
                 )

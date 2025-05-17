@@ -39,6 +39,8 @@ class AuthInterceptor(
             Log.d(TAG, "Response message: ${response.message}")
             if (!response.isSuccessful) {
                 Log.e(TAG, "Request failed with code ${response.code}")
+            } else {
+                Log.i(TAG, "Request success with response $response")
             }
         }
     }

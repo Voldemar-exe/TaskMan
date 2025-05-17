@@ -9,7 +9,6 @@ sealed interface MainIntent {
     data class ShowBottomSheet(
         val type: MainBottomSheetType = MainBottomSheetType.None
     ) : MainIntent
-    data class ShowDrawer(val isShow: Boolean) : MainIntent
     data class SelectTab(val tabIndex: Int) : MainIntent
     data class SelectTask(val taskId: Int) : MainIntent
     data class SelectGroup(val group: TaskGroup) : MainIntent

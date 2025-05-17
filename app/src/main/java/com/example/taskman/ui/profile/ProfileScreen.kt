@@ -15,30 +15,35 @@ import androidx.compose.material.icons.automirrored.rounded.ExitToApp
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Build
 import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.taskman.R
 
@@ -52,10 +57,34 @@ fun ProfileScreen(
     onBackClick: () -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(state.error) {
+        if (state.error != null) {
+            snackbarHostState.showSnackbar(
+                message = state.error,
+                actionLabel = "OK",
+                duration = SnackbarDuration.Short
+            )
+            onIntent(ProfileIntent.ClearError)
+        }
+    }
+
+    LaunchedEffect(state.success) {
+        if (state.success) {
+            snackbarHostState.showSnackbar(
+                message = "Операция прошла успешно!",
+                actionLabel = "OK",
+                duration = SnackbarDuration.Short
+            )
+            onIntent(ProfileIntent.ClearSuccess)
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = { ProfileTopBar(state, onIntent, scrollBehavior, onBackClick) }
+        topBar = { ProfileTopBar(onIntent, scrollBehavior, onBackClick) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -73,18 +102,13 @@ fun ProfileScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileTopBar(
-    state: ProfileState,
     onIntent: (ProfileIntent) -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
     onBackClick: () -> Unit
 ) {
-    LargeTopAppBar(
+    CenterAlignedTopAppBar(
         title = {
-            Text(
-                text = state.userName.ifEmpty { state.login },
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Text("Профиль")
         },
         navigationIcon = {
             IconButton(onClick = onBackClick) {
@@ -132,6 +156,12 @@ fun ProfileCard(state: ProfileState) {
             }
 
             HorizontalDivider()
+
+            SettingsItem(
+                title = if (state.userName.isEmpty()) "Логин" else "Ник",
+                subtitle = state.userName.ifEmpty { state.login },
+                icon = Icons.Rounded.Person
+            )
 
             SettingsItem(
                 title = "Почта",
@@ -201,7 +231,7 @@ fun ActionsCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Действия", style = MaterialTheme.typography.titleMedium)
+                Text("Действия с сервером", style = MaterialTheme.typography.titleMedium)
                 Icon(
                     imageVector = Icons.Rounded.Build,
                     contentDescription = null,
@@ -214,7 +244,6 @@ fun ActionsCard(
             Button(
                 onClick = {
                     onIntent(ProfileIntent.DeleteProfileData)
-                    onBackClick()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(

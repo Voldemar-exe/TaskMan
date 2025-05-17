@@ -79,10 +79,10 @@ fun ControlScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.End
             ) {
-                if (entityId != null)
+                uiState.base.serverEntityId?.let {
                     IconButton(
                         onClick = {
-                            onIntent(ControlIntent.DeleteEntity(entityId))
+                            onIntent(ControlIntent.DeleteEntity(it))
                             onBackClick()
                         }
                     ) {
@@ -91,6 +91,7 @@ fun ControlScreen(
                             contentDescription = "Delete"
                         )
                     }
+                }
             }
         },
         bottomBar = {

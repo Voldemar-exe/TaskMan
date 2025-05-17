@@ -8,7 +8,6 @@ import com.example.taskman.api.profile.ProfileService
 import com.example.taskman.ui.utils.SessionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -19,7 +18,7 @@ class ProfileViewModel(
     private val sessionRepository: SessionRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProfileState())
-    val uiState: StateFlow<ProfileState> = _uiState.asStateFlow()
+    val uiState = _uiState.asStateFlow()
 
     companion object {
         private const val TAG = "ProfileViewModel"
@@ -33,6 +32,7 @@ class ProfileViewModel(
     fun onIntent(intent: ProfileIntent) {
         Log.i(TAG, "$intent")
         when (intent) {
+            ProfileIntent.LoadProfile -> loadProfile()
             is ProfileIntent.InfoClick ->
                 _uiState.update { it.copy(isInfo = !it.isInfo) }
 
@@ -50,6 +50,8 @@ class ProfileViewModel(
             is ProfileIntent.ClearProfile -> clearProfile()
             ProfileIntent.DeleteProfile -> deleteProfile()
             ProfileIntent.DeleteProfileData -> deleteProfileData()
+            ProfileIntent.ClearError -> _uiState.update { it.copy(error = null) }
+            ProfileIntent.ClearSuccess -> _uiState.update { it.copy(success = false) }
         }
     }
 
@@ -167,18 +169,29 @@ class ProfileViewModel(
     }
 
     private fun deleteProfileData() = viewModelScope.launch {
+        _uiState.update { it.copy(isLoading = true, error = null) }
         sessionRepository.getProfileData()?.let {
             if (profileService.deleteUserData(it.login)) {
-                sessionRepository.clearSession()
+                sessionRepository.clearDatabaseData()
+                _uiState.update { it.copy(success = true) }
+            } else {
+                _uiState.update { it.copy(error = "Не удалось удалить данные пользователя") }
             }
+            return@launch
         }
+        _uiState.update { it.copy(error = "Нет данных о пользователе") }
     }
 
     private fun deleteProfile() = viewModelScope.launch {
+        _uiState.update { it.copy(isLoading = true, error = null) }
         sessionRepository.getProfileData()?.let {
             if (profileService.deleteUser(it.login)) {
-                sessionRepository.clearSession()
+                clearProfile()
+                _uiState.update { it.copy(success = true) }
+            } else {
+                _uiState.update { it.copy(error = "Не удалось удалить данные пользователя") }
             }
+            return@launch
         }
     }
 }

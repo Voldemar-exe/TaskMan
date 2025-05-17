@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.taskman.R
 import com.example.taskman.db.GroupDao
+import com.example.taskman.db.GroupWithTasks
 import com.example.taskman.db.TaskDao
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskGroup
@@ -40,7 +41,7 @@ class MainViewModel(
         emptyList()
     )
 
-    val allGroupsWithTasks = groupDao.getAllGroupsWithTasksFlow().stateIn(
+    private val allGroupsWithTasks = groupDao.getAllGroupsWithTasksFlow().stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(STOP_DELAY),
         emptyList()
@@ -75,9 +76,10 @@ class MainViewModel(
                 _uiState.map { it.selectedGroupId }.distinctUntilChanged(),
                 _uiState.map { it.selectedTaskTypes }.distinctUntilChanged(),
                 _uiState.map { it.selectedTabIndex }.distinctUntilChanged(),
-                allTasks
-            ) { groupId, taskTypes, tabIndex, tasks ->
-                filterVisibleTasks(tasks, groupId, taskTypes, tabIndex)
+                allTasks,
+                allGroupsWithTasks
+            ) { groupId, taskTypes, tabIndex, tasks, groupsWithTasks ->
+                filterVisibleTasks(tasks, groupId, taskTypes, tabIndex, groupsWithTasks)
             }.collect { filteredTasks ->
                 _uiState.update { it.copy(visibleTasks = filteredTasks) }
             }
@@ -91,9 +93,6 @@ class MainViewModel(
             is MainIntent.ShowBottomSheet ->
                 _uiState.update { it.copy(bottomSheet = intent.type) }
 
-            is MainIntent.ShowDrawer ->
-                _uiState.update { it.copy(isShowDrawer = intent.isShow) }
-
             MainIntent.CloseBottomSheet ->
                 _uiState.update { it.copy(bottomSheet = MainBottomSheetType.None) }
 
@@ -104,6 +103,7 @@ class MainViewModel(
                 _uiState.update {
                     it.copy(
                         selectedGroupId = intent.group.groupId,
+                        selectedTabIndex = 0,
                         selectedGroupName = intent.group.name
                     )
                 }
@@ -137,15 +137,15 @@ class MainViewModel(
         allTasks: List<MyTask>,
         selectedGroupId: Int,
         selectedTaskTypes: Set<TaskType>,
-        selectedTabIndex: Int
+        selectedTabIndex: Int,
+        groupsWithTasks: List<GroupWithTasks>
     ): List<MyTask> {
-        val filteredByGroup = when {
-            selectedGroupId > 0 ->
-                allGroupsWithTasks.value
-                    .find { it.group.groupId == selectedGroupId }?.tasks ?: emptyList()
-
-            selectedGroupId == -2 -> allTasks.filter { it.isComplete }
-            else -> allTasks
+        val filteredByGroup = when (selectedGroupId) {
+            -1 -> allTasks
+            -2 -> allTasks.filter { it.isComplete }
+            else -> {
+                groupsWithTasks.find { it.group.groupId == selectedGroupId }?.tasks ?: emptyList()
+            }
         }
 
         val filteredByTab = when (selectedTabIndex) {

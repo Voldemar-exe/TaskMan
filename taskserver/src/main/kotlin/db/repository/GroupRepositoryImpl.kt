@@ -41,30 +41,31 @@ class GroupRepositoryImpl : GroupRepository {
         } ?: emptyList()
     }
 
-    override suspend fun createGroup(userDao: UserDAO, group: GroupDto): Int =
+    override suspend fun createGroup(login: String, group: GroupDto): Int? =
         suspendTransaction {
-            GroupDAO.new {
-                name = group.name
-                icon = group.icon
-                color = group.color
-            }.also { groupDao ->
-                UserGroupDAO.new {
-                    this.login = userDao
-                    this.groupId = groupDao
-                }
-            }.id.value
+            UserDAO.findById(login)?.let { userDao ->
+                GroupDAO.new {
+                    name = group.name
+                    icon = group.icon
+                    color = group.color
+                }.also { groupDao ->
+                    UserGroupDAO.new {
+                        this.login = userDao
+                        this.groupId = groupDao
+                    }
+                }.id.value
+            }
         }
 
     override suspend fun syncTasksForGroup(
         login: String,
         groupId: Int,
         taskIds: List<Int>
-    ): Boolean = suspendTransaction {
-
+    ): Result<String> = suspendTransaction {
         val group = UserGroupDAO.find {
             (UserGroupTable.login eq login) and (UserGroupTable.groupId eq groupId)
-        }.firstOrNull()?.groupId ?: error("Group not found or not owned by user")
-
+        }.firstOrNull()?.groupId
+            ?: return@suspendTransaction Result.failure<String>(error("User not found"))
 
         val currentLinks = GroupTaskDAO.find { GroupTaskTable.groupId eq group.id }
         val currentTaskIds = currentLinks.map { it.taskId.id.value }
@@ -80,14 +81,13 @@ class GroupRepositoryImpl : GroupRepository {
             }
         }
 
-        true
+        Result.success("Sync complete!")
     }
 
     override suspend fun updateGroup(
         login: String,
         group: GroupDto
     ): Boolean = suspendTransaction {
-
         UserGroupDAO.find {
             (UserGroupTable.login eq login) and (UserGroupTable.groupId eq group.id)
         }.firstOrNull()?.let {
@@ -96,26 +96,28 @@ class GroupRepositoryImpl : GroupRepository {
                 it.icon = group.icon
                 it.color = group.color
             }?.let {
-                true
+                return@suspendTransaction true
             }
-            false
+            return@suspendTransaction false
         }
         false
     }
 
-    override suspend fun deleteGroup(login: String, groupId: Int): Boolean = suspendTransaction {
-        UserGroupDAO.find {
-            (UserGroupTable.login eq login) and (UserGroupTable.groupId eq groupId)
-        }.firstOrNull()?.let { userGroupDao ->
-            GroupDAO.findById(groupId)?.let {
-                GroupTaskDAO.find { GroupTaskTable.groupId eq groupId }.forEach {
+    override suspend fun deleteGroup(login: String, groupId: Int): Result<String> =
+        suspendTransaction {
+            UserGroupDAO.find {
+                (UserGroupTable.login eq login) and (UserGroupTable.groupId eq groupId)
+            }.firstOrNull()?.let { userGroupDao ->
+                GroupDAO.findById(groupId)?.let {
+                    GroupTaskDAO.find { GroupTaskTable.groupId eq groupId }.forEach {
+                        it.delete()
+                    }
+                    userGroupDao.delete()
                     it.delete()
+                    return@suspendTransaction Result.success("Group $groupId deleted")
                 }
-                userGroupDao.delete()
-                it.delete()
-                true
+                return@suspendTransaction Result.failure(error("GroupDAO not found"))
             }
+            Result.failure(error("UserGroupDAO not found"))
         }
-        false
-    }
 }

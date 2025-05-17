@@ -36,12 +36,14 @@ class AuthServiceImpl(
             tokenRepository.saveToken(request.login, token)
             try {
                 val tasks = request.tasksWithoutGroup.map {
-                    it.copy(id = taskRepository.createTask(user, it))
+                    it.copy(id = taskRepository.createTask(user.login.value, it)!!)
                 }
                 val groups = request.groupsWithTasks.map {
                     it.copy(
-                        id = groupRepository.createGroup(user, it),
-                        tasks = it.tasks.map { it.copy(id = taskRepository.createTask(user, it)) }
+                        id = groupRepository.createGroup(user.login.value, it)!!,
+                        tasks = it.tasks.map {
+                            it.copy(id = taskRepository.createTask(user.login.value, it)!!)
+                        }
                     )
                 }
                 groups.forEach {
@@ -65,13 +67,6 @@ class AuthServiceImpl(
             Result.success(it)
         } ?: run {
             Result.failure(IllegalArgumentException("User not exist"))
-        }
-    }
-
-    override suspend fun deleteByLogin(login: String): Result<Boolean> {
-        return when (userRepository.deleteByLogin(login)) {
-            true -> Result.success(true)
-            false -> Result.failure(IllegalArgumentException("User not exist"))
         }
     }
 

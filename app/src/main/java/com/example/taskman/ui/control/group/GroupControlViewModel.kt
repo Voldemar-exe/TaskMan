@@ -32,7 +32,7 @@ class GroupControlViewModel(
 ) {
     private val groupState: ControlState.GroupState
         get() = controlState.value.group
-            ?: throw IllegalStateException("Task state is null in $TAG")
+            ?: error("Task state is null in $TAG")
 
     companion object {
         private const val TAG = "GroupControlViewModel"
@@ -70,43 +70,40 @@ class GroupControlViewModel(
             val state = controlState.value.group!!
 
             try {
-                val groupId = withContext(Dispatchers.IO) {
-                    if (base.isEditMode) {
-                        val entity = TaskGroup(
-                            groupId = base.entityId!!,
-                            serverId = base.serverEntityId,
-                            name = base.entityName,
-                            icon = base.selectedIcon,
-                            color = base.selectedColor.toArgb().toLong()
-                        )
-                        groupDao.updateGroup(entity)
-                        entity.groupId
-                    } else {
-                        val entity = TaskGroup(
-                            serverId = base.serverEntityId,
-                            name = base.entityName,
-                            icon = base.selectedIcon,
-                            color = base.selectedColor.toArgb().toLong()
-                        )
-                        groupDao.insertGroup(entity).toInt()
-                    }
-                }
-
                 withContext(Dispatchers.IO) {
+                    val entity = TaskGroup(
+                        groupId = 0,
+                        serverId = base.serverEntityId,
+                        name = base.entityName,
+                        icon = base.selectedIcon,
+                        color = base.selectedColor.toArgb().toLong()
+                    )
+                    val reqGroup = getGroupDtoFromState()
+                    val groupId = if (base.isEditMode) {
+                        groupDao.updateGroup(entity.copy(groupId = base.entityId!!))
+                        base.entityId
+                    } else {
+                        val groupServerId = groupService.createGroup(reqGroup)
+                        groupDao.insertGroup(entity.copy(serverId = groupServerId)).toInt()
+                    }
+
                     groupDao.deleteAllCrossRefsForGroup(groupId)
                     state.tasksInGroup.forEach { task ->
                         groupDao.insertGroupTaskCrossRef(
                             GroupTaskCrossRef(groupId = groupId, taskId = task.taskId)
                         )
                     }
+
+                    controlState.update { it.copy(base = base.copy(entityId = groupId)) }
+
+                    if (baseState.isEditMode) {
+                        baseState.serverEntityId?.let {
+                            groupService.updateGroup(it, reqGroup)
+                        }
+                    }
+
+                    setResult(IntentResult.Success(ControlIntent.SaveEntity.toString()))
                 }
-
-                controlState.update { it.copy(base = base.copy(entityId = groupId)) }
-
-                syncToServer()
-
-                setResult(IntentResult.Success(ControlIntent.SaveEntity.toString()))
-
             } catch (e: Exception) {
                 errorException(e)
             }
@@ -123,6 +120,7 @@ class GroupControlViewModel(
                     controlState.update { state ->
                         val base = state.base.copy(
                             entityId = gw.group.groupId,
+                            serverEntityId = gw.group.serverId,
                             entityName = gw.group.name,
                             selectedIcon = gw.group.icon,
                             selectedColor = Color(gw.group.color),
@@ -148,10 +146,9 @@ class GroupControlViewModel(
         viewModelScope.launch {
             startLoading()
             try {
-
                 withContext(Dispatchers.IO) {
-                    groupDao.deleteAllCrossRefsForGroup(entityId)
-                    groupDao.deleteGroupById(entityId)
+                    groupDao.deleteAllCrossRefsForGroup(baseState.entityId!!)
+                    groupDao.deleteGroupById(baseState.entityId!!)
                 }
 
                 groupService.deleteGroup(entityId)
@@ -163,34 +160,22 @@ class GroupControlViewModel(
         }
     }
 
-    private suspend fun syncToServer(): Boolean {
-
-        val reqGroup = GroupDto(
-            id = baseState.entityId ?: 0,
-            name = baseState.entityName,
-            icon = baseState.selectedIcon,
-            color = baseState.selectedColor.toArgb().toLong(),
-            tasks = groupState.tasksInGroup.map { task ->
-                TaskDto(
-                    id = task.serverId ?: 0,
-                    name = task.name,
-                    icon = task.icon,
-                    color = task.color,
-                    type = task.type,
-                    note = task.note,
-                    isComplete = task.isComplete,
-                    date = task.date
-                )
-            }
-        )
-
-        if (baseState.isEditMode) {
-            baseState.serverEntityId?.let {
-                return groupService.updateGroup(it, reqGroup)
-            }
-        } else {
-            return groupService.createGroup(reqGroup) != null
+    private fun getGroupDtoFromState() = GroupDto(
+        id = baseState.serverEntityId ?: 0,
+        name = baseState.entityName,
+        icon = baseState.selectedIcon,
+        color = baseState.selectedColor.toArgb().toLong(),
+        tasks = groupState.tasksInGroup.map { task ->
+            TaskDto(
+                id = task.serverId ?: 0,
+                name = task.name,
+                icon = task.icon,
+                color = task.color,
+                type = task.type,
+                note = task.note,
+                isComplete = task.isComplete,
+                date = task.date
+            )
         }
-        return false
-    }
+    )
 }

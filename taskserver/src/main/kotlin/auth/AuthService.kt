@@ -9,6 +9,5 @@ import com.example.shared.response.RegisterResponse
 interface AuthService {
     suspend fun register(credentials: RegisterRequest): Result<RegisterResponse>
     suspend fun findByLogin(login: String): Result<UserDto>
-    suspend fun deleteByLogin(login: String): Result<Boolean>
     suspend fun login(credentials: LoginRequest): Result<LoginResponse>
 }

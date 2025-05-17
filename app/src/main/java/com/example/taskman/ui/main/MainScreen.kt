@@ -165,20 +165,10 @@ fun TaskScreen(
     onSearchClick: () -> Unit,
     onCheckClick: (MyTask) -> Unit
 ) {
-    val scope = rememberCoroutineScope()
     val drawerState: DrawerState = rememberDrawerState(
         initialValue = DrawerValue.Closed
     )
-
-    LaunchedEffect(state.isShowDrawer) {
-        scope.launch {
-            if (state.isShowDrawer && drawerState.isClosed) {
-                drawerState.open()
-            } else {
-                drawerState.close()
-            }
-        }
-    }
+    val scope = rememberCoroutineScope()
 
     ModalNavigationDrawer(
         drawerContent = {
@@ -186,7 +176,8 @@ fun TaskScreen(
                 onIntent = onIntent,
                 allGroups = allGroups,
                 activeGroupId = state.selectedGroupId,
-                isEdit = state.isGroupEditMode
+                isEdit = state.isGroupEditMode,
+                onBackClick = { scope.launch { drawerState.close() } }
             )
         },
         drawerState = drawerState
@@ -196,7 +187,7 @@ fun TaskScreen(
             topBar = {
                 TaskScreenTopBar(
                     groupName = state.selectedGroupName,
-                    onMenuClick = { onIntent(MainIntent.ShowDrawer(true)) },
+                    onMenuClick = { scope.launch { drawerState.open() } },
                     onProfileClick = onProfileClick
                 )
             },
@@ -213,7 +204,7 @@ fun TaskScreen(
         ) { paddingValues ->
             Column(modifier = Modifier.padding(paddingValues)) {
                 HorizontalDivider()
-                if (state.selectedGroupId != -2) {
+                if (state.visibleTasks.isNotEmpty() && state.selectedGroupId != -2) {
                     TaskTabs(
                         selectedTabIndex = state.selectedTabIndex,
                         onTabSelect = { onIntent(MainIntent.SelectTab(it)) }

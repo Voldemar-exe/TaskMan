@@ -2,7 +2,6 @@ package com.example.taskman.api.group
 
 import com.example.shared.dto.GroupDto
 import com.example.shared.dto.TaskDto
-import io.ktor.http.HttpStatusCode
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -23,7 +22,7 @@ interface GroupApi {
     suspend fun update(@Path("id") id: Int, @Body dto: GroupDto): Response<Unit>
 
     @DELETE("/groups/{id}")
-    suspend fun delete(@Path("id") id: Int): Response<HttpStatusCode>
+    suspend fun delete(@Path("id") id: Int): Response<Unit>
 
     @GET("/groups/{id}/tasks")
     suspend fun getTasksInGroup(@Path("id") id: Int): Response<List<TaskDto>>
@@ -32,6 +31,6 @@ interface GroupApi {
     suspend fun syncTasksForGroup(
         @Path("id") groupId: Int,
         @Body tasks: List<Int>
-    ): Response<HttpStatusCode>
+    ): Response<Unit>
 
 }

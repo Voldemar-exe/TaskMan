@@ -3,7 +3,7 @@ package com.example.taskman.api.profile
 import android.util.Log
 
 class ProfileService(
-    private val profileClient: ProfileApi
+    private val apiClient: ProfileApi
 ) {
 
     companion object {
@@ -13,7 +13,7 @@ class ProfileService(
     suspend fun deleteUserData(login: String): Boolean {
         return try {
             Log.d(TAG, "Deleting user $login data")
-            val response = profileClient.deleteUserData(login)
+            val response = apiClient.deleteUserData(login)
             if (response.isSuccessful) {
                 Log.d(TAG, "User $login data deleted successfully")
                 true
@@ -30,7 +30,7 @@ class ProfileService(
     suspend fun deleteUser(login: String): Boolean {
         return try {
             Log.d(TAG, "Deleting user: $login")
-            val response = profileClient.deleteUser(login)
+            val response = apiClient.deleteUser(login)
             if (response.isSuccessful) {
                 Log.d(TAG, "User $login deleted successfully")
                 true

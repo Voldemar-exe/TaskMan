@@ -31,23 +31,23 @@ class UserRepositoryImpl : UserRepository {
         }
     }
 
-    override suspend fun deleteByLogin(login: String): Boolean = suspendTransaction {
+    override suspend fun deleteByLogin(login: String): Result<String> = suspendTransaction {
         val user = UserDAO.findById(login)
 
-        if (user == null) return@suspendTransaction false
+        if (user == null) return@suspendTransaction Result.failure(error("User not found"))
         user.delete()
-        true
+        Result.success("User $login was deleted")
     }
 
-    override suspend fun deleteDataByLogin(login: String): Boolean = suspendTransaction {
+    override suspend fun deleteDataByLogin(login: String): Result<String> = suspendTransaction {
         val user = UserDAO.findById(login)
 
-        if (user == null) return@suspendTransaction false
+        if (user == null) return@suspendTransaction Result.failure(error("User not found"))
 
         UserGroupDAO.find { UserGroupTable.login eq login }.forEach { it.delete() }
         UserTaskDAO.find { UserTaskTable.login eq login }.forEach { it.delete() }
         TokenDAO.find { TokensTable.login eq login }.forEach { it.delete() }
 
-        true
+        Result.success("User $login data was deleted")
     }
 }
