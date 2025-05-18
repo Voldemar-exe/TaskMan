@@ -6,7 +6,7 @@ import com.example.taskman.model.TaskType
 
 sealed interface ControlIntent {
     data class UpdateName(val name: String) : ControlIntent
-    data class UpdateIcon(val icon: Int) : ControlIntent
+    data class UpdateIcon(val icon: String) : ControlIntent
     data class UpdateColor(val color: Color) : ControlIntent
     data object ClearError : ControlIntent
     data object ClearState : ControlIntent

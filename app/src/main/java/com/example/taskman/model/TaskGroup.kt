@@ -9,7 +9,7 @@ data class TaskGroup(
     @PrimaryKey(autoGenerate = true) val groupId: Int = 0,
     val serverId: Int?,
     val name: String,
-    val icon: Int,
+    val icon: String,
     val color: Long,
     val isSynced: Boolean = false
 ) {

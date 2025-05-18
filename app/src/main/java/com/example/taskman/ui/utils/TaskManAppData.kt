@@ -1,26 +1,34 @@
 package com.example.taskman.ui.utils
 
-import androidx.compose.ui.graphics.Color
-import com.example.taskman.R
+import com.example.taskman.model.ItemIcon
+import com.example.taskman.ui.theme.Blue
+import com.example.taskman.ui.theme.BlueLight
+import com.example.taskman.ui.theme.GreenLight
+import com.example.taskman.ui.theme.GreenVeryLight
+import com.example.taskman.ui.theme.LightBlue
+import com.example.taskman.ui.theme.LightGreen
+import com.example.taskman.ui.theme.OrangeLight
+import com.example.taskman.ui.theme.PinkLight
+import com.example.taskman.ui.theme.Purple
+import com.example.taskman.ui.theme.Red
+import com.example.taskman.ui.theme.RedLight
+import com.example.taskman.ui.theme.Yellow
 
 object TaskManAppData {
-    val icons = listOf(
-        R.drawable.ic_beauty,
-        R.drawable.ic_goal,
-        R.drawable.ic_grocery,
-        R.drawable.ic_medicine,
-        R.drawable.ic_education,
-        R.drawable.ic_home,
-        R.drawable.ic_payment,
-        R.drawable.ic_work
-    )
+    val icons = ItemIcon.entries.map { it.id }
 
     val colors = listOf(
-        Color.Red,
-        Color.Green,
-        Color.Blue,
-        Color.Yellow,
-        Color.Magenta,
-        Color.Cyan
+        Red,
+        LightGreen,
+        Blue,
+        Yellow,
+        Purple,
+        LightBlue,
+        RedLight,
+        GreenLight,
+        BlueLight,
+        OrangeLight,
+        PinkLight,
+        GreenVeryLight
     )
 }

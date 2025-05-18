@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class GroupDto(
     val id: Int,
     val name: String,
-    val icon: Int,
+    val icon: String,
     val color: Long,
     val tasks: List<TaskDto>
 )

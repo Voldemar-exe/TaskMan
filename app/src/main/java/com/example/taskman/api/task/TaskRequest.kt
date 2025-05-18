@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class TaskRequest(
     val id: Int,
     val name: String,
-    val icon: Int,
+    val icon: String,
     val color: Long,
     val type: String,
     val isComplete: Boolean,

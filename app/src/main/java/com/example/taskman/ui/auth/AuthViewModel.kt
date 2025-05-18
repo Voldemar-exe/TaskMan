@@ -163,6 +163,8 @@ class AuthViewModel(
             return false
         }
 
+        Log.i(TAG, "$response")
+
         syncLocalData(response.tasks, response.groups)
         return true
     }

@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.taskman.model.ItemIcon
 import com.example.taskman.model.TaskGroup
 import com.example.taskman.ui.main.MainBottomSheetType
 import com.example.taskman.ui.main.MainIntent
@@ -86,7 +87,7 @@ fun GroupTaskDrawerSheet(
                         },
                         icon = {
                             Icon(
-                                painter = painterResource(group.icon),
+                                painter = painterResource(ItemIcon.valueOf(group.icon).id),
                                 tint = Color(group.color),
                                 contentDescription = null
                             )

@@ -4,13 +4,12 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.shared.dto.TaskDto
 
-// TODO REMOVE NOTE
 @Entity(tableName = "tasks")
 data class MyTask(
     @PrimaryKey(autoGenerate = true) val taskId: Int = 0,
     val serverId: Int?,
     val name: String,
-    val icon: Int,
+    val icon: String,
     val color: Long,
     val type: String,
     val isComplete: Boolean,

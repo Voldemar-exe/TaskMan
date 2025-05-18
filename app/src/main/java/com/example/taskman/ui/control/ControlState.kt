@@ -2,7 +2,7 @@ package com.example.taskman.ui.control
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
-import com.example.taskman.R
+import com.example.taskman.model.ItemIcon
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskType
 import com.example.taskman.ui.components.IntentResult
@@ -17,7 +17,7 @@ data class ControlState(
         val entityId: Int? = null,
         val serverEntityId: Int? = null,
         val entityName: String = "",
-        val selectedIcon: Int = R.drawable.ic_work,
+        val selectedIcon: String = ItemIcon.Work.name,
         val selectedColor: Color = Color.Red,
         val isLoading: Boolean = false,
         val intentRes: IntentResult = IntentResult.None,

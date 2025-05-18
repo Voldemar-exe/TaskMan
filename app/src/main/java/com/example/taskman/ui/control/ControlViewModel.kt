@@ -45,10 +45,8 @@ abstract class ControlViewModel(
                     base = ControlState.BaseState(),
                     task = if (it.task != null) ControlState.TaskState() else null,
                     group = if (it.group != null) ControlState.GroupState() else null
-                    // TODO reduce this code
                 )
             }
-
             ControlIntent.SaveEntity -> saveEntity()
             is ControlIntent.LoadEntity -> loadEntity(intent.entityId)
             is ControlIntent.DeleteEntity -> deleteEntity(intent.entityId)

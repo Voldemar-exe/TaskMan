@@ -5,10 +5,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.taskman.R
 import com.example.taskman.db.GroupDao
 import com.example.taskman.db.GroupWithTasks
 import com.example.taskman.db.TaskDao
+import com.example.taskman.model.ItemIcon
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskGroup
 import com.example.taskman.model.TaskType
@@ -53,14 +53,14 @@ class MainViewModel(
                 groupId = -1,
                 serverId = null,
                 name = "Все",
-                icon = R.drawable.ic_amount,
+                icon = ItemIcon.Amount.name,
                 color = Color.Black.toArgb().toLong()
             ),
             TaskGroup(
                 groupId = -2,
                 serverId = null,
                 name = "Завершенные",
-                icon = R.drawable.ic_goal,
+                icon = ItemIcon.Goal.name,
                 color = Color.Gray.toArgb().toLong()
             )
         ) + it

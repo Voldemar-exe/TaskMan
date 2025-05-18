@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskman.R
+import com.example.taskman.model.ItemIcon
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskGroup
 import com.example.taskman.model.TaskType
@@ -60,7 +61,6 @@ import com.example.taskman.ui.control.group.GroupTaskDrawerSheet
 import com.example.taskman.ui.control.task.TaskControl
 import com.example.taskman.ui.control.task.TaskControlViewModel
 import com.example.taskman.ui.theme.Orange
-import com.example.taskman.ui.utils.TaskManAppData.icons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -288,15 +288,12 @@ fun TaskItem(
             Text(text = TaskType.valueOf(task.type).ru)
         },
         leadingContent = {
-            // TODO STORE ICON IN DB IN DIFFERENT WAY
-            if (task.icon in icons) {
-                Icon(
-                    modifier = Modifier.size(36.dp),
-                    painter = painterResource(task.icon),
-                    tint = Color(task.color),
-                    contentDescription = null
-                )
-            }
+            Icon(
+                modifier = Modifier.size(36.dp),
+                painter = painterResource(ItemIcon.valueOf(task.icon).id),
+                tint = Color(task.color),
+                contentDescription = null
+            )
         },
         trailingContent = {
             RadioButton(

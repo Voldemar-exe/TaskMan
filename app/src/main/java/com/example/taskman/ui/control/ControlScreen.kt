@@ -29,13 +29,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.taskman.model.ItemIcon
 import com.example.taskman.ui.components.GridDialog
 import com.example.taskman.ui.components.IntentResult
 import com.example.taskman.ui.utils.TaskManAppData
 
 @Composable
 fun ControlScreen(
-    modifier: Modifier = Modifier,
     uiState: ControlState,
     onIntent: (ControlIntent) -> Unit,
     entityId: Int?,
@@ -95,92 +95,116 @@ fun ControlScreen(
             }
         },
         bottomBar = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Button(
-                    onClick = {
-                        onIntent(ControlIntent.SaveEntity)
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AddCircle,
-                        contentDescription = null
-                    )
-                    Spacer(modifier = Modifier.padding(horizontal = 4.dp))
-                    Text(text = if (entityId == null) "Добавить" else "Сохранить")
-                }
-                TextButton(
-                    onClick = {
-                        onIntent(ControlIntent.ClearState)
-                        onBackClick()
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = null
-                    )
-                    Spacer(modifier = Modifier.padding(horizontal = 4.dp))
-                    Text(text = "Назад")
-                }
-            }
+            ControlBottomBar(
+                isEdit = entityId != null,
+                onIntent = onIntent,
+                onBackClick = onBackClick
+            )
         }
     ) { paddingValues ->
-        Column(
-            modifier = modifier
+        ControlContent(
+            modifier = Modifier
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            uiState = uiState.base,
+            onIntent = onIntent,
+            content = content
+        )
+    }
+}
+
+@Composable
+fun ControlBottomBar(
+    isEdit: Boolean,
+    onIntent: (ControlIntent) -> Unit,
+    onBackClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Button(
+            onClick = {
+                onIntent(ControlIntent.SaveEntity)
+            }
         ) {
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = uiState.base.entityName,
-                onValueChange = { onIntent(ControlIntent.UpdateName(it)) },
-                label = { Text("Название") }
+            Icon(
+                imageVector = Icons.Default.AddCircle,
+                contentDescription = null
             )
-            ListItem(
-                headlineContent = {
-                    Text(text = "Иконка")
-                },
-                trailingContent = {
-                    GridDialog(
-                        items = TaskManAppData.icons,
-                        selectedIcon = uiState.base.selectedIcon,
-                        selectedColor = uiState.base.selectedColor,
-                        onItemSelected = {
-                            if (it is Color) {
-                                onIntent(ControlIntent.UpdateColor(it))
-                            } else {
-                                onIntent(ControlIntent.UpdateIcon(it as Int))
-                            }
-                        }
-                    )
-                }
-            )
-            HorizontalDivider()
-            ListItem(
-                headlineContent = {
-                    Text(text = "Цвет")
-                },
-                trailingContent = {
-                    GridDialog(
-                        items = TaskManAppData.colors,
-                        selectedIcon = uiState.base.selectedIcon,
-                        selectedColor = uiState.base.selectedColor,
-                        onItemSelected = {
-                            if (it is Color) {
-                                onIntent(ControlIntent.UpdateColor(it))
-                            } else {
-                                onIntent(ControlIntent.UpdateIcon(it as Int))
-                            }
-                        }
-                    )
-                }
-            )
-            HorizontalDivider()
-            content()
+            Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+            Text(text = if (!isEdit) "Добавить" else "Сохранить")
         }
+        TextButton(
+            onClick = {
+                onIntent(ControlIntent.ClearState)
+                onBackClick()
+            }
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = null
+            )
+            Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+            Text(text = "Назад")
+        }
+    }
+}
+
+@Composable
+fun ControlContent(
+    modifier: Modifier = Modifier,
+    uiState: ControlState.BaseState,
+    onIntent: (ControlIntent) -> Unit,
+    content: @Composable () -> Unit
+) {
+    Column(
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = uiState.entityName,
+            onValueChange = { onIntent(ControlIntent.UpdateName(it)) },
+            label = { Text("Название") }
+        )
+        ListItem(
+            headlineContent = {
+                Text(text = "Иконка")
+            },
+            trailingContent = {
+                GridDialog(
+                    items = TaskManAppData.icons,
+                    selectedIcon = ItemIcon.valueOf(uiState.selectedIcon).id,
+                    selectedColor = uiState.selectedColor,
+                    onItemSelected = { onIntent(onDialogChoose(it)) }
+                )
+            }
+        )
+        HorizontalDivider()
+        ListItem(
+            headlineContent = {
+                Text(text = "Цвет")
+            },
+            trailingContent = {
+                GridDialog(
+                    items = TaskManAppData.colors,
+                    selectedIcon = ItemIcon.valueOf(uiState.selectedIcon).id,
+                    selectedColor = uiState.selectedColor,
+                    onItemSelected = { onIntent(onDialogChoose(it)) }
+                )
+            }
+        )
+        HorizontalDivider()
+        content()
+    }
+}
+
+private fun onDialogChoose(item: Any): ControlIntent {
+    return if (item is Color) {
+        ControlIntent.UpdateColor(item)
+    } else {
+        ControlIntent.UpdateIcon(ItemIcon.entries.find { it.id == item as Int }?.name ?: "Work")
     }
 }
