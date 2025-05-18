@@ -2,15 +2,15 @@ package com.example.taskman.api.group
 
 import android.util.Log
 import com.example.shared.dto.GroupDto
-import com.example.shared.dto.TaskDto
 import retrofit2.Response
 
 class GroupService(
     private val apiClient: GroupApi
 ) {
 
-    suspend fun getAllGroups(): List<GroupDto>? =
-        safeApiCall { apiClient.getAll() }
+    companion object {
+        private const val TAG = "GroupService"
+    }
 
     suspend fun createGroup(dto: GroupDto): Int? {
         return safeApiCall { apiClient.create(dto) }
@@ -50,12 +50,6 @@ class GroupService(
         }
     }
 
-    suspend fun syncTasksForGroup(groupId: Int, taskIds: List<Int>) =
-        safeApiCall { apiClient.syncTasksForGroup(groupId, taskIds) }
-
-    suspend fun getTasksInGroup(groupId: Int): List<TaskDto>? =
-        safeApiCall { apiClient.getTasksInGroup(groupId) }
-
     private suspend fun <T> safeApiCall(call: suspend () -> Response<T>): T? {
         return try {
             val response = call()
@@ -68,9 +62,5 @@ class GroupService(
             Log.e(TAG, "Exception during API call", e)
             null
         }
-    }
-
-    companion object {
-        private const val TAG = "GroupService"
     }
 }

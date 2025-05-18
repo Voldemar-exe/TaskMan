@@ -27,7 +27,6 @@ import com.example.taskman.ui.main.TaskItem
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
-    allTasks: List<MyTask>,
     history: List<String>,
     state: SearchState,
     onIntent: (SearchIntent) -> Unit,

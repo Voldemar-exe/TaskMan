@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskGroup
 import kotlinx.coroutines.flow.Flow
 
@@ -36,6 +37,14 @@ interface GroupDao {
     fun getAllGroupsWithTasksList(): List<GroupWithTasks>
 
     @Transaction
+    @Query("SELECT * FROM `groups` WHERE isSynced = 0")
+    fun getAllNotSyncedList(): List<GroupWithTasks>
+
+    @Transaction
+    @Query("SELECT * FROM `groups` WHERE isSynced = 0")
+    fun getAllNotSyncedFlow(): Flow<List<GroupWithTasks>>
+
+    @Transaction
     @Query("SELECT * FROM `groups` WHERE groupId = :groupId")
     suspend fun getGroupById(groupId: Int): GroupWithTasks?
 
@@ -44,6 +53,33 @@ interface GroupDao {
 
     @Update
     suspend fun updateGroup(group: TaskGroup)
+
+    @Update
+    suspend fun updateGroups(groups: List<TaskGroup>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTask(task: MyTask)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCrossRef(ref: GroupTaskCrossRef)
+
+    @Transaction
+    suspend fun updateGroupWithTasks(groupWithTasks: GroupWithTasks) {
+        val group = groupWithTasks.group
+        insertGroup(group)
+
+        for (task in groupWithTasks.tasks) {
+            insertTask(task)
+            insertCrossRef(GroupTaskCrossRef(group.groupId, task.taskId))
+        }
+    }
+
+    @Transaction
+    suspend fun updateGroupsWithTaskFromServer(groups: List<GroupWithTasks>) {
+        groups.forEach { groupWithTasks ->
+            updateGroupWithTasks(groupWithTasks)
+        }
+    }
 
     @Delete
     suspend fun deleteGroup(group: TaskGroup)

@@ -73,13 +73,10 @@ class TaskControlViewModel(
 
                 when (controlState.value.base.isEditMode) {
                     true -> {
-                        taskDao.updateTask(task)
-                        taskService.updateTask(TaskRequest(task))
+                        taskDao.updateWithSyncFlag(task)
                     }
-
                     false -> {
-                        val taskId = taskService.createTask(TaskRequest(task))
-                        taskDao.insertTask(task.copy(serverId = taskId))
+                        taskDao.insertWithSyncFlag(task)
                     }
                 }
                 setResult(IntentResult.Success(ControlIntent.SaveEntity.toString()))

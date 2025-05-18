@@ -103,9 +103,8 @@ fun App(
                 val searchViewModel = koinViewModel<SearchViewModel>()
                 val uiState by searchViewModel.state.collectAsStateWithLifecycle()
                 val history by searchViewModel.history.collectAsStateWithLifecycle()
-                val allTasks by mainViewModel.allTasks.collectAsStateWithLifecycle()
+
                 SearchScreen(
-                    allTasks = allTasks,
                     history = history,
                     state = uiState,
                     onIntent = searchViewModel::onIntent,

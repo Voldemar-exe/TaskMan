@@ -48,7 +48,9 @@ select * from group_task;
 select * from user_task;
 select * from users;
 select * from tasks;
-select * from tokens;]]></console>
+select * from tokens;
+delete from user_task where task_id = 0;
+delete from tasks where tasks."id" = 0;]]></console>
     </connection>
     <connection id="1ec357df-f652-4220-9456-be9902b577cd">
       <console name="RootConnection" type="STANDARD" schema="postgres" session="Main" />
