@@ -64,8 +64,8 @@ import com.example.taskman.ui.theme.Orange
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -248,18 +248,30 @@ fun TaskTabs(
 }
 
 private fun getRemainingTimeInfo(taskTimestamp: Long): Pair<String, Color> {
-    val currentTime = System.currentTimeMillis()
-    val diffMillis = taskTimestamp - currentTime
-    val daysLeft = TimeUnit.MILLISECONDS.toDays(diffMillis)
+    val calendar = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }
+    val currentDateMidnight = calendar.timeInMillis
+
+    calendar.timeInMillis = taskTimestamp
+    calendar.set(Calendar.HOUR_OF_DAY, 0)
+    calendar.set(Calendar.MINUTE, 0)
+    calendar.set(Calendar.SECOND, 0)
+    calendar.set(Calendar.MILLISECOND, 0)
+    val taskDateMidnight = calendar.timeInMillis
+
+    val diffDays = (taskDateMidnight - currentDateMidnight) / (24 * 60 * 60 * 1000)
 
     return when {
-        diffMillis < 0 -> Pair("Просрочено", Color.Red)
-        daysLeft == 0L -> Pair("Сегодня", Orange)
-        daysLeft == 1L -> Pair("Завтра", Orange)
-        daysLeft in 2L..4L -> Pair("$daysLeft дня", Orange)
-        daysLeft in 3L..6L -> Pair("$daysLeft дней", Color.Unspecified)
+        diffDays < 0 -> Pair("Просрочено", Color.Red)
+        diffDays == 0L -> Pair("Сегодня", Orange)
+        diffDays == 1L -> Pair("Завтра", Orange)
+        diffDays in 2L..4L -> Pair("$diffDays дня", Orange)
         else -> Pair(
-            SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(taskTimestamp),
+            SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(taskDateMidnight),
             Color.Unspecified
         )
     }
