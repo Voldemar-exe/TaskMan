@@ -4,8 +4,6 @@ import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.viewModelScope
-import com.example.taskman.api.task.TaskRequest
-import com.example.taskman.api.task.TaskService
 import com.example.taskman.db.TaskDao
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskType
@@ -18,8 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class TaskControlViewModel(
-    private val taskDao: TaskDao,
-    private val taskService: TaskService
+    private val taskDao: TaskDao
 ) : ControlViewModel(
     initialState = ControlState(
         base = ControlState.BaseState(),
@@ -34,10 +31,6 @@ class TaskControlViewModel(
         when (intent) {
             is TaskControlIntent.UpdateDate -> updateDate(intent.date)
             is TaskControlIntent.UpdateType -> updateType(intent.type)
-            is TaskControlIntent.UpdateTaskToServer -> viewModelScope.launch {
-                taskService.updateTask(TaskRequest(intent.task))
-            }
-
             else -> processBaseIntent(intent)
         }
     }
@@ -121,9 +114,7 @@ class TaskControlViewModel(
 
     override fun deleteEntity(entityId: Int) {
         viewModelScope.launch {
-            taskDao.deleteTaskById(entityId)?.let {
-                taskService.deleteTask(it)
-            }
+            taskDao.deleteTaskById(entityId)
         }
     }
 

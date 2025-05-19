@@ -16,4 +16,5 @@ sealed interface MainIntent {
     data object CloseBottomSheet : MainIntent
     data object LoadTasks : MainIntent
     data class ChangeEditMode(val isEdit: Boolean) : MainIntent
+    data object SyncData : MainIntent
 }

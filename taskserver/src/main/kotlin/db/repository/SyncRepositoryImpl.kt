@@ -10,6 +10,7 @@ import com.example.db.dao.UserTaskDAO
 import com.example.db.dao.groupDaoTpDto
 import com.example.db.dao.taskDaoToDto
 import com.example.db.tables.GroupTaskTable
+import com.example.db.tables.UserGroupTable
 import com.example.db.tables.UserTaskTable
 import com.example.db.tables.UsersTable
 import com.example.shared.dto.GroupDto
@@ -52,7 +53,7 @@ class SyncRepositoryImpl : SyncRepository {
 
         // REMOVE DELETED TASKS
         UserTaskDAO.find { UserTaskTable.login eq login }
-            .filter { it.taskId.id.value !in allTasksIds }
+            .filter { it.taskId.id.value !in (allTasksIds + updatedTasks.map { it.id }) }
             .forEach { it.delete() }
 
         Result.success(updatedTasks)
@@ -79,12 +80,11 @@ class SyncRepositoryImpl : SyncRepository {
                         .map { it.taskId.id.value }
 
                 groupDto.tasks.forEach { task ->
-                    currentLinks.find { it == task.id }
-                        ?: GroupTaskDAO.new {
-                            this.groupId = group
-                            this.taskId = TaskDAO.findById(task.id)
-                                ?: error("Task in group don't exist")
-                        }
+                    currentLinks.find { it == task.id } ?: GroupTaskDAO.new {
+                        this.groupId = group
+                        this.taskId = TaskDAO.findById(task.id)
+                            ?: error("Task in group don't exist")
+                    }
                 }
 
                 // REMOVE DELETED TASKS FROM GROUPS
@@ -96,6 +96,10 @@ class SyncRepositoryImpl : SyncRepository {
                 this.icon = groupDto.icon
                 this.color = groupDto.color
             }.also { group ->
+                UserGroupDAO.new {
+                    this.login = user
+                    this.groupId = group
+                }
                 groupDto.tasks.forEach { task ->
                     GroupTaskDAO.new {
                         this.groupId = group
@@ -103,16 +107,16 @@ class SyncRepositoryImpl : SyncRepository {
                     }
                 }
             }
-            updatedGroups.add(groupDaoTpDto(group))
+            updatedGroups.add(groupDaoTpDto(group).copy(tasks = groupDto.tasks))
         }
 
         // REMOVE DELETED GROUPS
-        UserGroupDAO.find { UserTaskTable.login eq user.login }
-            .filter { it.groupId.id.value !in allGroupsIds }
+        UserGroupDAO.find { UserGroupTable.login eq user.login }
+            .filter { it.groupId.id.value !in (allGroupsIds + updatedGroups.map { it.id }) }
             .forEach { it.delete() }
 
         GroupDAO.all()
-            .filter { it.id.value !in allGroupsIds }
+            .filter { it.id.value !in (allGroupsIds + updatedGroups.map { it.id }) }
             .forEach {
                 GroupTaskDAO
                     .find { GroupTaskTable.groupId eq it.id.value }

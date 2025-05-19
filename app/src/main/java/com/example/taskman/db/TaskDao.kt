@@ -50,6 +50,13 @@ interface TaskDao {
         updateTask(task.copy(isSynced = false))
     }
 
+    @Transaction
+    suspend fun syncAllTasks() {
+        getAllTasksList().forEach { task ->
+            updateTask(task.copy(isSynced = false))
+        }
+    }
+
     @Update
     suspend fun updateTasksByDataFromServer(tasks: List<MyTask>)
 }

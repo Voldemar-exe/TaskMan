@@ -6,15 +6,11 @@ import androidx.work.WorkManager
 import com.example.taskman.api.RetrofitClient
 import com.example.taskman.api.auth.AuthClient
 import com.example.taskman.api.auth.AuthService
-import com.example.taskman.api.group.GroupClient
-import com.example.taskman.api.group.GroupService
 import com.example.taskman.api.profile.ProfileClient
 import com.example.taskman.api.profile.ProfileService
 import com.example.taskman.api.sync.SyncClient
 import com.example.taskman.api.sync.SyncRepository
 import com.example.taskman.api.sync.SyncService
-import com.example.taskman.api.task.TaskClient
-import com.example.taskman.api.task.TaskService
 import com.example.taskman.db.GroupDao
 import com.example.taskman.db.TaskDao
 import com.example.taskman.db.TaskManDatabase
@@ -43,8 +39,6 @@ val dataModule = module {
     }
 
     single { get<RetrofitClient>().let { AuthClient.instance } }
-    single { get<RetrofitClient>().let { TaskClient.instance } }
-    single { get<RetrofitClient>().let { GroupClient.instance } }
     single { get<RetrofitClient>().let { ProfileClient.instance } }
     single { get<RetrofitClient>().let { SyncClient.instance } }
 
@@ -61,8 +55,6 @@ val dataModule = module {
 
 val domainModule = module {
     single<AuthService> { AuthService(get(), get<SessionRepository>()) }
-    single<TaskService> { TaskService(get()) }
-    single<GroupService> { GroupService(get()) }
     single<ProfileService> { ProfileService(get()) }
 
     single<SyncService> { SyncService(get()) }
@@ -75,7 +67,7 @@ val presentationModule = module {
     viewModel { AuthViewModel(get<AuthService>(), get(), get(), get()) }
     viewModel { ProfileViewModel(get<ProfileService>(), get<SessionRepository>()) }
     viewModel { MainViewModel(get<TaskDao>(), get<GroupDao>()) }
-    viewModel { TaskControlViewModel(get<TaskDao>(), get<TaskService>()) }
-    viewModel { GroupControlViewModel(get<GroupDao>(), get<GroupService>()) }
+    viewModel { TaskControlViewModel(get<TaskDao>()) }
+    viewModel { GroupControlViewModel(get<GroupDao>()) }
     viewModel { SearchViewModel(get<TaskDao>(), get<HistoryRepository>()) }
 }

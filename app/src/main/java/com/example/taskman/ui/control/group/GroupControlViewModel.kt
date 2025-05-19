@@ -4,9 +4,6 @@ import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.viewModelScope
-import com.example.shared.dto.GroupDto
-import com.example.shared.dto.TaskDto
-import com.example.taskman.api.group.GroupService
 import com.example.taskman.db.GroupDao
 import com.example.taskman.db.GroupTaskCrossRef
 import com.example.taskman.model.MyTask
@@ -22,8 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class GroupControlViewModel(
-    private val groupDao: GroupDao,
-    private val groupService: GroupService
+    private val groupDao: GroupDao
 ) : ControlViewModel(
     initialState = ControlState(
         base = ControlState.BaseState(),
@@ -78,13 +74,11 @@ class GroupControlViewModel(
                         icon = base.selectedIcon,
                         color = base.selectedColor.toArgb().toLong()
                     )
-                    val reqGroup = getGroupDtoFromState()
                     val groupId = if (base.isEditMode) {
                         groupDao.updateGroup(entity.copy(groupId = base.entityId!!))
                         base.entityId
                     } else {
-                        val groupServerId = groupService.createGroup(reqGroup)
-                        groupDao.insertGroup(entity.copy(serverId = groupServerId)).toInt()
+                        groupDao.insertGroup(entity).toInt()
                     }
 
                     groupDao.deleteAllCrossRefsForGroup(groupId)
@@ -95,12 +89,6 @@ class GroupControlViewModel(
                     }
 
                     controlState.update { it.copy(base = base.copy(entityId = groupId)) }
-
-                    if (baseState.isEditMode) {
-                        baseState.serverEntityId?.let {
-                            groupService.updateGroup(it, reqGroup)
-                        }
-                    }
 
                     setResult(IntentResult.Success(ControlIntent.SaveEntity.toString()))
                 }
@@ -151,30 +139,10 @@ class GroupControlViewModel(
                     groupDao.deleteGroupById(baseState.entityId!!)
                 }
 
-                groupService.deleteGroup(entityId)
-
                 setResult(IntentResult.Success(ControlIntent.DeleteEntity(entityId).toString()))
             } catch (e: Exception) {
                 errorException(e)
             }
         }
     }
-
-    private fun getGroupDtoFromState() = GroupDto(
-        id = baseState.serverEntityId ?: 0,
-        name = baseState.entityName,
-        icon = baseState.selectedIcon,
-        color = baseState.selectedColor.toArgb().toLong(),
-        tasks = groupState.tasksInGroup.map { task ->
-            TaskDto(
-                id = task.serverId ?: 0,
-                name = task.name,
-                icon = task.icon,
-                color = task.color,
-                type = task.type,
-                isComplete = task.isComplete,
-                date = task.date
-            )
-        }
-    )
 }

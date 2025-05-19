@@ -35,6 +35,8 @@ class UserRepositoryImpl : UserRepository {
         val user = UserDAO.findById(login)
 
         if (user == null) return@suspendTransaction Result.failure(error("User not found"))
+        deleteUserData(user.login.value)
+        TokenDAO.find { TokensTable.login eq login }.forEach { it.delete() }
         user.delete()
         Result.success("User $login was deleted")
     }
@@ -44,10 +46,17 @@ class UserRepositoryImpl : UserRepository {
 
         if (user == null) return@suspendTransaction Result.failure(error("User not found"))
 
-        UserGroupDAO.find { UserGroupTable.login eq login }.forEach { it.delete() }
-        UserTaskDAO.find { UserTaskTable.login eq login }.forEach { it.delete() }
-        TokenDAO.find { TokensTable.login eq login }.forEach { it.delete() }
+        deleteUserData(user.login.value)
 
         Result.success("User $login data was deleted")
+    }
+
+    private fun deleteUserData(login: String) {
+        UserGroupDAO.find { UserGroupTable.login eq login }.forEach {
+            it.delete()
+        }
+        UserTaskDAO.find { UserTaskTable.login eq login }.forEach {
+            it.delete()
+        }
     }
 }

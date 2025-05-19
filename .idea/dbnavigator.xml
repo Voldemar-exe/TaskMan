@@ -42,7 +42,7 @@ LEFT JOIN tasks t ON ut."task_id" = t.id
 LEFT JOIN user_group ug ON u."login" = ug."login"
 LEFT JOIN groups g ON ug.group_id = g.id
 LEFT JOIN group_task gt ON g.id = gt.group_id AND t.id = gt.task_id;
-select * from "groups";
+select * from groups;
 select * from user_group;
 select * from group_task;
 select * from user_task;

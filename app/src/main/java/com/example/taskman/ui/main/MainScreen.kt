@@ -54,7 +54,6 @@ import com.example.taskman.model.ItemIcon
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskGroup
 import com.example.taskman.model.TaskType
-import com.example.taskman.ui.control.TaskControlIntent
 import com.example.taskman.ui.control.group.GroupControl
 import com.example.taskman.ui.control.group.GroupControlViewModel
 import com.example.taskman.ui.control.group.GroupTaskDrawerSheet
@@ -103,15 +102,7 @@ fun MainScreen(
         state = mainState,
         onIntent = mainViewModel::onIntent,
         onProfileClick = onProfileClick,
-        onSearchClick = onSearchClick,
-        onCheckClick = {
-            mainViewModel.onIntent(MainIntent.ToggleTaskCompletion(it))
-            taskControlViewModel.onIntent(
-                TaskControlIntent.UpdateTaskToServer(
-                    it.copy(isComplete = !it.isComplete)
-                )
-            )
-        }
+        onSearchClick = onSearchClick
     )
 
     when (val sheet = mainState.bottomSheet) {
@@ -161,8 +152,7 @@ fun TaskScreen(
     state: MainState,
     onIntent: (MainIntent) -> Unit,
     onProfileClick: () -> Unit,
-    onSearchClick: () -> Unit,
-    onCheckClick: (MyTask) -> Unit
+    onSearchClick: () -> Unit
 ) {
     val drawerState: DrawerState = rememberDrawerState(
         initialValue = DrawerValue.Closed
@@ -192,11 +182,8 @@ fun TaskScreen(
             bottomBar = {
                 TaskScreenBottomBar(
                     selectedTaskTypes = state.selectedTaskTypes.toList(),
-                    onSelectTask = { onIntent(MainIntent.SelectTaskType(it)) },
-                    onSearchClick = onSearchClick,
-                    onAddClick = {
-                        onIntent(MainIntent.ShowBottomSheet(MainBottomSheetType.Task()))
-                    }
+                    onIntent = onIntent,
+                    onSearchClick = onSearchClick
                 )
             }
         ) { paddingValues ->
@@ -218,8 +205,9 @@ fun TaskScreen(
                                     )
                                 )
                             },
+                            selected = task.isComplete,
                             task = task,
-                            onCheckClick = onCheckClick
+                            onCheckClick = { onIntent(MainIntent.ToggleTaskCompletion(it)) }
                         )
                     }
                 }
@@ -309,7 +297,7 @@ fun TaskItem(
         },
         trailingContent = {
             RadioButton(
-                selected = task.isComplete || selected,
+                selected = selected,
                 onClick = { onCheckClick(task) }
             )
         }
@@ -353,9 +341,8 @@ fun TaskScreenTopBar(
 fun TaskScreenBottomBar(
     modifier: Modifier = Modifier,
     selectedTaskTypes: List<TaskType>,
-    onSelectTask: (TaskType) -> Unit,
     onSearchClick: () -> Unit,
-    onAddClick: () -> Unit
+    onIntent: (MainIntent) -> Unit
 ) {
     var expandedWorkType by remember { mutableStateOf(false) }
 
@@ -368,21 +355,32 @@ fun TaskScreenBottomBar(
                     contentDescription = "Filter"
                 )
             }
+            WorkTypeDropdownMenu(
+                expanded = expandedWorkType,
+                selectedTaskTypes = selectedTaskTypes,
+                onSelectTask = { onIntent(MainIntent.SelectTaskType(it)) },
+                onExpandedChange = { expandedWorkType = it }
+            )
+
             IconButton(onClick = onSearchClick) {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = null
                 )
             }
-            WorkTypeDropdownMenu(
-                expanded = expandedWorkType,
-                selectedTaskTypes = selectedTaskTypes,
-                onSelectTask = onSelectTask,
-                onExpandedChange = { expandedWorkType = it }
-            )
+
+            IconButton(onClick = { onIntent(MainIntent.SyncData) }) {
+                Icon(
+                    painterResource(R.drawable.ic_sync),
+                    contentDescription = null
+                )
+            }
+
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddClick) {
+            FloatingActionButton(onClick = {
+                onIntent(MainIntent.ShowBottomSheet(MainBottomSheetType.Task()))
+            }) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = null

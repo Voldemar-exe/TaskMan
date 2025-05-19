@@ -35,14 +35,17 @@ class SyncWorker(
 
         if (tasksToSync.isNotEmpty()) {
             val updatedTasks = syncService.syncTasks(tasksToSync.map { it.toDto() }, allTaskIds)
-            Log.d(TAG, "$updatedTasks")
-            val updatedLocalTasks = tasksToSync.zip(updatedTasks) { localTask, remoteTask ->
-                localTask.copy(
-                    serverId = remoteTask.id,
-                    isSynced = true
-                )
+            if (updatedTasks.isNotEmpty()) {
+                val updatedLocalTasks = tasksToSync.zip(updatedTasks) { localTask, remoteTask ->
+                    localTask.copy(
+                        serverId = remoteTask.id,
+                        isSynced = true
+                    )
+                }
+                db.taskDao().updateTasksByDataFromServer(updatedLocalTasks)
+            } else {
+                error("Server fail to sync tasks")
             }
-            db.taskDao().updateTasksByDataFromServer(updatedLocalTasks)
         }
     }
 
@@ -63,18 +66,28 @@ class SyncWorker(
                 },
                 allGroupIds
             )
-            val updatedLocalGroups = groupsToSync.zip(updatedGroups) { localGroup, remoteGroup ->
-                localGroup.copy(
-                    group = localGroup.group.copy(serverId = remoteGroup.id, isSynced = true),
-                    tasks = localGroup.tasks.zip(remoteGroup.tasks) { localTask, remoteTask ->
-                        localTask.copy(
-                            serverId = remoteTask.id,
-                            isSynced = true
+            Log.d(TAG, "$updatedGroups")
+            if (updatedGroups.isNotEmpty()) {
+                val updatedLocalGroups =
+                    groupsToSync.zip(updatedGroups) { localGroup, remoteGroup ->
+                        localGroup.copy(
+                            group = localGroup.group.copy(
+                                serverId = remoteGroup.id,
+                                isSynced = true
+                            ),
+                            tasks =
+                                localGroup.tasks.zip(remoteGroup.tasks) { localTask, remoteTask ->
+                                    localTask.copy(
+                                        serverId = remoteTask.id,
+                                        isSynced = true
+                                    )
+                                }
                         )
                     }
-                )
+                db.groupDao().updateGroupsWithTaskFromServer(updatedLocalGroups)
+            } else {
+                error("Server fail to sync groups")
             }
-            db.groupDao().updateGroupsWithTaskFromServer(updatedLocalGroups)
         }
     }
 }

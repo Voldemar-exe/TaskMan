@@ -18,7 +18,6 @@ sealed interface ControlIntent {
 sealed interface TaskControlIntent : ControlIntent {
     data class UpdateType(val type: TaskType) : TaskControlIntent
     data class UpdateDate(val date: Long) : TaskControlIntent
-    data class UpdateTaskToServer(val task: MyTask) : TaskControlIntent
 }
 
 sealed interface GroupControlIntent : ControlIntent {

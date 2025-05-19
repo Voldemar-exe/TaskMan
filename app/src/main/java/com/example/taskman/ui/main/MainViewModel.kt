@@ -47,7 +47,7 @@ class MainViewModel(
         emptyList()
     )
 
-    val allGroups = groupDao.getAllGroups().map {
+    val allGroups = groupDao.getAllGroupsFlow().map {
         listOf(
             TaskGroup(
                 groupId = -1,
@@ -126,6 +126,10 @@ class MainViewModel(
             is MainIntent.LoadTasks -> Unit
             is MainIntent.SelectTab ->
                 _uiState.update { it.copy(selectedTabIndex = intent.tabIndex) }
+            MainIntent.SyncData -> viewModelScope.launch {
+                taskDao.syncAllTasks()
+                groupDao.syncAllGroups()
+            }
         }
     }
 
