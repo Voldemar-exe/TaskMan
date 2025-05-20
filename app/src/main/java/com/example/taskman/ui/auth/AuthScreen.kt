@@ -6,13 +6,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,8 +30,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskman.navigation.Profile
 import org.koin.androidx.compose.koinViewModel
@@ -56,23 +54,43 @@ fun AuthScreen(
                 duration = SnackbarDuration.Short
             )
         }
-        uiState.success?.let {
-            loginUser(
-                Profile(
-                    uiState.login
-                )
-            )
-        }
+        uiState.success?.let { loginUser(Profile(uiState.login)) }
     }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(title = {
-                Text(
-                    text = "Вход в аккаунт"
-                )
-            })
+            TopAppBar(
+                title = {
+                    Text(
+                        text = uiState.authMode.title,
+                        fontSize = 28.sp
+                    )
+                }
+            )
+        },
+        bottomBar = {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                TextButton(
+                    onClick = {
+                        if (!uiState.authMode.isRegister) {
+                            onBackClick()
+                        } else {
+                            viewModel.onIntent(AuthIntent.ToggleMode)
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                        contentDescription = "Назад"
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Назад")
+                }
+            }
         }
     ) { paddingValues ->
         Box(
@@ -82,8 +100,7 @@ fun AuthScreen(
             AuthContentScreen(
                 modifier = Modifier.padding(paddingValues),
                 uiState = uiState,
-                onIntent = viewModel::onIntent,
-                onBackClick = onBackClick
+                onIntent = viewModel::onIntent
             )
         }
     }
@@ -93,8 +110,7 @@ fun AuthScreen(
 private fun AuthContentScreen(
     modifier: Modifier = Modifier,
     uiState: AuthState,
-    onIntent: (AuthIntent) -> Unit,
-    onBackClick: () -> Unit
+    onIntent: (AuthIntent) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -103,74 +119,55 @@ private fun AuthContentScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        OutlinedTextField(
+        AuthTextField(
+            title = "Введите логин",
             value = uiState.login,
-            onValueChange = { onIntent(AuthIntent.UpdateLogin(it)) },
-            label = { Text("Введите логин") },
-            leadingIcon = { Icon(Icons.Default.Person, null) },
-            trailingIcon = {
-                if (uiState.login.isNotEmpty()) {
-                    IconButton(
-                        onClick = { onIntent(AuthIntent.UpdateLogin("")) }
-                    ) {
-                        Icon(Icons.Default.Clear, null)
-                    }
-                }
-            }
+            onValueChange = { onIntent(AuthIntent.UpdateLogin(it)) }
         )
-        OutlinedTextField(
+        AuthTextField(
+            title = "Введите пароль",
             value = uiState.password,
-            onValueChange = { onIntent(AuthIntent.UpdatePassword(it)) },
-            label = { Text("Введите пароль") },
-            leadingIcon = { Icon(Icons.Default.Lock, null) },
-            visualTransformation = PasswordVisualTransformation(),
-            trailingIcon = {
-                if (uiState.password.isNotEmpty()) {
-                    IconButton(
-                        onClick = { onIntent(AuthIntent.UpdatePassword("")) }
-                    ) {
-                        Icon(Icons.Default.Clear, null)
-                    }
-                }
-            }
+            onValueChange = { onIntent(AuthIntent.UpdatePassword(it)) }
         )
-        if (uiState.isRegister) {
-            OutlinedTextField(
+
+        if (uiState.authMode is AuthMode.Register) {
+            AuthTextField(
+                title = "Ещё раз введите пароль",
                 value = uiState.confirmPassword,
-                onValueChange = { onIntent(AuthIntent.UpdateConfirmPassword(it)) },
-                label = { Text("Ещё раз введите пароль") },
-                leadingIcon = { Icon(Icons.Default.Lock, null) },
-                visualTransformation = PasswordVisualTransformation(),
-                trailingIcon = {
-                    if (uiState.confirmPassword.isNotEmpty()) {
-                        IconButton(
-                            onClick = {
-                                onIntent(AuthIntent.UpdateConfirmPassword(""))
-                            }
-                        ) {
-                            Icon(Icons.Default.Clear, null)
-                        }
-                    }
-                }
+                onValueChange = { onIntent(AuthIntent.UpdateConfirmPassword(it)) }
             )
         }
+
         Button(onClick = { onIntent(AuthIntent.Submit) }) {
-            Text(if (uiState.isRegister) "Регистрация" else "Вход")
+            Text(uiState.authMode.title)
         }
+
         TextButton(onClick = { onIntent(AuthIntent.ToggleMode) }) {
-            Text(if (uiState.isRegister) "Уже есть аккаунт? Войти" else "Зарегистрироваться")
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        TextButton(onClick = {
-            if (!uiState.isRegister) {
-                onBackClick()
-            } else {
-                onIntent(AuthIntent.ToggleMode)
-            }
-        }) {
-            Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = "Назад")
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Назад")
+            Text(uiState.authMode.backButtonText)
         }
     }
+}
+
+@Composable
+fun AuthTextField(
+    title: String,
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(title) },
+        leadingIcon = { Icon(Icons.Default.Person, null) },
+        trailingIcon = {
+            if (value.isNotEmpty()) {
+                IconButton(onClick = { onValueChange("") }) {
+                    Icon(Icons.Default.Clear, null)
+                }
+            }
+        }
+    )
 }

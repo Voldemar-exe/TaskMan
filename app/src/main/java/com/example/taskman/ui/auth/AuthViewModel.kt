@@ -40,38 +40,35 @@ class AuthViewModel(
     fun onIntent(intent: AuthIntent) {
         Log.i(TAG, "$intent")
         when (intent) {
-            is AuthIntent.UpdateLogin -> updateLogin(intent.login)
-            is AuthIntent.UpdateEmail -> updateEmail(intent.email)
-            is AuthIntent.UpdateUsername -> updateUsername(intent.username)
-            is AuthIntent.UpdatePassword -> updatePassword(intent.password)
-            is AuthIntent.UpdateConfirmPassword -> updateConfirmPassword(intent.confirmPassword)
+            is AuthIntent.UpdateLogin ->
+                _uiState.update { it.copy(login = intent.login) }
+
+            is AuthIntent.UpdateEmail ->
+                _uiState.update { it.copy(email = intent.email) }
+
+            is AuthIntent.UpdateUsername ->
+                _uiState.update { it.copy(username = intent.username) }
+
+            is AuthIntent.UpdatePassword ->
+                _uiState.update { it.copy(password = intent.password) }
+
+            is AuthIntent.UpdateConfirmPassword ->
+                _uiState.update { it.copy(confirmPassword = intent.confirmPassword) }
+
             is AuthIntent.Submit -> submitForm()
             is AuthIntent.ToggleMode -> toggleMode()
         }
     }
 
-    private fun updateLogin(login: String) {
-        _uiState.update { it.copy(login = login, error = null) }
-    }
-
-    private fun updateEmail(email: String) {
-        _uiState.update { it.copy(email = email, error = null) }
-    }
-
-    private fun updateUsername(username: String) {
-        _uiState.update { it.copy(username = username, error = null) }
-    }
-
-    private fun updatePassword(password: String) {
-        _uiState.update { it.copy(password = password, error = null) }
-    }
-
-    private fun updateConfirmPassword(confirmPassword: String) {
-        _uiState.update { it.copy(confirmPassword = confirmPassword, error = null) }
-    }
-
     private fun toggleMode() {
-        _uiState.update { it.copy(isRegister = !it.isRegister, error = null) }
+        _uiState.update {
+            it.copy(
+                authMode = when (it.authMode) {
+                    AuthMode.Login -> AuthMode.Register
+                    AuthMode.Register -> AuthMode.Login
+                }
+            )
+        }
     }
 
     private fun validateInput(): String? {
@@ -83,7 +80,7 @@ class AuthViewModel(
 //            state.isRegister && state.username.length < 2 ->
 //                "Имя пользователя должно содержать минимум 2 символа"
 //            state.password.length < 6 -> "Пароль должен содержать минимум 6 символов"
-            state.isRegister && state.password != state.confirmPassword ->
+            state.authMode.isRegister && state.password != state.confirmPassword ->
                 "Пароли не совпадают"
 
             else -> null
@@ -91,9 +88,8 @@ class AuthViewModel(
     }
 
     private fun submitForm() {
-        val validationError = validateInput()
-        if (validationError != null) {
-            _uiState.update { it.copy(error = validationError) }
+        validateInput()?.let { isVal ->
+            _uiState.update { it.copy(error = isVal) }
             return
         }
 
@@ -101,10 +97,9 @@ class AuthViewModel(
             _uiState.update { it.copy(isLoading = true, error = null) }
             val state = _uiState.value
             withContext(Dispatchers.IO) {
-                val isSuccess = if (state.isRegister) {
-                    handleRegistration(state)
-                } else {
-                    handleLogin(state)
+                val isSuccess = when (state.authMode.isRegister) {
+                    false -> handleLogin(state)
+                    true -> handleRegistration(state)
                 }
                 if (isSuccess) {
                     _uiState.update {
