@@ -17,8 +17,6 @@ import com.example.taskman.navigation.Profile
 import com.example.taskman.navigation.SearchScreen
 import com.example.taskman.navigation.Splash
 import com.example.taskman.ui.auth.AuthScreen
-import com.example.taskman.ui.control.group.GroupControlViewModel
-import com.example.taskman.ui.control.task.TaskControlViewModel
 import com.example.taskman.ui.main.MainIntent
 import com.example.taskman.ui.main.MainScreen
 import com.example.taskman.ui.main.MainViewModel
@@ -67,13 +65,9 @@ fun App(
                 )
             }
             composable<Main> {
-                val taskControlViewModel = koinViewModel<TaskControlViewModel>()
-                val groupControlViewModel = koinViewModel<GroupControlViewModel>()
 
                 MainScreen(
                     mainViewModel = mainViewModel,
-                    taskControlViewModel = taskControlViewModel,
-                    groupControlViewModel = groupControlViewModel,
                     onProfileClick = {
                         val login = profileViewModel.uiState.value.login
                         val route = if (login.isNotEmpty()) {

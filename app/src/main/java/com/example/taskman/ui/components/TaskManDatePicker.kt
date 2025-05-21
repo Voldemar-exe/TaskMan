@@ -47,7 +47,7 @@ fun TaskManDatePicker(
             onValueChange = {
                 datePickerState.selectedDateMillis?.let { it1 -> onDateSelected(it1) }
             },
-            label = { Text("Дата") },
+            label = { Text("Крайний срок") },
             readOnly = true,
             trailingIcon = {
                 IconButton(onClick = { showDatePicker = !showDatePicker }) {

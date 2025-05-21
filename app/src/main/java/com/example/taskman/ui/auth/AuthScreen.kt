@@ -1,5 +1,7 @@
 package com.example.taskman.ui.auth
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,9 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,6 +34,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -57,6 +65,13 @@ fun AuthScreen(
         uiState.success?.let { loginUser(Profile(uiState.login)) }
     }
 
+    BackHandler {
+        when (uiState.authMode) {
+            AuthMode.Register -> onBackClick()
+            AuthMode.Login -> viewModel.onIntent(AuthIntent.ToggleMode)
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
@@ -76,7 +91,7 @@ fun AuthScreen(
             ) {
                 TextButton(
                     onClick = {
-                        if (!uiState.authMode.isRegister) {
+                        if (uiState.authMode.isRegister) {
                             onBackClick()
                         } else {
                             viewModel.onIntent(AuthIntent.ToggleMode)
@@ -122,18 +137,24 @@ private fun AuthContentScreen(
         AuthTextField(
             title = "Введите логин",
             value = uiState.login,
+            imageVector = Icons.Default.Person,
+            isPasswordField = false,
             onValueChange = { onIntent(AuthIntent.UpdateLogin(it)) }
         )
         AuthTextField(
             title = "Введите пароль",
             value = uiState.password,
+            imageVector = Icons.Default.Lock,
+            isPasswordField = true,
             onValueChange = { onIntent(AuthIntent.UpdatePassword(it)) }
         )
 
-        if (uiState.authMode is AuthMode.Register) {
+        if (uiState.authMode.isRegister) {
             AuthTextField(
                 title = "Ещё раз введите пароль",
                 value = uiState.confirmPassword,
+                imageVector = Icons.Default.Lock,
+                isPasswordField = true,
                 onValueChange = { onIntent(AuthIntent.UpdateConfirmPassword(it)) }
             )
         }
@@ -152,6 +173,8 @@ private fun AuthContentScreen(
 fun AuthTextField(
     title: String,
     value: String,
+    imageVector: ImageVector,
+    isPasswordField: Boolean,
     onValueChange: (String) -> Unit
 ) {
     OutlinedTextField(
@@ -161,13 +184,27 @@ fun AuthTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(title) },
-        leadingIcon = { Icon(Icons.Default.Person, null) },
+        leadingIcon = { Image(imageVector, contentDescription = null) },
         trailingIcon = {
             if (value.isNotEmpty()) {
                 IconButton(onClick = { onValueChange("") }) {
                     Icon(Icons.Default.Clear, null)
                 }
             }
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType =
+                if (isPasswordField) {
+                    KeyboardType.Password
+                } else {
+                    KeyboardType.Text
+                }
+        ),
+        visualTransformation =
+            if (isPasswordField) {
+                PasswordVisualTransformation()
+            } else {
+                VisualTransformation.None
         }
     )
 }

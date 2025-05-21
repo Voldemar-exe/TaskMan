@@ -2,10 +2,10 @@ package com.example.taskman.ui.control
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
-import com.example.taskman.model.ItemIcon
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskType
 import com.example.taskman.ui.components.IntentResult
+import com.example.taskman.ui.utils.ItemIcon
 
 @Immutable
 data class ControlState(

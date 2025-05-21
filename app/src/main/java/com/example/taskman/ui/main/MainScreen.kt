@@ -32,6 +32,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
@@ -50,7 +51,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskman.R
-import com.example.taskman.model.ItemIcon
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskGroup
 import com.example.taskman.model.TaskType
@@ -60,18 +60,19 @@ import com.example.taskman.ui.control.group.GroupTaskDrawerSheet
 import com.example.taskman.ui.control.task.TaskControl
 import com.example.taskman.ui.control.task.TaskControlViewModel
 import com.example.taskman.ui.theme.Orange
+import com.example.taskman.ui.utils.ItemIcon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+// TODO RESOLVE BOTTOM SHEER ISSUE
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     mainViewModel: MainViewModel,
-    taskControlViewModel: TaskControlViewModel,
-    groupControlViewModel: GroupControlViewModel,
     onProfileClick: () -> Unit,
     onSearchClick: () -> Unit
 ) {
@@ -79,20 +80,31 @@ fun MainScreen(
     val allGroups by mainViewModel.allGroups.collectAsStateWithLifecycle()
 
     val mainState by mainViewModel.uiState.collectAsStateWithLifecycle()
-    val taskControlState by taskControlViewModel.uiState.collectAsStateWithLifecycle()
-    val groupControlState by groupControlViewModel.uiState.collectAsStateWithLifecycle()
 
-    val sheetState: SheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
     val scope: CoroutineScope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val sheetState: SheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = {
+            when (it) {
+                SheetValue.Hidden -> showBottomSheet == false
+                SheetValue.Expanded -> showBottomSheet == true
+                SheetValue.PartiallyExpanded -> false
+            }
+        }
+    )
 
     LaunchedEffect(mainState.bottomSheet) {
-        if (mainState.bottomSheet == MainBottomSheetType.None) {
-            scope.launch { sheetState.hide() }.invokeOnCompletion {
-                if (!sheetState.isVisible) {
-                    mainViewModel.onIntent(MainIntent.CloseBottomSheet)
-                }
+        if (mainState.bottomSheet !is MainBottomSheetType.None) {
+            scope.launch {
+                showBottomSheet = true
+                sheetState.show()
+            }
+        } else {
+            scope.launch {
+                sheetState.hide()
+            }.invokeOnCompletion {
+                showBottomSheet = false
             }
         }
     }
@@ -105,44 +117,80 @@ fun MainScreen(
         onSearchClick = onSearchClick
     )
 
-    when (val sheet = mainState.bottomSheet) {
-        MainBottomSheetType.None -> Unit
-        is MainBottomSheetType.Task -> {
-            ModalBottomSheet(
-                onDismissRequest = { mainViewModel.onIntent(MainIntent.CloseBottomSheet) },
-                sheetState = sheetState
-            ) {
-                TaskControl(
-                    uiState = taskControlState,
-                    onIntent = taskControlViewModel::onIntent,
-                    entityId = sheet.taskId,
-                    onBackClick = { mainViewModel.onIntent(MainIntent.CloseBottomSheet) }
+    if (showBottomSheet) {
+        ControlBottomSheet(
+            bottomSheetType = mainState.bottomSheet,
+            allTasks = allTasks,
+            sheetState = sheetState,
+            onDismiss = { mainViewModel.onIntent(MainIntent.CloseBottomSheet) }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ControlBottomSheet(
+    bottomSheetType: MainBottomSheetType,
+    allTasks: List<MyTask>,
+    sheetState: SheetState,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        when (bottomSheetType) {
+            MainBottomSheetType.None -> Unit
+            is MainBottomSheetType.Task -> {
+                TaskControlBottomSheetContent(
+                    taskId = bottomSheetType.taskId,
+                    onDismiss = onDismiss
                 )
             }
-        }
 
-        is MainBottomSheetType.Group -> {
-            ModalBottomSheet(
-                onDismissRequest = { mainViewModel.onIntent(MainIntent.CloseBottomSheet) },
-                sheetState = sheetState
-            ) {
-                GroupControl(
-                    uiState = groupControlState,
+            is MainBottomSheetType.Group -> {
+                GroupControlBottomSheetContent(
+                    groupId = bottomSheetType.groupId,
                     allTasks = allTasks,
-                    onIntent = groupControlViewModel::onIntent,
-                    onBackClick = {
-                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                mainViewModel.onIntent(MainIntent.LoadTasks)
-                                mainViewModel.onIntent(MainIntent.CloseBottomSheet)
-                            }
-                        }
-                    },
-                    entityId = sheet.groupId
+                    onDismiss = onDismiss
                 )
             }
         }
     }
+}
+
+@Composable
+fun TaskControlBottomSheetContent(
+    taskId: Int?,
+    onDismiss: () -> Unit
+) {
+    val viewModel = koinViewModel<TaskControlViewModel>()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    TaskControl(
+        uiState = state,
+        onIntent = viewModel::onIntent,
+        entityId = taskId,
+        onBackClick = onDismiss
+    )
+}
+
+@Composable
+fun GroupControlBottomSheetContent(
+    groupId: Int?,
+    allTasks: List<MyTask>,
+    onDismiss: () -> Unit
+) {
+    val viewModel = koinViewModel<GroupControlViewModel>()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    GroupControl(
+        uiState = state,
+        allTasks = allTasks,
+        onIntent = viewModel::onIntent,
+        onBackClick = onDismiss,
+        entityId = groupId
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -375,7 +423,6 @@ fun TaskScreenBottomBar(
                     contentDescription = null
                 )
             }
-
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {

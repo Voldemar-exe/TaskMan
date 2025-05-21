@@ -50,8 +50,7 @@ fun GridDialog(
                 shape = MaterialTheme.shapes.medium
             ) {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(10),
-                    modifier = Modifier.padding(16.dp)
+                    columns = GridCells.Fixed(8)
                 ) {
                     items(items) { item ->
                         IconButton(
@@ -61,9 +60,7 @@ fun GridDialog(
                             }
                         ) {
                             Icon(
-                                modifier = Modifier
-                                    .padding(4.dp)
-                                    .size(24.dp),
+                                modifier = Modifier.padding(horizontal = 4.dp),
                                 painter = painterResource(id = item as? Int ?: selectedIcon),
                                 tint = item as? Color ?: selectedColor,
                                 contentDescription = "Item"

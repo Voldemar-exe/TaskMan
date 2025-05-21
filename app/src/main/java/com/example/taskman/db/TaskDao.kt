@@ -43,7 +43,7 @@ interface TaskDao {
     }
 
     @Update
-    fun updateTask(task: MyTask)
+    suspend fun updateTask(task: MyTask)
 
     @Transaction
     suspend fun updateWithSyncFlag(task: MyTask) {

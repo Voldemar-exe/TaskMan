@@ -8,10 +8,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.taskman.db.GroupDao
 import com.example.taskman.db.GroupWithTasks
 import com.example.taskman.db.TaskDao
-import com.example.taskman.model.ItemIcon
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskGroup
 import com.example.taskman.model.TaskType
+import com.example.taskman.ui.utils.ItemIcon
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,13 +55,6 @@ class MainViewModel(
                 name = "Все",
                 icon = ItemIcon.Amount.name,
                 color = Color.Black.toArgb().toLong()
-            ),
-            TaskGroup(
-                groupId = -2,
-                serverId = null,
-                name = "Завершенные",
-                icon = ItemIcon.Goal.name,
-                color = Color.Gray.toArgb().toLong()
             )
         ) + it
     }.stateIn(
@@ -146,7 +139,6 @@ class MainViewModel(
     ): List<MyTask> {
         val filteredByGroup = when (selectedGroupId) {
             -1 -> allTasks
-            -2 -> allTasks.filter { it.isComplete }
             else -> {
                 groupsWithTasks.find { it.group.groupId == selectedGroupId }?.tasks ?: emptyList()
             }
