@@ -36,9 +36,6 @@ object DatabaseFactory {
         }
     }
 
-    /**
-     * Look at hikari.properties and change accordingly
-     * */
     private fun hikari(): HikariDataSource {
         val config = HikariConfig().apply {
             driverClassName = "org.postgresql.Driver"

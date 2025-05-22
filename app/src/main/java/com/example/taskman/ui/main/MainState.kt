@@ -10,7 +10,7 @@ data class MainState(
     val selectedTaskId: Int? = null,
     val selectedGroupId: Int = -1,
     val selectedGroupName: String = "Все",
-    val selectedTabIndex: Int = 0,
+    val selectedTabIndex: Int = 1,
     val selectedTaskTypes: Set<TaskType> = emptySet(),
     val isGroupEditMode: Boolean = false,
     val bottomSheet: MainBottomSheetType = MainBottomSheetType.None,

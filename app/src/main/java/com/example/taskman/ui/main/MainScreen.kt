@@ -45,8 +45,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -59,6 +61,7 @@ import com.example.taskman.ui.control.group.GroupControlViewModel
 import com.example.taskman.ui.control.group.GroupTaskDrawerSheet
 import com.example.taskman.ui.control.task.TaskControl
 import com.example.taskman.ui.control.task.TaskControlViewModel
+import com.example.taskman.ui.theme.Gray
 import com.example.taskman.ui.theme.Orange
 import com.example.taskman.ui.utils.ItemIcon
 import kotlinx.coroutines.CoroutineScope
@@ -320,14 +323,27 @@ fun TaskItem(
     selected: Boolean = false,
     onCheckClick: (MyTask) -> Unit
 ) {
-    val (dateText, textColor) = remember(task.date) {
-        getRemainingTimeInfo(task.date)
+    val (dateText, textColor) = remember(task.date, selected) {
+        if (selected) {
+            Pair("Выполнено", Gray)
+        } else {
+            getRemainingTimeInfo(task.date)
+        }
     }
 
     ListItem(
-        modifier = modifier,
+        modifier = modifier
+            .alpha(if (selected) 0.6f else 1f),
         headlineContent = {
-            Text(text = task.name)
+            Text(
+                text = task.name,
+                style = if (selected)
+                    MaterialTheme.typography.bodyLarge.copy(
+                        textDecoration = TextDecoration.LineThrough
+                    )
+                else
+                    MaterialTheme.typography.bodyLarge
+            )
         },
         overlineContent = {
             Text(text = dateText, color = textColor)
