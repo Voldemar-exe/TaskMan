@@ -69,12 +69,12 @@ fun GroupControl(
             onDismissRequest = { isChooseMode = false },
             onAddTask = {
                 onIntent(
-                    GroupControlIntent.RemoveTask(it)
+                    GroupControlIntent.AddTask(it),
                 )
             },
             onRemoveTask = {
                 onIntent(
-                    GroupControlIntent.AddTask(it)
+                    GroupControlIntent.RemoveTask(it),
                 )
             }
         )

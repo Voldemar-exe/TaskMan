@@ -79,7 +79,7 @@ fun ControlScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.End
             ) {
-                uiState.base.serverEntityId?.let {
+                uiState.base.entityId?.let {
                     IconButton(
                         onClick = {
                             onIntent(ControlIntent.DeleteEntity(it))

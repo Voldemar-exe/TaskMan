@@ -26,8 +26,9 @@ data class MyTask(
         date = dto.date
     )
 
-    fun toDto(): TaskDto = TaskDto(
-        this.serverId ?: 0,
+    fun toDto() =
+        TaskDto(
+            this.serverId ?: 0,
         this.name,
         this.icon,
         this.color,

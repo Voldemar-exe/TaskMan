@@ -18,7 +18,7 @@ interface TaskDao {
 
     @Query(
         "SELECT * FROM tasks WHERE taskId NOT IN " +
-                "(SELECT taskId FROM group_task) ORDER BY date DESC"
+            "(SELECT taskId FROM group_task) ORDER BY date DESC",
     )
     suspend fun getAllTasksWithoutGroups(): List<MyTask>
 

@@ -7,29 +7,30 @@ import com.example.shared.request.SyncRequest
 import retrofit2.Response
 
 class SyncService(
-    private val apiClient: SyncApi
+    private val apiClient: SyncApi,
 ) {
     companion object {
         private const val TAG = "SyncService"
     }
 
-    suspend fun syncTasks(tasksToServer: List<TaskDto>, allTasksIds: List<Int>): List<TaskDto> {
-        return safeApiCall {
+    suspend fun syncTasks(
+        tasksToServer: List<TaskDto>,
+        allTasksIds: List<Int>,
+    ): List<TaskDto> =
+        safeApiCall {
             apiClient.syncTasks(SyncRequest(tasksToServer, allTasksIds))
         }?.updatedEntities ?: emptyList()
-    }
 
     suspend fun syncGroups(
         groupsToServer: List<GroupDto>,
-        allGroupsIds: List<Int>
-    ): List<GroupDto> {
-        return safeApiCall {
+        allGroupsIds: List<Int>,
+    ): List<GroupDto> =
+        safeApiCall {
             apiClient.syncGroups(SyncRequest(groupsToServer, allGroupsIds))
         }?.updatedEntities ?: emptyList()
-    }
 
-    private suspend fun <T> safeApiCall(call: suspend () -> Response<T>): T? {
-        return try {
+    private suspend fun <T> safeApiCall(call: suspend () -> Response<T>): T? =
+        try {
             val response = call()
             if (response.isSuccessful) {
                 response.body()
@@ -41,5 +42,4 @@ class SyncService(
             Log.e(TAG, "Exception during API call", e)
             null
         }
-    }
 }

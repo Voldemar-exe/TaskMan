@@ -24,16 +24,17 @@ abstract class TaskManDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: TaskManDatabase? = null
 
-        fun getInstance(context: Context): TaskManDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    TaskManDatabase::class.java,
-                    "task-man.db"
-                ).build()
+        fun getInstance(context: Context): TaskManDatabase =
+            INSTANCE ?: synchronized(this) {
+                val instance =
+                    Room
+                        .databaseBuilder(
+                            context.applicationContext,
+                            TaskManDatabase::class.java,
+                            "task-man.db",
+                        ).build()
                 INSTANCE = instance
                 instance
             }
-        }
     }
 }

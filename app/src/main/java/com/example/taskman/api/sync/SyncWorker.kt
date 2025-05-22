@@ -11,15 +11,14 @@ class SyncWorker(
     context: Context,
     workerParams: WorkerParameters,
     private val db: TaskManDatabase,
-    private val syncService: SyncService
+    private val syncService: SyncService,
 ) : CoroutineWorker(context, workerParams) {
-
     companion object {
         private const val TAG = "SyncWorker"
     }
 
-    override suspend fun doWork(): Result {
-        return try {
+    override suspend fun doWork(): Result =
+        try {
             syncTasks()
             syncGroups()
             Result.success()
@@ -27,7 +26,6 @@ class SyncWorker(
             Log.e(TAG, "Fail sync, error: ${e.message}")
             Result.retry()
         }
-    }
 
     private suspend fun syncTasks() {
         val tasksToSync = db.taskDao().getAllNotSyncedTasksList()
@@ -36,12 +34,13 @@ class SyncWorker(
         if (tasksToSync.isNotEmpty()) {
             val updatedTasks = syncService.syncTasks(tasksToSync.map { it.toDto() }, allTaskIds)
             if (updatedTasks.isNotEmpty()) {
-                val updatedLocalTasks = tasksToSync.zip(updatedTasks) { localTask, remoteTask ->
-                    localTask.copy(
-                        serverId = remoteTask.id,
-                        isSynced = true
-                    )
-                }
+                val updatedLocalTasks =
+                    tasksToSync.zip(updatedTasks) { localTask, remoteTask ->
+                        localTask.copy(
+                            serverId = remoteTask.id,
+                            isSynced = true,
+                        )
+                    }
                 db.taskDao().updateTasksByDataFromServer(updatedLocalTasks)
             } else {
                 error("Server fail to sync tasks")
@@ -61,10 +60,10 @@ class SyncWorker(
                         it.group.name,
                         it.group.icon,
                         it.group.color,
-                        it.tasks.map { it.toDto() }
+                        it.tasks.map { it.toDto() },
                     )
                 },
-                allGroupIds
+                allGroupIds,
             )
             Log.d(TAG, "$updatedGroups")
             if (updatedGroups.isNotEmpty()) {
@@ -73,7 +72,7 @@ class SyncWorker(
                         localGroup.copy(
                             group = localGroup.group.copy(
                                 serverId = remoteGroup.id,
-                                isSynced = true
+                                isSynced = true,
                             ),
                             tasks =
                                 localGroup.tasks.zip(remoteGroup.tasks) { localTask, remoteTask ->
