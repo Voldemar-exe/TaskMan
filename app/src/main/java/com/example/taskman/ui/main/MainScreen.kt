@@ -278,6 +278,7 @@ fun TaskTabs(
 }
 
 private fun getRemainingTimeInfo(taskTimestamp: Long): Pair<String, Color> {
+    if (taskTimestamp == 0L) return Pair("Выполнено", Gray)
     val calendar = Calendar.getInstance().apply {
         set(Calendar.HOUR_OF_DAY, 0)
         set(Calendar.MINUTE, 0)
@@ -312,27 +313,26 @@ fun TaskItem(
     modifier: Modifier = Modifier,
     task: MyTask,
     selected: Boolean = false,
+    isCompleted: Boolean = false,
     onCheckClick: (MyTask) -> Unit
 ) {
-    val (dateText, textColor) = remember(task.date, selected) {
-        if (selected) {
-            Pair("Выполнено", Gray)
-        } else {
-            getRemainingTimeInfo(task.date)
-        }
+    val (dateText, textColor) = remember(task.date, isCompleted) {
+        getRemainingTimeInfo(if (isCompleted) 0L else task.date)
     }
+
     ListItem(
         modifier = modifier
-            .alpha(if (selected) 0.6f else 1f),
+            .alpha(if (isCompleted) 0.6f else 1f),
         headlineContent = {
             Text(
                 text = task.name,
-                style = if (selected)
+                style = if (isCompleted) {
                     MaterialTheme.typography.bodyLarge.copy(
                         textDecoration = TextDecoration.LineThrough
                     )
-                else
+                } else {
                     MaterialTheme.typography.bodyLarge
+                }
             )
         },
         overlineContent = {
@@ -351,7 +351,7 @@ fun TaskItem(
         },
         trailingContent = {
             RadioButton(
-                selected = selected,
+                selected = isCompleted || selected,
                 onClick = { onCheckClick(task) }
             )
         }
@@ -473,7 +473,7 @@ fun TaskScreenList(
                                 )
                             )
                         },
-                        selected = task.isComplete,
+                        isCompleted = task.isComplete,
                         task = task,
                         onCheckClick = { onIntent(MainIntent.ToggleTaskCompletion(it)) }
                     )

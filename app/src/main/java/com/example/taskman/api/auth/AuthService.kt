@@ -20,8 +20,8 @@ class AuthService(
             sessionRepository.saveSession(
                 ProfileData(
                     it.token,
-                    request.login,
-                    request.username
+                    request.username,
+                    request.email
                 )
             )
             it
@@ -34,8 +34,8 @@ class AuthService(
         sessionRepository.saveSession(
             ProfileData(
                 it.token,
-                request.login,
-                ""
+                it.username,
+                it.email
             )
         )
         it

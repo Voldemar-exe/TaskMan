@@ -13,6 +13,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
@@ -40,7 +41,10 @@ fun GroupTaskDrawerSheet(
 ) {
     var isEdit by remember { mutableStateOf(false) }
 
-    ModalDrawerSheet(modifier = modifier) {
+    ModalDrawerSheet(
+        modifier = modifier,
+        drawerContainerColor = MaterialTheme.colorScheme.surface
+    ) {
         Scaffold(
             topBar = {
                 GroupTaskTopBar(

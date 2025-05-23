@@ -62,14 +62,6 @@ class AuthServiceImpl(
         }
     }
 
-    override suspend fun findByLogin(login: String): Result<UserDto> {
-        return userRepository.findByLogin(login)?.let {
-            Result.success(it)
-        } ?: run {
-            Result.failure(IllegalArgumentException("User not exist"))
-        }
-    }
-
     override suspend fun login(
         request: LoginRequest
     ): Result<LoginResponse> {
@@ -81,7 +73,7 @@ class AuthServiceImpl(
                 val groups = groupRepository.getGroupsForUser(user.login).map {
                     it.copy(tasks = groupRepository.getGroupTasks(user.login, it.id))
                 }
-                Result.success(LoginResponse(token, tasks, groups))
+                Result.success(LoginResponse(token, user.username, user.email, tasks, groups))
             } else {
                 Result.failure(IllegalArgumentException("Invalid credentials"))
             }

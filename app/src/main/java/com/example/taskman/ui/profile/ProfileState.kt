@@ -3,9 +3,8 @@ package com.example.taskman.ui.profile
 import com.example.taskman.model.MyOption
 
 data class ProfileState(
-    val userName: String = "",
+    val username: String = "",
     val email: String = "",
-    val login: String = "",
     val options: List<MyOption> = emptyList(),
     val isInfo: Boolean = false,
     val isLoading: Boolean = false,

@@ -28,7 +28,6 @@ object JwtConfig {
             println("Issuer   : ${decoded.issuer}")
             println("Audience : ${decoded.audience}")
             println("Claims   : ${decoded.claims.mapValues { it.value.asString() }}")
-            println("ExpiresAt: ${decoded.expiresAt}")
             println("=================")
         } catch (e: Exception) {
             println("Failed to decode JWT: ${e.message}")

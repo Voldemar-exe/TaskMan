@@ -74,12 +74,14 @@ class AuthViewModel(
     private fun validateInput(): String? {
         val state = _uiState.value
         return when {
-//            state.login.length < 3 -> "Логин должен содержать минимум 3 символа"
-//            state.isRegister && !state.email.matches(EMAIL_PATTERN.toRegex()) ->
-//                "Некорректный email адрес"
-//            state.isRegister && state.username.length < 2 ->
-//                "Имя пользователя должно содержать минимум 2 символа"
-//            state.password.length < 6 -> "Пароль должен содержать минимум 6 символов"
+            state.login.length < 3 -> "Логин должен содержать минимум 3 символа"
+            state.authMode.isRegister && !state.email.matches(EMAIL_PATTERN.toRegex()) ->
+                "Некорректный email адрес"
+
+            state.authMode.isRegister && state.username.length < 2 ->
+                "Имя пользователя должно содержать минимум 2 символа"
+
+            state.password.length < 6 -> "Пароль должен содержать минимум 6 символов"
             state.authMode.isRegister && state.password != state.confirmPassword ->
                 "Пароли не совпадают"
 

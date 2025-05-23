@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskman.api.sync.SyncRepository
@@ -25,7 +24,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val isDarkTheme by themeRepository.getThemeFlow().collectAsStateWithLifecycle(
-                isSystemInDarkTheme()
+                themeRepository.isDarkTheme()
             )
 
             TaskManTheme(darkTheme = isDarkTheme) {

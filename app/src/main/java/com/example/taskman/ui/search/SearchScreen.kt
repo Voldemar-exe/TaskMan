@@ -83,7 +83,7 @@ fun SearchScreen(
                         LazyColumn {
                             items(state.searchedTasks) { task ->
                                 TaskItem(
-                                    selected = task.isComplete,
+                                    isCompleted = task.isComplete,
                                     task = task,
                                     onCheckClick = {
                                         onTaskCheckClick(it)

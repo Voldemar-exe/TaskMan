@@ -69,9 +69,8 @@ fun App(
                 MainScreen(
                     mainViewModel = mainViewModel,
                     onProfileClick = {
-                        val login = profileViewModel.uiState.value.login
-                        val route = if (login.isNotEmpty()) {
-                            Profile(login)
+                        val route = if (profileViewModel.uiState.value.username.isNotEmpty()) {
+                            Profile
                         } else {
                             Authentication("login")
                         }

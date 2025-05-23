@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
@@ -62,7 +63,7 @@ fun AuthScreen(
                 duration = SnackbarDuration.Short
             )
         }
-        uiState.success?.let { loginUser(Profile(uiState.login)) }
+        uiState.success?.let { loginUser(Profile) }
     }
 
     BackHandler {
@@ -141,6 +142,24 @@ private fun AuthContentScreen(
             isPasswordField = false,
             onValueChange = { onIntent(AuthIntent.UpdateLogin(it)) }
         )
+
+        if (uiState.authMode.isRegister) {
+            AuthTextField(
+                title = "Введите псевдоним",
+                value = uiState.username,
+                imageVector = Icons.Default.Person,
+                isPasswordField = false,
+                onValueChange = { onIntent(AuthIntent.UpdateUsername(it)) }
+            )
+            AuthTextField(
+                title = "Введите почту",
+                value = uiState.email,
+                imageVector = Icons.Default.Email,
+                isPasswordField = false,
+                onValueChange = { onIntent(AuthIntent.UpdateEmail(it)) }
+            )
+        }
+
         AuthTextField(
             title = "Введите пароль",
             value = uiState.password,
@@ -200,11 +219,12 @@ fun AuthTextField(
                     KeyboardType.Text
                 }
         ),
+        singleLine = true,
         visualTransformation =
             if (isPasswordField) {
                 PasswordVisualTransformation()
             } else {
                 VisualTransformation.None
-        }
+            }
     )
 }

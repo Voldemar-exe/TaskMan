@@ -2,9 +2,8 @@ package com.example.taskman.ui.utils
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class ThemeRepositoryImpl(
     private val sharedPreferences: SharedPreferences
@@ -14,23 +13,15 @@ class ThemeRepositoryImpl(
         private const val THEME_KEY = "is_dark_theme"
     }
 
+    private val _themeState = MutableStateFlow(isDarkTheme())
+    override fun getThemeFlow() = _themeState.asStateFlow()
+
     override fun saveTheme(isDarkTheme: Boolean) {
         sharedPreferences.edit { putBoolean(THEME_KEY, isDarkTheme) }
+        _themeState.value = isDarkTheme
     }
 
     override fun isDarkTheme(): Boolean {
         return sharedPreferences.getBoolean(THEME_KEY, false)
-    }
-
-    override fun getThemeFlow(): Flow<Boolean> = callbackFlow {
-        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == THEME_KEY) {
-                trySend(isDarkTheme())
-            }
-        }
-        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
-        awaitClose {
-            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
-        }
     }
 }

@@ -10,7 +10,7 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.route
 
 fun Route.userRoute(userRepository: UserRepository) {
-    route("/users/{login}") {
+    route("/users") {
         delete {
             val principal = call.principal<JWTPrincipal>()!!
             val login = principal.payload.getClaim("userId").asString()

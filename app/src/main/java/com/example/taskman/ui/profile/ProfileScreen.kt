@@ -158,8 +158,8 @@ fun ProfileCard(state: ProfileState) {
             HorizontalDivider()
 
             SettingsItem(
-                title = if (state.userName.isEmpty()) "Логин" else "Ник",
-                subtitle = state.userName.ifEmpty { state.login },
+                title = "Псевдоним",
+                subtitle = state.username.ifEmpty { state.username },
                 icon = Icons.Rounded.Person
             )
 

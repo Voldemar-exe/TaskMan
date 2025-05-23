@@ -18,8 +18,8 @@ private val Context.authDataStore by preferencesDataStore(
 class AuthDataStore(context: Context) : AuthStorage {
 
     private val TOKEN = stringPreferencesKey("jwt")
-    private val LOGIN = stringPreferencesKey("user_login")
     private val USERNAME = stringPreferencesKey("user_name")
+    private val EMAIL = stringPreferencesKey("user_email")
 
     private val dataStore = context.authDataStore
 
@@ -30,13 +30,13 @@ class AuthDataStore(context: Context) : AuthStorage {
     override suspend fun saveProfile(profileData: ProfileData) {
         dataStore.edit {
             it[TOKEN] = profileData.token
-            it[LOGIN] = profileData.login
-            it[USERNAME] = profileData.username ?: ""
+            it[EMAIL] = profileData.email
+            it[USERNAME] = profileData.username
         }
         Log.d(
             TAG,
             "Saved profile → token=${profileData.token.take(5)}...," +
-                    " login=${profileData.login}, username=${profileData.username}"
+                    " email=${profileData.email}, username=${profileData.username}"
         )
     }
 
@@ -53,20 +53,20 @@ class AuthDataStore(context: Context) : AuthStorage {
             .first()
 
         val token = prefs[TOKEN]
-        val login = prefs[LOGIN]
+        val email = prefs[EMAIL]
         val username = prefs[USERNAME]
-
-        val profile = if (!token.isNullOrBlank() && !login.isNullOrBlank()) {
-            ProfileData(token, login, username)
-        } else {
-            null
-        }
+        val profile =
+            if (!token.isNullOrBlank() && !email.isNullOrBlank() && !username.isNullOrBlank()) {
+                ProfileData(token, username, email)
+            } else {
+                null
+            }
 
         if (profile != null) {
             Log.d(
                 TAG,
                 "Loaded profile → token=${profile.token.take(5)}...," +
-                        " login=${profile.login}, username=${profile.username}"
+                        " email=${profile.email}, username=${profile.username}"
             )
         } else {
             Log.d(TAG, "No profile found in DataStore")
@@ -78,10 +78,8 @@ class AuthDataStore(context: Context) : AuthStorage {
     override suspend fun updateProfile(profileData: ProfileData) {
         dataStore.edit { prefs ->
             prefs[TOKEN] = profileData.token.ifBlank { prefs[TOKEN] ?: "" }
-            prefs[LOGIN] = profileData.login.ifBlank { prefs[LOGIN] ?: "" }
-            prefs[USERNAME] = profileData.username?.ifBlank {
-                prefs[USERNAME] ?: ""
-            } ?: prefs[USERNAME] ?: ""
+            prefs[EMAIL] = profileData.email.ifBlank { prefs[EMAIL] ?: "" }
+            prefs[USERNAME] = profileData.username.ifBlank { prefs[USERNAME] ?: "" }
         }
     }
 
