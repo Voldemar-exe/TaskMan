@@ -5,17 +5,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.BottomAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +35,8 @@ fun SearchScreen(
     history: List<String>,
     state: SearchState,
     onIntent: (SearchIntent) -> Unit,
-    onTaskCheckClick: (MyTask) -> Unit
+    onTaskCheckClick: (MyTask) -> Unit,
+    onBackClick: () -> Unit
 ) {
 
     Scaffold(
@@ -46,8 +51,17 @@ fun SearchScreen(
             )
         },
         bottomBar = {
-            BottomAppBar {
-
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                TextButton(onClick = onBackClick) {
+                    Icon(
+                        Icons.AutoMirrored.Default.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                    Text("Назад")
+                }
             }
         }
     ) { paddingValues ->
@@ -71,7 +85,10 @@ fun SearchScreen(
                                 TaskItem(
                                     selected = task.isComplete,
                                     task = task,
-                                    onCheckClick = onTaskCheckClick
+                                    onCheckClick = {
+                                        onTaskCheckClick(it)
+                                        onIntent(SearchIntent.Search)
+                                    }
                                 )
                             }
                         }

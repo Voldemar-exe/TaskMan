@@ -106,6 +106,9 @@ fun App(
                         mainViewModel.onIntent(
                             MainIntent.ToggleTaskCompletion(task)
                         )
+                    },
+                    onBackClick = {
+                        navController.popBackStack()
                     }
                 )
             }
