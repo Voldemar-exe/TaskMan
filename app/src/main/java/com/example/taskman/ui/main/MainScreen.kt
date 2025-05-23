@@ -1,7 +1,9 @@
 package com.example.taskman.ui.main
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,6 +16,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
@@ -32,7 +35,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SheetState
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
@@ -44,6 +46,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
@@ -58,7 +61,6 @@ import com.example.taskman.model.TaskGroup
 import com.example.taskman.model.TaskType
 import com.example.taskman.ui.control.group.GroupControl
 import com.example.taskman.ui.control.group.GroupControlViewModel
-import com.example.taskman.ui.control.group.GroupTaskDrawerSheet
 import com.example.taskman.ui.control.task.TaskControl
 import com.example.taskman.ui.control.task.TaskControlViewModel
 import com.example.taskman.ui.theme.Gray
@@ -71,7 +73,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-// TODO RESOLVE BOTTOM SHEER ISSUE
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
@@ -87,28 +88,13 @@ fun MainScreen(
     val scope: CoroutineScope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState: SheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = {
-            when (it) {
-                SheetValue.Hidden -> showBottomSheet == false
-                SheetValue.Expanded -> showBottomSheet == true
-                SheetValue.PartiallyExpanded -> false
-            }
-        }
+        skipPartiallyExpanded = true
     )
 
     LaunchedEffect(mainState.bottomSheet) {
         if (mainState.bottomSheet !is MainBottomSheetType.None) {
-            scope.launch {
-                showBottomSheet = true
-                sheetState.show()
-            }
-        } else {
-            scope.launch {
-                sheetState.hide()
-            }.invokeOnCompletion {
-                showBottomSheet = false
-            }
+            showBottomSheet = true
+            scope.launch { sheetState.show() }
         }
     }
 
@@ -125,7 +111,12 @@ fun MainScreen(
             bottomSheetType = mainState.bottomSheet,
             allTasks = allTasks,
             sheetState = sheetState,
-            onDismiss = { mainViewModel.onIntent(MainIntent.CloseBottomSheet) }
+            onDismiss = {
+                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                    mainViewModel.onIntent(MainIntent.CloseBottomSheet)
+                    showBottomSheet = false
+                }
+            }
         )
     }
 }
@@ -196,7 +187,6 @@ fun GroupControlBottomSheetContent(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskScreen(
     allGroups: List<TaskGroup>,
@@ -209,14 +199,33 @@ fun TaskScreen(
         initialValue = DrawerValue.Closed
     )
     val scope = rememberCoroutineScope()
+    var isLoading by remember { mutableStateOf(false) }
 
     ModalNavigationDrawer(
         drawerContent = {
             GroupTaskDrawerSheet(
-                onIntent = onIntent,
-                allGroups = allGroups,
                 activeGroupId = state.selectedGroupId,
-                isEdit = state.isGroupEditMode,
+                allGroups = allGroups,
+                onGroupClick = { group, isEdit ->
+                    if (isEdit) {
+                        onIntent(
+                            MainIntent.ShowBottomSheet(MainBottomSheetType.Group(group.groupId))
+                        )
+                    } else {
+                        isLoading = true
+                        scope.launch {
+                            drawerState.close()
+                            onIntent(MainIntent.SelectGroup(group))
+                        }.invokeOnCompletion {
+                            isLoading = false
+                        }
+                    }
+                },
+                onAddClick = {
+                    onIntent(
+                        MainIntent.ShowBottomSheet(MainBottomSheetType.Group())
+                    )
+                },
                 onBackClick = { scope.launch { drawerState.close() } }
             )
         },
@@ -238,31 +247,13 @@ fun TaskScreen(
                 )
             }
         ) { paddingValues ->
-            Column(modifier = Modifier.padding(paddingValues)) {
-                HorizontalDivider()
-                if (state.selectedGroupId != -2) {
-                    TaskTabs(
-                        selectedTabIndex = state.selectedTabIndex,
-                        onTabSelect = { onIntent(MainIntent.SelectTab(it)) }
-                    )
-                }
-                LazyColumn {
-                    items(state.visibleTasks) { task ->
-                        TaskItem(
-                            modifier = Modifier.clickable {
-                                onIntent(
-                                    MainIntent.ShowBottomSheet(
-                                        MainBottomSheetType.Task(task.taskId)
-                                    )
-                                )
-                            },
-                            selected = task.isComplete,
-                            task = task,
-                            onCheckClick = { onIntent(MainIntent.ToggleTaskCompletion(it)) }
-                        )
-                    }
-                }
-            }
+            TaskScreenList(
+                modifier = Modifier.padding(paddingValues),
+                selectedTabIndex = state.selectedTabIndex,
+                tasks = state.visibleTasks,
+                isLoading = isLoading,
+                onIntent = onIntent
+            )
         }
     }
 }
@@ -330,7 +321,6 @@ fun TaskItem(
             getRemainingTimeInfo(task.date)
         }
     }
-
     ListItem(
         modifier = modifier
             .alpha(if (selected) 0.6f else 1f),
@@ -451,6 +441,46 @@ fun TaskScreenBottomBar(
             }
         }
     )
+}
+
+
+@Composable
+fun TaskScreenList(
+    modifier: Modifier = Modifier,
+    selectedTabIndex: Int,
+    tasks: List<MyTask>,
+    isLoading: Boolean,
+    onIntent: (MainIntent) -> Unit
+) {
+    Column(modifier = modifier) {
+        HorizontalDivider()
+        TaskTabs(
+            selectedTabIndex = selectedTabIndex,
+            onTabSelect = { onIntent(MainIntent.SelectTab(it)) }
+        )
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            LazyColumn {
+                items(tasks) { task ->
+                    TaskItem(
+                        modifier = Modifier.clickable {
+                            onIntent(
+                                MainIntent.ShowBottomSheet(
+                                    MainBottomSheetType.Task(task.taskId)
+                                )
+                            )
+                        },
+                        selected = task.isComplete,
+                        task = task,
+                        onCheckClick = { onIntent(MainIntent.ToggleTaskCompletion(it)) }
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable

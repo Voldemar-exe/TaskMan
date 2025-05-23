@@ -96,7 +96,7 @@ class MainViewModel(
                 _uiState.update {
                     it.copy(
                         selectedGroupId = intent.group.groupId,
-                        selectedTabIndex = 0,
+                        selectedTabIndex = 1,
                         selectedGroupName = intent.group.name
                     )
                 }
@@ -112,9 +112,6 @@ class MainViewModel(
                     )
                 }
             }
-
-            is MainIntent.ChangeEditMode ->
-                _uiState.update { it.copy(isGroupEditMode = intent.isEdit) }
 
             is MainIntent.LoadTasks -> Unit
             is MainIntent.SelectTab ->

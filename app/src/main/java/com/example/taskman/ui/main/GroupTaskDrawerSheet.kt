@@ -1,4 +1,4 @@
-package com.example.taskman.ui.control.group
+package com.example.taskman.ui.main
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,47 +18,43 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.taskman.model.TaskGroup
-import com.example.taskman.ui.main.MainBottomSheetType
-import com.example.taskman.ui.main.MainIntent
 import com.example.taskman.ui.utils.ItemIcon
 
 @Composable
 fun GroupTaskDrawerSheet(
     modifier: Modifier = Modifier,
-    onIntent: (MainIntent) -> Unit,
     activeGroupId: Int,
     allGroups: List<TaskGroup>,
-    isEdit: Boolean,
+    onGroupClick: (TaskGroup, Boolean) -> Unit,
+    onAddClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
+    var isEdit by remember { mutableStateOf(false) }
+
     ModalDrawerSheet(modifier = modifier) {
         Scaffold(
             topBar = {
                 GroupTaskTopBar(
-                    onBackClick = {
-                        onIntent(MainIntent.LoadTasks)
-                        onBackClick()
-                    },
-                    onAddClick = {
-                        onIntent(MainIntent.ShowBottomSheet(MainBottomSheetType.Group()))
-                    }
+                    onBackClick = onBackClick,
+                    onAddClick = onAddClick
                 )
             },
             bottomBar = {
                 HorizontalDivider()
                 IconToggleButton(
                     checked = isEdit,
-                    onCheckedChange = { onIntent(MainIntent.ChangeEditMode(it)) }
+                    onCheckedChange = { isEdit = it }
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = null
-                    )
+                    Icon(Icons.Default.Edit, contentDescription = null)
                 }
             }
         ) { paddingValues ->
@@ -71,20 +67,7 @@ fun GroupTaskDrawerSheet(
                     NavigationDrawerItem(
                         label = { Text(group.name) },
                         selected = activeGroupId == group.groupId,
-                        onClick = {
-                            if (isEdit) {
-                                if (group.groupId > 0) {
-                                    onIntent(
-                                        MainIntent.ShowBottomSheet(
-                                            MainBottomSheetType.Group(group.groupId)
-                                        )
-                                    )
-                                }
-                            } else {
-                                onIntent(MainIntent.SelectGroup(group))
-                                onBackClick()
-                            }
-                        },
+                        onClick = { onGroupClick(group, isEdit) },
                         icon = {
                             Icon(
                                 painter = painterResource(ItemIcon.valueOf(group.icon).id),

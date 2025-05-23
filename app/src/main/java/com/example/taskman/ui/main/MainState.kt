@@ -12,7 +12,7 @@ data class MainState(
     val selectedGroupName: String = "Все",
     val selectedTabIndex: Int = 1,
     val selectedTaskTypes: Set<TaskType> = emptySet(),
-    val isGroupEditMode: Boolean = false,
     val bottomSheet: MainBottomSheetType = MainBottomSheetType.None,
-    val error: String? = null
+    val error: String? = null,
+    val success: String? = null
 )
