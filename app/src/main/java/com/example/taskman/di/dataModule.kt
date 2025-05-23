@@ -24,7 +24,6 @@ import com.example.taskman.ui.profile.ProfileViewModel
 import com.example.taskman.ui.search.SearchViewModel
 import com.example.taskman.ui.utils.HistoryRepository
 import com.example.taskman.ui.utils.HistoryRepositoryImpl
-import com.example.taskman.ui.utils.OptionViewModel
 import com.example.taskman.ui.utils.SessionRepository
 import com.example.taskman.ui.utils.SessionRepositoryImpl
 import com.example.taskman.ui.utils.ThemeRepository
@@ -63,7 +62,6 @@ val domainModule = module {
 }
 
 val presentationModule = module {
-    viewModel { OptionViewModel(get<ThemeRepository>()) }
     viewModel { AuthViewModel(get<AuthService>(), get(), get(), get()) }
     viewModel { ProfileViewModel(get<ProfileService>(), get<SessionRepository>()) }
     viewModel { MainViewModel(get<TaskDao>(), get<GroupDao>()) }

@@ -10,9 +10,7 @@ object UsersTable : IdTable<String>("users") {
     val username = varchar("username", 255).nullable()
     val email = varchar("email", 255).nullable()
 
-    override val primaryKey: PrimaryKey?
-        get() = PrimaryKey(login)
-    override val id: Column<EntityID<String>>
-        get() = login
+    override val primaryKey = PrimaryKey(login)
+    override val id: Column<EntityID<String>> = login
 }
 
