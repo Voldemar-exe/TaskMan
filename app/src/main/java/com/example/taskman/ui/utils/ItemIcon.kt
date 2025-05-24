@@ -23,5 +23,8 @@ enum class ItemIcon(val id: Int) {
     Hiking(R.drawable.ic_hiking),
     Favorite(R.drawable.ic_favorite),
     Light(R.drawable.ic_light_mode),
-    Dark(R.drawable.ic_dark_mode)
+    Dark(R.drawable.ic_dark_mode),
+    Cake(R.drawable.ic_cake),
+    Pets(R.drawable.ic_pets),
+    Schedule(R.drawable.ic_schedule)
 }

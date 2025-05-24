@@ -14,12 +14,15 @@ import com.example.taskman.ui.theme.LightBlue
 import com.example.taskman.ui.theme.LightGreen
 import com.example.taskman.ui.theme.Lime
 import com.example.taskman.ui.theme.Magenta
+import com.example.taskman.ui.theme.Mint
+import com.example.taskman.ui.theme.Navy
 import com.example.taskman.ui.theme.Orange
 import com.example.taskman.ui.theme.OrangeLight
 import com.example.taskman.ui.theme.PinkLight
 import com.example.taskman.ui.theme.Purple
 import com.example.taskman.ui.theme.Red
 import com.example.taskman.ui.theme.RedLight
+import com.example.taskman.ui.theme.Rose
 import com.example.taskman.ui.theme.Teal
 
 object TaskManAppData {
@@ -47,5 +50,8 @@ object TaskManAppData {
         Amber,
         Magenta,
         Gray,
+        Rose,
+        Navy,
+        Mint
     )
 }
