@@ -365,12 +365,6 @@ private fun SettingsItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        // TODO MAYBE ADD CHANGE FOR EMAIL AND USERNAME
-        /*Icon(
-            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )*/
     }
 }
 
