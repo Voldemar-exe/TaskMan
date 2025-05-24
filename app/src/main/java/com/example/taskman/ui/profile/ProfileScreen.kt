@@ -17,6 +17,7 @@ import androidx.compose.material.icons.rounded.Build
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -38,7 +39,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -219,6 +223,9 @@ fun ActionsCard(
     onIntent: (ProfileIntent) -> Unit,
     onBackClick: () -> Unit
 ) {
+    var showDeleteProfileDialog by remember { mutableStateOf(false) }
+    var showDeleteDataDialog by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -242,9 +249,7 @@ fun ActionsCard(
             HorizontalDivider()
 
             Button(
-                onClick = {
-                    onIntent(ProfileIntent.DeleteProfileData)
-                },
+                onClick = { showDeleteDataDialog = true },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -257,10 +262,7 @@ fun ActionsCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             TextButton(
-                onClick = {
-                    onIntent(ProfileIntent.DeleteProfile)
-                    onBackClick()
-                },
+                onClick = { showDeleteProfileDialog = true },
                 modifier = Modifier.align(Alignment.End)
             ) {
                 Text(
@@ -269,7 +271,72 @@ fun ActionsCard(
                 )
             }
         }
+
+        if (showDeleteDataDialog) {
+            DeleteDataConfirmationDialog(
+                onConfirm = {
+                    onIntent(ProfileIntent.DeleteProfileData)
+                    showDeleteDataDialog = false
+                },
+                onDismiss = { showDeleteDataDialog = false }
+            )
+        }
+
+        if (showDeleteProfileDialog) {
+            DeleteProfileConfirmationDialog(
+                onConfirm = {
+                    onIntent(ProfileIntent.DeleteProfile)
+                    onBackClick()
+                    showDeleteProfileDialog = false
+                },
+                onDismiss = { showDeleteProfileDialog = false }
+            )
+        }
     }
+}
+
+@Composable
+private fun DeleteDataConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Подтвердите действие") },
+        text = { Text("Вы уверены, что хотите удалить данные профиля? Это действие необратимо.") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Удалить")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Отмена")
+            }
+        }
+    )
+}
+
+@Composable
+private fun DeleteProfileConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Подтвердите удаление аккаунта") },
+        text = { Text("Вы уверены, что хотите удалить аккаунт? Это действие необратимо.") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Удалить аккаунт")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Отмена")
+            }
+        }
+    )
 }
 
 @Composable
