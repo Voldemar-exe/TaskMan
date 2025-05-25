@@ -6,5 +6,3 @@ object TokensTable : IntIdTable("tokens") {
     val login = reference("login", UsersTable)
     val token = varchar("token", 255)
 }
-
-

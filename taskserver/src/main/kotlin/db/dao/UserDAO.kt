@@ -1,7 +1,6 @@
 package com.example.db.dao
 
 import com.example.db.tables.UsersTable
-import com.example.shared.dto.UserDto
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -14,10 +13,3 @@ class UserDAO(id: EntityID<String>) : Entity<String>(id) {
     var username by UsersTable.username
     var email by UsersTable.email
 }
-
-fun userDaoToDto(dao: UserDAO) = UserDto(
-    login = dao.login.value,
-    passwordHash = dao.passwordHash,
-    username = dao.username,
-    email = dao.email
-)

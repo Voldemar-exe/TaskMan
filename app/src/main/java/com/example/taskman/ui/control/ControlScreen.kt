@@ -168,7 +168,8 @@ fun ControlContent(
             modifier = Modifier.fillMaxWidth(),
             value = uiState.entityName,
             onValueChange = { onIntent(ControlIntent.UpdateName(it)) },
-            label = { Text("Название") }
+            label = { Text("Название") },
+            singleLine = true
         )
         ListItem(
             headlineContent = {

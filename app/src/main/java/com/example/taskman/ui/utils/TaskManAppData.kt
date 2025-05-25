@@ -29,29 +29,13 @@ object TaskManAppData {
     val icons = ItemIcon.entries.map { it.id }
 
     val colors = listOf(
-        Red,
-        LightGreen,
-        Blue,
-        Orange,
-        Purple,
-        LightBlue,
-        RedLight,
-        GreenLight,
-        BlueLight,
-        OrangeLight,
-        PinkLight,
-        GreenVeryLight,
-        Teal,
-        DeepPurple,
-        Lime,
-        Indigo,
-        Brown,
-        Cyan,
-        Amber,
-        Magenta,
-        Gray,
-        Rose,
-        Navy,
-        Mint
+        Red, LightGreen, Blue,
+        Orange, Purple, LightBlue,
+        RedLight, GreenLight, BlueLight,
+        OrangeLight, PinkLight, GreenVeryLight,
+        Teal, DeepPurple, Lime,
+        Indigo, Brown, Cyan,
+        Amber, Magenta, Gray,
+        Rose, Navy, Mint
     )
 }
