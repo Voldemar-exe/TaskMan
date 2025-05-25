@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -120,7 +121,7 @@ class AuthViewModel(
 
     private suspend fun handleRegistration(state: AuthState): Boolean {
         val tasks = taskDao.getAllTasksWithoutGroups().map { it.toDto() }
-        val groups = groupDao.getAllGroupsWithTasksList().map { group ->
+        val groups = groupDao.getAllGroupsWithTasksFlow().first().map { group ->
             GroupDto(
                 group.group.serverId ?: 0,
                 group.group.name,

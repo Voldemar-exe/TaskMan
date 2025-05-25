@@ -10,6 +10,7 @@ import com.example.db.dao.UserTaskDAO
 import com.example.db.dao.groupDaoTpDto
 import com.example.db.dao.taskDaoToDto
 import com.example.db.tables.GroupTaskTable
+import com.example.db.tables.TasksTable
 import com.example.db.tables.UserGroupTable
 import com.example.db.tables.UserTaskTable
 import com.example.db.tables.UsersTable
@@ -54,7 +55,12 @@ class SyncRepositoryImpl : SyncRepository {
         // REMOVE DELETED TASKS
         UserTaskDAO.find { UserTaskTable.login eq login }
             .filter { it.taskId.id.value !in (allTasksIds + updatedTasks.map { it.id }) }
-            .forEach { it.delete() }
+            .forEach {
+                it.delete()
+                TaskDAO
+                    .find { TasksTable.id eq it.id }
+                    .forEach { it.delete() }
+            }
 
         Result.success(updatedTasks)
     }
@@ -113,15 +119,12 @@ class SyncRepositoryImpl : SyncRepository {
         // REMOVE DELETED GROUPS
         UserGroupDAO.find { UserGroupTable.login eq user.login }
             .filter { it.groupId.id.value !in (allGroupsIds + updatedGroups.map { it.id }) }
-            .forEach { it.delete() }
-
-        GroupDAO.all()
-            .filter { it.id.value !in (allGroupsIds + updatedGroups.map { it.id }) }
-            .forEach {
+            .forEach { userGroupDao ->
+                userGroupDao.delete()
                 GroupTaskDAO
-                    .find { GroupTaskTable.groupId eq it.id.value }
+                    .find { GroupTaskTable.groupId eq userGroupDao.groupId.id }
                     .forEach { it.delete() }
-                it.delete()
+                userGroupDao.groupId.delete()
             }
 
         Result.success(updatedGroups)

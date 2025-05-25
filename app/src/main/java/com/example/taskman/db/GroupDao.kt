@@ -10,14 +10,12 @@ import androidx.room.Update
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskGroup
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 
 @Dao
 interface GroupDao {
     @Query("SELECT * FROM `groups` ORDER BY name")
     fun getAllGroupsFlow(): Flow<List<TaskGroup>>
-
-    @Query("SELECT * FROM `groups` ORDER BY name")
-    fun getAllGroupsList(): List<TaskGroup>
 
     @Query("DELETE FROM group_task WHERE groupId = :groupId")
     suspend fun deleteAllCrossRefsForGroup(groupId: Int)
@@ -32,14 +30,6 @@ interface GroupDao {
     @Transaction
     @Query("SELECT * FROM `groups`")
     fun getAllGroupsWithTasksFlow(): Flow<List<GroupWithTasks>>
-
-    @Transaction
-    @Query("SELECT * FROM `groups` ORDER BY name")
-    fun getAllGroupsWithTasksList(): List<GroupWithTasks>
-
-    @Transaction
-    @Query("SELECT * FROM `groups` WHERE isSynced = 0")
-    fun getAllNotSyncedList(): List<GroupWithTasks>
 
     @Transaction
     @Query("SELECT * FROM `groups` WHERE isSynced = 0")
@@ -84,7 +74,7 @@ interface GroupDao {
 
     @Transaction
     suspend fun syncAllGroups() {
-        getAllGroupsList().forEach { task ->
+        getAllGroupsFlow().first().forEach { task ->
             updateGroup(task.copy(isSynced = false))
         }
     }

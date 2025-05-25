@@ -6,6 +6,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.shared.dto.GroupDto
 import com.example.taskman.db.TaskManDatabase
+import kotlinx.coroutines.flow.first
 
 class SyncWorker(
     context: Context,
@@ -28,7 +29,7 @@ class SyncWorker(
         }
 
     private suspend fun syncTasks() {
-        val tasksToSync = db.taskDao().getAllNotSyncedTasksList()
+        val tasksToSync = db.taskDao().getAllNotSyncedTasksFlow().first()
         val allTaskIds = tasksToSync.map { it.serverId ?: 0 }
 
         if (tasksToSync.isNotEmpty()) {
@@ -49,7 +50,7 @@ class SyncWorker(
     }
 
     private suspend fun syncGroups() {
-        val groupsToSync = db.groupDao().getAllNotSyncedList()
+        val groupsToSync = db.groupDao().getAllNotSyncedFlow().first()
         val allGroupIds = groupsToSync.map { it.group.serverId ?: 0 }
 
         if (groupsToSync.isNotEmpty()) {

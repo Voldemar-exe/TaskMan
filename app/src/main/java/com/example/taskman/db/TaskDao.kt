@@ -7,23 +7,18 @@ import androidx.room.Transaction
 import androidx.room.Update
 import com.example.taskman.model.MyTask
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 
 @Dao
 interface TaskDao {
     @Query("SELECT * FROM tasks ORDER BY date DESC")
     fun getAllTasksFlow(): Flow<List<MyTask>>
 
-    @Query("SELECT * FROM tasks ORDER BY date DESC")
-    suspend fun getAllTasksList(): List<MyTask>
-
     @Query(
         "SELECT * FROM tasks WHERE taskId NOT IN " +
             "(SELECT taskId FROM group_task) ORDER BY date DESC",
     )
     suspend fun getAllTasksWithoutGroups(): List<MyTask>
-
-    @Query("SELECT * FROM tasks WHERE isSynced = 0")
-    suspend fun getAllNotSyncedTasksList(): List<MyTask>
 
     @Query("SELECT * FROM tasks WHERE isSynced = 0")
     fun getAllNotSyncedTasksFlow(): Flow<List<MyTask>>
@@ -52,7 +47,7 @@ interface TaskDao {
 
     @Transaction
     suspend fun syncAllTasks() {
-        getAllTasksList().forEach { task ->
+        getAllTasksFlow().first().forEach { task ->
             updateTask(task.copy(isSynced = false))
         }
     }

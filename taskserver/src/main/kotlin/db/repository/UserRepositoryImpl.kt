@@ -1,10 +1,12 @@
 package com.example.db.repository
 
 import com.example.db.DatabaseFactory.suspendTransaction
+import com.example.db.dao.GroupTaskDAO
 import com.example.db.dao.TokenDAO
 import com.example.db.dao.UserDAO
 import com.example.db.dao.UserGroupDAO
 import com.example.db.dao.UserTaskDAO
+import com.example.db.tables.GroupTaskTable
 import com.example.db.tables.TokensTable
 import com.example.db.tables.UserGroupTable
 import com.example.db.tables.UserTaskTable
@@ -54,9 +56,14 @@ class UserRepositoryImpl : UserRepository {
     private fun deleteUserData(login: String) {
         UserGroupDAO.find { UserGroupTable.login eq login }.forEach {
             it.delete()
+            GroupTaskDAO.find { GroupTaskTable.groupId eq it.groupId.id }.forEach {
+                it.delete()
+            }
+            it.groupId.delete()
         }
         UserTaskDAO.find { UserTaskTable.login eq login }.forEach {
             it.delete()
+            it.taskId.delete()
         }
     }
 }

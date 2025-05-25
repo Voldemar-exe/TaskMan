@@ -84,6 +84,7 @@ fun ControlScreen(
                         onClick = {
                             onIntent(ControlIntent.DeleteEntity(it))
                             onBackClick()
+                            onIntent(ControlIntent.ClearState)
                         }
                     ) {
                         Icon(
