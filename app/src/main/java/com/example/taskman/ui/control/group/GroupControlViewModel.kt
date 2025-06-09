@@ -100,6 +100,7 @@ class GroupControlViewModel(
 
     override fun loadEntity(entityId: Int) {
         viewModelScope.launch {
+            if (baseState.entityId == entityId) return@launch
             startLoading()
             try {
                 withContext(Dispatchers.IO) {
@@ -133,16 +134,14 @@ class GroupControlViewModel(
     override fun deleteEntity(entityId: Int) {
         viewModelScope.launch {
             startLoading()
-            try {
-                withContext(Dispatchers.IO) {
-                    groupDao.deleteAllCrossRefsForGroup(baseState.entityId!!)
-                    groupDao.deleteGroupById(baseState.entityId!!)
-                }
+            Log.i(TAG, "Start Delete")
 
-                setResult(IntentResult.Success(ControlIntent.DeleteEntity(entityId).toString()))
-            } catch (e: Exception) {
-                errorException(e)
+            withContext(Dispatchers.IO) {
+                groupDao.deleteAllCrossRefsForGroup(entityId)
+                groupDao.deleteGroupById(entityId)
             }
+
+            setResult(IntentResult.Success(ControlIntent.DeleteEntity(entityId).toString()))
         }
     }
 }

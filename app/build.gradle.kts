@@ -55,6 +55,9 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.navigation.compose)
 
+    implementation("androidx.compose.material:material-icons-core:1.7.8")
+    implementation("androidx.compose.material3:material3:1.4.0-alpha15")
+
     // UI
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)

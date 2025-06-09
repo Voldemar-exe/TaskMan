@@ -86,7 +86,6 @@ fun GroupControl(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TasksForGroupScreen(
     allTasks: List<MyTask>,
@@ -114,7 +113,7 @@ fun TasksForGroupScreen(
                 TaskItem(
                     task = task,
                     selected = (tasksInGroup)?.contains(task) == true,
-                    onCheckClick = { task ->
+                    onCheckClick = {
                         if ((tasksInGroup)?.contains(task) == true) {
                             onRemoveTask(task)
                         } else {
