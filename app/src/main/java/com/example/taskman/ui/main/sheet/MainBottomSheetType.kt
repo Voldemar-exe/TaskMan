@@ -1,4 +1,4 @@
-package com.example.taskman.ui.main
+package com.example.taskman.ui.main.sheet
 
 sealed interface MainBottomSheetType {
     data object None : MainBottomSheetType

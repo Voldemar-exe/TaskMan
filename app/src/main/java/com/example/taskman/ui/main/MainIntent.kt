@@ -3,6 +3,7 @@ package com.example.taskman.ui.main
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskGroup
 import com.example.taskman.model.TaskType
+import com.example.taskman.ui.main.sheet.MainBottomSheetType
 
 sealed interface MainIntent {
     data class ToggleTaskCompletion(val task: MyTask) : MainIntent
