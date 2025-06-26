@@ -13,6 +13,7 @@ import com.example.taskman.model.TaskGroup
 import com.example.taskman.model.TaskType
 import com.example.taskman.ui.main.sheet.MainBottomSheetType
 import com.example.taskman.ui.utils.ItemIcon
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +26,8 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(
     private val taskDao: TaskDao,
-    private val groupDao: GroupDao
+    private val groupDao: GroupDao,
+    initialState: MainState = MainState()
 ) : ViewModel() {
 
     companion object {
@@ -33,8 +35,8 @@ class MainViewModel(
         private const val STOP_DELAY = 5000L
     }
 
-    private val _uiState = MutableStateFlow(MainState())
-    val uiState = _uiState.asStateFlow()
+    private val _mainState = MutableStateFlow(initialState)
+    val mainState = _mainState.asStateFlow()
 
     val allTasks = taskDao.getAllTasksFlow().stateIn(
         viewModelScope,
@@ -65,17 +67,17 @@ class MainViewModel(
     )
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             combine(
-                _uiState.map { it.selectedGroupId }.distinctUntilChanged(),
-                _uiState.map { it.selectedTaskTypes }.distinctUntilChanged(),
-                _uiState.map { it.selectedTabIndex }.distinctUntilChanged(),
+                _mainState.map { it.selectedGroupId }.distinctUntilChanged(),
+                _mainState.map { it.selectedTaskTypes }.distinctUntilChanged(),
+                _mainState.map { it.selectedTabIndex }.distinctUntilChanged(),
                 allTasks,
                 allGroupsWithTasks
             ) { groupId, taskTypes, tabIndex, tasks, groupsWithTasks ->
                 filterVisibleTasks(tasks, groupId, taskTypes, tabIndex, groupsWithTasks)
             }.collect { filteredTasks ->
-                _uiState.update { it.copy(visibleTasks = filteredTasks) }
+                _mainState.update { it.copy(visibleTasks = filteredTasks) }
             }
         }
     }
@@ -85,16 +87,16 @@ class MainViewModel(
         when (intent) {
             is MainIntent.ToggleTaskCompletion -> toggleTaskCompletion(intent.task)
             is MainIntent.ShowBottomSheet ->
-                _uiState.update { it.copy(bottomSheet = intent.type) }
+                _mainState.update { it.copy(bottomSheet = intent.type) }
 
             MainIntent.CloseBottomSheet ->
-                _uiState.update { it.copy(bottomSheet = MainBottomSheetType.None) }
+                _mainState.update { it.copy(bottomSheet = MainBottomSheetType.None) }
 
             is MainIntent.SelectTask ->
-                _uiState.update { it.copy(selectedTaskId = intent.taskId) }
+                _mainState.update { it.copy(selectedTaskId = intent.taskId) }
 
             is MainIntent.SelectGroup ->
-                _uiState.update {
+                _mainState.update {
                     it.copy(
                         selectedGroupId = intent.group.groupId,
                         selectedGroupName = intent.group.name
@@ -102,7 +104,7 @@ class MainViewModel(
                 }
 
             is MainIntent.SelectTaskType -> {
-                _uiState.update { state ->
+                _mainState.update { state ->
                     state.copy(
                         selectedTaskTypes = if (intent.taskType in state.selectedTaskTypes) {
                             state.selectedTaskTypes - intent.taskType
@@ -115,7 +117,7 @@ class MainViewModel(
 
             is MainIntent.LoadTasks -> Unit
             is MainIntent.SelectTab ->
-                _uiState.update { it.copy(selectedTabIndex = intent.tabIndex) }
+                _mainState.update { it.copy(selectedTabIndex = intent.tabIndex) }
             MainIntent.SyncData -> viewModelScope.launch {
                 taskDao.syncAllTasks()
                 groupDao.syncAllGroups()

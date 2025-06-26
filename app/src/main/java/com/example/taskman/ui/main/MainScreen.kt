@@ -27,7 +27,7 @@ fun MainScreen(
     val allTasks by mainViewModel.allTasks.collectAsStateWithLifecycle()
     val allGroups by mainViewModel.allGroups.collectAsStateWithLifecycle()
 
-    val mainState by mainViewModel.uiState.collectAsStateWithLifecycle()
+    val mainState by mainViewModel.mainState.collectAsStateWithLifecycle()
 
     val scope: CoroutineScope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
