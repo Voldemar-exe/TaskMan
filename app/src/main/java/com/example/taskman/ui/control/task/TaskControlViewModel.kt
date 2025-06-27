@@ -12,7 +12,6 @@ import com.example.taskman.ui.control.ControlIntent
 import com.example.taskman.ui.control.ControlState
 import com.example.taskman.ui.control.ControlViewModel
 import com.example.taskman.ui.control.TaskControlIntent
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -24,6 +23,10 @@ class TaskControlViewModel(
         task = ControlState.TaskState()
     )
 ) {
+    companion object {
+        private const val TAG = "TaskControlViewModel"
+    }
+
     private val taskState: ControlState.TaskState
         get() = controlState.value.task ?: error("Task state is null in $TAG")
 
@@ -50,28 +53,13 @@ class TaskControlViewModel(
 
     override fun saveEntity() {
         if (!validateData()) return
-
         viewModelScope.launch {
-            startLoading()
+            // startLoading() TODO FIX TO REAL LOADING
             try {
-                val task = MyTask(
-                    taskId = baseState.entityId ?: 0,
-                    serverId = baseState.serverEntityId,
-                    name = baseState.entityName,
-                    icon = baseState.selectedIcon,
-                    color = baseState.selectedColor.toArgb().toLong(),
-                    type = taskState.selectedType.name,
-                    isComplete = taskState.isComplete,
-                    date = taskState.selectedDate
-                )
-
+                val task = stateToMyTask()
                 when (controlState.value.base.isEditMode) {
-                    true -> {
-                        taskDao.updateWithSyncFlag(task)
-                    }
-                    false -> {
-                        taskDao.insertWithSyncFlag(task)
-                    }
+                    true -> taskDao.updateWithSyncFlag(task)
+                    false -> taskDao.insertWithSyncFlag(task)
                 }
                 setResult(IntentResult.Success(ControlIntent.SaveEntity.toString()))
             } catch (e: Exception) {
@@ -82,31 +70,8 @@ class TaskControlViewModel(
 
     override fun loadEntity(entityId: Int) {
         viewModelScope.launch {
-            startLoading()
             try {
-                taskDao.getTaskById(entityId)?.let { task ->
-                    controlState.update {
-                        it.copy(
-                            base = baseState.copy(
-                                entityId = task.taskId,
-                                serverEntityId = task.serverId,
-                                entityName = task.name,
-                                selectedIcon = task.icon,
-                                selectedColor = Color(task.color),
-                                isLoading = false,
-                                intentRes = IntentResult.Success(
-                                    ControlIntent.LoadEntity(entityId).toString()
-                                ),
-                                isEditMode = true,
-                            ),
-                            task = taskState.copy(
-                                selectedType = TaskType.valueOf(task.type),
-                                isComplete = task.isComplete,
-                                selectedDate = task.date
-                            )
-                        )
-                    }
-                }
+                taskDao.getTaskById(entityId)?.let { updateStateFromTask(it) }
             } catch (e: Exception) {
                 errorException(e)
             }
@@ -119,7 +84,40 @@ class TaskControlViewModel(
         }
     }
 
-    companion object {
-        private const val TAG = "TaskControlViewModel"
+    private fun stateToMyTask(): MyTask {
+        return MyTask(
+            taskId = baseState.entityId ?: 0,
+            serverId = baseState.serverEntityId,
+            name = baseState.entityName,
+            icon = baseState.selectedIcon,
+            color = baseState.selectedColor.toArgb().toLong(),
+            type = taskState.selectedType.name,
+            isComplete = taskState.isComplete,
+            date = taskState.selectedDate
+        )
+    }
+
+    private fun updateStateFromTask(task: MyTask) {
+        controlState.update {
+            it.copy(
+                base = baseState.copy(
+                    entityId = task.taskId,
+                    serverEntityId = task.serverId,
+                    entityName = task.name,
+                    selectedIcon = task.icon,
+                    selectedColor = Color(task.color),
+                    isLoading = false,
+                    intentRes = IntentResult.Success(
+                        ControlIntent.LoadEntity(task.taskId).toString()
+                    ),
+                    isEditMode = true,
+                ),
+                task = taskState.copy(
+                    selectedType = TaskType.valueOf(task.type),
+                    isComplete = task.isComplete,
+                    selectedDate = task.date
+                )
+            )
+        }
     }
 }

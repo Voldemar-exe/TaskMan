@@ -15,6 +15,5 @@ sealed interface MainIntent {
     data class SelectGroup(val group: TaskGroup) : MainIntent
     data class SelectTaskType(val taskType: TaskType) : MainIntent
     data object CloseBottomSheet : MainIntent
-    data object LoadTasks : MainIntent
     data object SyncData : MainIntent
 }

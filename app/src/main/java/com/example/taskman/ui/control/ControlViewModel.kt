@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.taskman.ui.components.IntentResult
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -19,10 +18,7 @@ abstract class ControlViewModel(
     }
 
     protected val controlState = MutableStateFlow(initialState)
-    val uiState = controlState.asStateFlow()
-
-    protected val baseState: ControlState.BaseState
-        get() = controlState.value.base
+    protected val baseState: ControlState.BaseState = controlState.value.base
 
     private fun updateBaseState(update: ControlState.BaseState.() -> ControlState.BaseState) {
         controlState.update {
