@@ -1,7 +1,6 @@
 package com.example.taskman.ui
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,7 +15,7 @@ import com.example.taskman.navigation.Main
 import com.example.taskman.navigation.Profile
 import com.example.taskman.navigation.SearchScreen
 import com.example.taskman.navigation.Splash
-import com.example.taskman.ui.auth.AuthScreen
+import com.example.taskman.ui.auth.screen.AuthScreen
 import com.example.taskman.ui.main.MainIntent
 import com.example.taskman.ui.main.MainScreen
 import com.example.taskman.ui.main.MainViewModel
@@ -27,7 +26,6 @@ import com.example.taskman.ui.search.SearchScreen
 import com.example.taskman.ui.search.SearchViewModel
 import org.koin.androidx.compose.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(
     modifier: Modifier = Modifier,

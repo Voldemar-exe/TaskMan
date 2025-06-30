@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -24,10 +23,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.taskman.model.MyTask
 import com.example.taskman.ui.control.ControlIntent
-import com.example.taskman.ui.control.ControlScreen
+import com.example.taskman.ui.control.screen.ControlScreen
 import com.example.taskman.ui.control.ControlState
 import com.example.taskman.ui.control.GroupControlIntent
-import com.example.taskman.ui.main.TaskItem
+import com.example.taskman.ui.main.task.TaskItem
 
 @Composable
 fun GroupControl(
@@ -86,7 +85,6 @@ fun GroupControl(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TasksForGroupScreen(
     allTasks: List<MyTask>,
@@ -114,7 +112,7 @@ fun TasksForGroupScreen(
                 TaskItem(
                     task = task,
                     selected = (tasksInGroup)?.contains(task) == true,
-                    onCheckClick = { task ->
+                    onCheckClick = {
                         if ((tasksInGroup)?.contains(task) == true) {
                             onRemoveTask(task)
                         } else {

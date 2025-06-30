@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.taskman.ui.components.IntentResult
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -19,12 +18,9 @@ abstract class ControlViewModel(
     }
 
     protected val controlState = MutableStateFlow(initialState)
-    val uiState = controlState.asStateFlow()
+    protected val baseState: ControlState.BaseState = controlState.value.base
 
-    protected val baseState: ControlState.BaseState
-        get() = controlState.value.base
-
-    protected fun updateBaseState(update: ControlState.BaseState.() -> ControlState.BaseState) {
+    private fun updateBaseState(update: ControlState.BaseState.() -> ControlState.BaseState) {
         controlState.update {
             it.copy(base = it.base.update())
         }
@@ -40,24 +36,27 @@ abstract class ControlViewModel(
             is ControlIntent.UpdateIcon -> updateBaseState { copy(selectedIcon = intent.icon) }
             is ControlIntent.UpdateColor -> updateBaseState { copy(selectedColor = intent.color) }
             is ControlIntent.ClearError -> updateBaseState { copy(intentRes = IntentResult.None) }
-            is ControlIntent.ClearState -> controlState.update {
-                it.copy(
-                    base = ControlState.BaseState(),
-                    task = if (it.task != null) ControlState.TaskState() else null,
-                    group = if (it.group != null) ControlState.GroupState() else null
-                )
-            }
+            is ControlIntent.ClearState -> clearState()
             ControlIntent.SaveEntity -> saveEntity()
             is ControlIntent.LoadEntity -> loadEntity(intent.entityId)
             is ControlIntent.DeleteEntity -> deleteEntity(intent.entityId)
-            else -> null
+            else -> Unit
+        }
+    }
+
+    private fun clearState() {
+        controlState.update {
+            it.copy(
+                base = ControlState.BaseState(),
+                task = if (it.task != null) ControlState.TaskState() else null,
+                group = if (it.group != null) ControlState.GroupState() else null
+            )
         }
     }
 
     protected fun startLoading() {
         controlState.update { it.copy(base = it.base.copy(isLoading = true)) }
     }
-
     protected fun validateData(): Boolean {
         return when {
             controlState.value.base.entityName.isBlank() -> {

@@ -11,7 +11,9 @@ import com.example.taskman.db.TaskDao
 import com.example.taskman.model.MyTask
 import com.example.taskman.model.TaskGroup
 import com.example.taskman.model.TaskType
+import com.example.taskman.ui.main.sheet.MainBottomSheetType
 import com.example.taskman.ui.utils.ItemIcon
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +26,8 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(
     private val taskDao: TaskDao,
-    private val groupDao: GroupDao
+    private val groupDao: GroupDao,
+    initialState: MainState = MainState()
 ) : ViewModel() {
 
     companion object {
@@ -32,8 +35,8 @@ class MainViewModel(
         private const val STOP_DELAY = 5000L
     }
 
-    private val _uiState = MutableStateFlow(MainState())
-    val uiState = _uiState.asStateFlow()
+    private val _mainState = MutableStateFlow(initialState)
+    val mainState = _mainState.asStateFlow()
 
     val allTasks = taskDao.getAllTasksFlow().stateIn(
         viewModelScope,
@@ -64,17 +67,23 @@ class MainViewModel(
     )
 
     init {
-        viewModelScope.launch {
+        Log.i(TAG, "init: $TAG}")
+        viewModelScope.launch(Dispatchers.IO) {
             combine(
-                _uiState.map { it.selectedGroupId }.distinctUntilChanged(),
-                _uiState.map { it.selectedTaskTypes }.distinctUntilChanged(),
-                _uiState.map { it.selectedTabIndex }.distinctUntilChanged(),
+                _mainState.map { it.selectedGroupId }.distinctUntilChanged(),
+                _mainState.map { it.selectedTaskTypes }.distinctUntilChanged(),
+                _mainState.map { it.selectedTabIndex }.distinctUntilChanged(),
                 allTasks,
                 allGroupsWithTasks
-            ) { groupId, taskTypes, tabIndex, tasks, groupsWithTasks ->
-                filterVisibleTasks(tasks, groupId, taskTypes, tabIndex, groupsWithTasks)
+            ) { selectedGroupId, selectedTaskTypes, selectedTabIndex, tasks, groupsWithTasks ->
+                val tasksByGroup = getTasksByGroupOrNull(selectedGroupId, groupsWithTasks).let {
+                    tasks
+                }
+                val filteredByTab = filterTasksByTab(selectedTabIndex, tasksByGroup)
+                val filteredByTypes = filterTasksByType(selectedTaskTypes, filteredByTab)
+                filteredByTypes.sortedByDescending { it.taskId }
             }.collect { filteredTasks ->
-                _uiState.update { it.copy(visibleTasks = filteredTasks) }
+                _mainState.update { it.copy(visibleTasks = filteredTasks) }
             }
         }
     }
@@ -84,75 +93,72 @@ class MainViewModel(
         when (intent) {
             is MainIntent.ToggleTaskCompletion -> toggleTaskCompletion(intent.task)
             is MainIntent.ShowBottomSheet ->
-                _uiState.update { it.copy(bottomSheet = intent.type) }
-
+                _mainState.update { it.copy(bottomSheet = intent.type) }
             MainIntent.CloseBottomSheet ->
-                _uiState.update { it.copy(bottomSheet = MainBottomSheetType.None) }
-
+                _mainState.update { it.copy(bottomSheet = MainBottomSheetType.None) }
             is MainIntent.SelectTask ->
-                _uiState.update { it.copy(selectedTaskId = intent.taskId) }
-
-            is MainIntent.SelectGroup ->
-                _uiState.update {
-                    it.copy(
-                        selectedGroupId = intent.group.groupId,
-                        selectedGroupName = intent.group.name
-                    )
-                }
-
-            is MainIntent.SelectTaskType -> {
-                _uiState.update { state ->
-                    state.copy(
-                        selectedTaskTypes = if (intent.taskType in state.selectedTaskTypes) {
-                            state.selectedTaskTypes - intent.taskType
-                        } else {
-                            state.selectedTaskTypes + intent.taskType
-                        }
-                    )
-                }
-            }
-
-            is MainIntent.LoadTasks -> Unit
+                _mainState.update { it.copy(selectedTaskId = intent.taskId) }
+            is MainIntent.SelectGroup -> selectGroup(intent.group)
+            is MainIntent.SelectTaskType -> selectTaskType(intent.taskType)
             is MainIntent.SelectTab ->
-                _uiState.update { it.copy(selectedTabIndex = intent.tabIndex) }
-            MainIntent.SyncData -> viewModelScope.launch {
-                taskDao.syncAllTasks()
-                groupDao.syncAllGroups()
-            }
+                _mainState.update { it.copy(selectedTabIndex = intent.tabIndex) }
+            MainIntent.SyncData -> syncAllTasksAndGroups()
         }
+    }
+
+    private fun getTasksByGroupOrNull(
+        selectedGroupId: Int,
+        groupsWithTasks: List<GroupWithTasks>
+    ): List<MyTask>? {
+        return groupsWithTasks.find { it.group.groupId == selectedGroupId }?.tasks
+    }
+
+    private fun filterTasksByTab(
+        selectedTabIndex: Int,
+        tasks: List<MyTask>
+    ) = when (selectedTabIndex) {
+        1 -> tasks.filterNot { it.isComplete }
+        2 -> tasks.filter { it.isComplete }
+        else -> tasks
+    }
+
+    private fun filterTasksByType(
+        selectedTaskTypes: Set<TaskType>,
+        tasks: List<MyTask>
+    ) = if (selectedTaskTypes.isNotEmpty()) {
+        val allowedTypes = selectedTaskTypes.map { it.name }
+        tasks.filter { it.type in allowedTypes }
+    } else {
+        tasks
     }
 
     private fun toggleTaskCompletion(task: MyTask) = viewModelScope.launch {
         taskDao.updateTask(task.copy(isComplete = !task.isComplete))
     }
 
-    private fun filterVisibleTasks(
-        allTasks: List<MyTask>,
-        selectedGroupId: Int,
-        selectedTaskTypes: Set<TaskType>,
-        selectedTabIndex: Int,
-        groupsWithTasks: List<GroupWithTasks>
-    ): List<MyTask> {
-        val filteredByGroup = when (selectedGroupId) {
-            -1 -> allTasks
-            else -> {
-                groupsWithTasks.find { it.group.groupId == selectedGroupId }?.tasks ?: emptyList()
-            }
+    private fun selectGroup(group: TaskGroup) {
+        _mainState.update {
+            it.copy(
+                selectedGroupId = group.groupId,
+                selectedGroupName = group.name
+            )
         }
+    }
 
-        val filteredByTab = when (selectedTabIndex) {
-            1 -> filteredByGroup.filterNot { it.isComplete }
-            2 -> filteredByGroup.filter { it.isComplete }
-            else -> filteredByGroup
+    private fun selectTaskType(taskType: TaskType) {
+        _mainState.update { state ->
+            state.copy(
+                selectedTaskTypes = if (taskType in state.selectedTaskTypes) {
+                    state.selectedTaskTypes - taskType
+                } else {
+                    state.selectedTaskTypes + taskType
+                }
+            )
         }
+    }
 
-        val filteredByType = if (selectedTaskTypes.isNotEmpty()) {
-            val allowedTypes = selectedTaskTypes.map { it.name }
-            filteredByTab.filter { it.type in allowedTypes }
-        } else {
-            filteredByTab
-        }
-
-        return filteredByType.sortedByDescending { it.taskId }
+    private fun syncAllTasksAndGroups() = viewModelScope.launch {
+        taskDao.syncAllTasks()
+        groupDao.syncAllGroups()
     }
 }

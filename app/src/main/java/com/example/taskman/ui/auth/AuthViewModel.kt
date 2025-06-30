@@ -30,8 +30,8 @@ class AuthViewModel(
     private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AuthState())
-    val uiState: StateFlow<AuthState> = _uiState.asStateFlow()
+    private val _authState = MutableStateFlow(AuthState())
+    val authState = _authState.asStateFlow()
 
     companion object {
         private const val TAG = "AuthViewModel"
@@ -41,28 +41,13 @@ class AuthViewModel(
     fun onIntent(intent: AuthIntent) {
         Log.i(TAG, "$intent")
         when (intent) {
-            is AuthIntent.UpdateLogin ->
-                _uiState.update { it.copy(login = intent.login) }
-
-            is AuthIntent.UpdateEmail ->
-                _uiState.update { it.copy(email = intent.email) }
-
-            is AuthIntent.UpdateUsername ->
-                _uiState.update { it.copy(username = intent.username) }
-
-            is AuthIntent.UpdatePassword ->
-                _uiState.update { it.copy(password = intent.password) }
-
-            is AuthIntent.UpdateConfirmPassword ->
-                _uiState.update { it.copy(confirmPassword = intent.confirmPassword) }
-
             is AuthIntent.Submit -> submitForm()
             is AuthIntent.ToggleMode -> toggleMode()
         }
     }
 
     private fun toggleMode() {
-        _uiState.update {
+        _authState.update {
             it.copy(
                 authMode = when (it.authMode) {
                     AuthMode.Login -> AuthMode.Register
@@ -73,17 +58,17 @@ class AuthViewModel(
     }
 
     private fun validateInput(): String? {
-        val state = _uiState.value
+        val state = _authState.value
         return when {
-            state.login.length < 3 -> "Логин должен содержать минимум 3 символа"
-            state.authMode.isRegister && !state.email.matches(EMAIL_PATTERN.toRegex()) ->
+            state.loginState.text.length < 3 -> "Логин должен содержать минимум 3 символа"
+            state.authMode.isRegister && !state.emailState.text.matches(EMAIL_PATTERN.toRegex()) ->
                 "Некорректный email адрес"
 
-            state.authMode.isRegister && state.username.length < 2 ->
+            state.authMode.isRegister && state.usernameState.text.length < 2 ->
                 "Имя пользователя должно содержать минимум 2 символа"
 
-            state.password.length < 6 -> "Пароль должен содержать минимум 6 символов"
-            state.authMode.isRegister && state.password != state.confirmPassword ->
+            state.passwordState.text.length < 6 -> "Пароль должен содержать минимум 6 символов"
+            state.authMode.isRegister && state.passwordState != state.confirmPasswordState ->
                 "Пароли не совпадают"
 
             else -> null
@@ -92,20 +77,20 @@ class AuthViewModel(
 
     private fun submitForm() {
         validateInput()?.let { isVal ->
-            _uiState.update { it.copy(error = isVal) }
+            _authState.update { it.copy(error = isVal) }
             return
         }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            val state = _uiState.value
+            _authState.update { it.copy(isLoading = true, error = null) }
+            val state = _authState.value
             withContext(Dispatchers.IO) {
                 val isSuccess = when (state.authMode.isRegister) {
                     false -> handleLogin(state)
                     true -> handleRegistration(state)
                 }
                 if (isSuccess) {
-                    _uiState.update {
+                    _authState.update {
                         it.copy(
                             isLoading = false,
                             error = null,
@@ -113,7 +98,7 @@ class AuthViewModel(
                         )
                     }
                 } else {
-                    _uiState.update { it.copy(isLoading = false) }
+                    _authState.update { it.copy(isLoading = false) }
                 }
             }
         }
@@ -133,17 +118,17 @@ class AuthViewModel(
 
         val response = authService.registerUser(
             RegisterRequest(
-                login = state.login,
-                password = state.password,
-                email = state.email,
-                username = state.username,
+                login = state.loginState.text.toString(),
+                password = state.passwordState.text.toString(),
+                email = state.emailState.text.toString(),
+                username = state.usernameState.text.toString(),
                 tasksWithoutGroup = tasks,
                 groupsWithTasks = groups
             )
         )
 
         if (response == null) {
-            _uiState.update { it.copy(success = null, error = "Ошибка регистрации") }
+            _authState.update { it.copy(success = null, error = "Ошибка регистрации") }
             return false
         }
 
@@ -153,11 +138,11 @@ class AuthViewModel(
 
     private suspend fun handleLogin(state: AuthState): Boolean {
         val response = authService.loginUser(
-            LoginRequest(state.login, state.password)
+            LoginRequest(state.loginState.text.toString(), state.passwordState.text.toString())
         )
 
         if (response == null) {
-            _uiState.update { it.copy(success = null, error = "Ошибка входа") }
+            _authState.update { it.copy(success = null, error = "Ошибка входа") }
             return false
         }
 

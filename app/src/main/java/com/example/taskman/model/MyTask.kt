@@ -7,7 +7,7 @@ import com.example.shared.dto.TaskDto
 @Entity(tableName = "tasks")
 data class MyTask(
     @PrimaryKey(autoGenerate = true) val taskId: Int = 0,
-    val serverId: Int?,
+    val serverId: Int? = null,
     val name: String,
     val icon: String,
     val color: Long,

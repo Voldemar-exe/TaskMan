@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import com.example.taskman.ui.components.TaskManDatePicker
 import com.example.taskman.ui.components.TaskTypeDropdownMenu
 import com.example.taskman.ui.control.ControlIntent
-import com.example.taskman.ui.control.ControlScreen
+import com.example.taskman.ui.control.screen.ControlScreen
 import com.example.taskman.ui.control.ControlState
 import com.example.taskman.ui.control.TaskControlIntent
 
