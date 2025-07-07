@@ -3,7 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlinx.serialization)
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -47,16 +48,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.kotlinx.serialization.json)
-
-    implementation(project(":shared"))
-
-    // COMPOSE
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.navigation.compose)
-
-    implementation("androidx.compose.material:material-icons-core:1.7.8")
-    implementation("androidx.compose.material3:material3:1.4.0-alpha15")
+    implementation(libs.bundles.androidx.compose)
 
     // UI
     implementation(libs.androidx.ui)
@@ -64,24 +56,18 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
-    // ROOM
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
+    // HILT
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
+    ksp(libs.hilt.android.compiler)
 
     // WORKER
     implementation(libs.androidx.work.runtime.ktx)
-
 
     // RETROFIT
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.okhttp3.logging.interceptor)
-
-    // KOIN
-    implementation(libs.koin.core)
-    implementation(libs.koin.android)
-    implementation(libs.koin.androidx.compose)
 
     // KTOR
     implementation(libs.ktor.client.core)
@@ -106,4 +92,15 @@ dependencies {
     androidTestImplementation(libs.converter.gson)
     androidTestImplementation(libs.okhttp3.logging.interceptor)
     implementation(libs.androidx.datastore.preferences)
+
+    // MODULES
+    implementation(project(":core:shared"))
+    implementation(project(":core:data"))
+    implementation(project(":core:theme"))
+    implementation(project(":core:ui"))
+    implementation(project(":core:sync"))
+    implementation(project(":feature:auth"))
+    implementation(project(":feature:home"))
+    implementation(project(":feature:profile"))
+    implementation(project(":feature:search"))
 }

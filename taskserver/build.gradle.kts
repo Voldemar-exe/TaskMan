@@ -15,9 +15,6 @@ application {
 }
 
 dependencies {
-
-    implementation(project(":shared"))
-
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.server.content.negotiation)

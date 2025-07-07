@@ -6,31 +6,41 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.taskman.api.sync.SyncRepository
-import com.example.taskman.ui.App
-import com.example.taskman.ui.theme.TaskManTheme
-import com.example.taskman.ui.utils.ThemeRepository
-import org.koin.android.ext.android.inject
+import androidx.lifecycle.lifecycleScope
+import com.example.data.repository.ThemeRepository
+import com.example.sync.SyncManager
+import com.example.theme.TaskManTheme
+import dagger.hilt.android.AndroidEntryPoint
+import jakarta.inject.Inject
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    private val syncRepository by inject<SyncRepository>()
-    private val themeRepository by inject<ThemeRepository>()
+    @Inject
+    lateinit var syncManager: SyncManager
+    @Inject
+    lateinit var themeRepository: ThemeRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        syncRepository
+
+        syncManager
+
         enableEdgeToEdge()
 
         setContent {
-            val isDarkTheme by themeRepository.getThemeFlow().collectAsStateWithLifecycle(
-                themeRepository.isDarkTheme()
+            val isDarkTheme by themeRepository.isDarkTheme().collectAsStateWithLifecycle(
+                initialValue = false
             )
 
             TaskManTheme(darkTheme = isDarkTheme) {
                 App(
                     isDarkTheme = isDarkTheme,
-                    toggleTheme = { themeRepository.saveTheme(!isDarkTheme) }
+                    toggleTheme = {
+                        lifecycleScope.launch {
+                            themeRepository.saveTheme(!isDarkTheme)
+                        }
+                    }
                 )
             }
         }
