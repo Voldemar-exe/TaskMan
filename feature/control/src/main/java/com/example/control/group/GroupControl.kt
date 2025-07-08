@@ -21,8 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.control.ControlIntent
-import com.example.control.ControlState
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.control.GroupControlIntent
 import com.example.control.screen.ControlScreen
 import com.example.shared.UserTask
@@ -30,20 +30,20 @@ import com.example.ui.components.TaskItem
 
 @Composable
 fun GroupControl(
-    uiState: ControlState,
-    allTasks: List<UserTask>,
-    entityId: Int?,
-    onIntent: (ControlIntent) -> Unit,
+    viewModel: GroupControlViewModel = hiltViewModel(),
+    groupId: Int?,
     onBackClick: () -> Unit
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     var isChooseMode by remember { mutableStateOf(false) }
 
     if (!isChooseMode) {
         ControlScreen(
             uiState = uiState,
-            onIntent = onIntent,
+            onIntent = viewModel::onIntent,
             onBackClick = onBackClick,
-            entityId = entityId
+            entityId = groupId
         ) {
             uiState.group?.tasksInGroup?.let { selectedTasks ->
                 if (selectedTasks.isNotEmpty()) {
@@ -54,7 +54,7 @@ fun GroupControl(
                                 task = task,
                                 selected = true,
                                 onCheckClick = {
-                                    onIntent(GroupControlIntent.RemoveTask(task))
+                                    viewModel.onIntent(GroupControlIntent.RemoveTask(task))
                                 }
                             )
                         }
@@ -68,16 +68,16 @@ fun GroupControl(
         }
     } else {
         TasksForGroupScreen(
-            allTasks = allTasks,
+            allTasks = emptyList(), // TODO ADD ALL TASKS FROM SOMEWHERE
             tasksInGroup = uiState.group?.tasksInGroup,
             onDismissRequest = { isChooseMode = false },
             onAddTask = {
-                onIntent(
+                viewModel.onIntent(
                     GroupControlIntent.AddTask(it),
                 )
             },
             onRemoveTask = {
-                onIntent(
+                viewModel.onIntent(
                     GroupControlIntent.RemoveTask(it),
                 )
             }

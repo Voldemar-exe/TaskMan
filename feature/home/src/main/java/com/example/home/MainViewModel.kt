@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.repository.GroupRepository
 import com.example.data.repository.TaskRepository
-import com.example.home.sheet.MainBottomSheetType
 import com.example.shared.TaskType
 import com.example.shared.UserGroupWithTasks
 import com.example.shared.UserTask
@@ -83,20 +82,13 @@ class MainViewModel @Inject constructor(
         Log.i(TAG, "$intent")
         when (intent) {
             is MainIntent.ToggleTaskCompletion -> toggleTaskCompletion(intent.task)
-            is MainIntent.ShowBottomSheet ->
-                _mainState.update { it.copy(bottomSheet = intent.type) }
-
-            MainIntent.CloseBottomSheet ->
-                _mainState.update { it.copy(bottomSheet = MainBottomSheetType.None) }
-
+            is MainIntent.MoveTo -> _mainState.update { it.copy(moveToControl = intent.type) }
             is MainIntent.SelectTask ->
                 _mainState.update { it.copy(selectedTaskId = intent.taskId) }
-
             is MainIntent.SelectGroup -> selectGroup(intent.group)
             is MainIntent.SelectTaskType -> selectTaskType(intent.taskType)
             is MainIntent.SelectTab ->
                 _mainState.update { it.copy(selectedTabIndex = intent.tabIndex) }
-
             MainIntent.SyncData -> syncAllTasksAndGroups()
         }
     }

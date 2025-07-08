@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.example.home.MainIntent
-import com.example.home.sheet.MainBottomSheetType
+import com.example.home.sheet.MoveToControl
 import com.example.shared.SystemIcon
 import com.example.shared.TaskType
 import com.example.ui.IconMapper
@@ -40,7 +40,7 @@ fun TaskScreenBottomBar(
             floatingActionButton = {
                 FloatingToolbarDefaults.VibrantFloatingActionButton(
                     onClick = {
-                        onIntent(MainIntent.ShowBottomSheet(MainBottomSheetType.Task()))
+                        onIntent(MainIntent.MoveTo(MoveToControl.Task()))
                     }
                 ) {
                     Icon(

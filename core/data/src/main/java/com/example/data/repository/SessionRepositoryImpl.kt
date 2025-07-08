@@ -4,6 +4,7 @@ import com.example.datastore.AuthDataSource
 import com.example.shared.LocalDatabase
 import com.example.shared.ProfileData
 import jakarta.inject.Inject
+import kotlinx.coroutines.flow.Flow
 
 
 class SessionRepositoryImpl @Inject constructor(
@@ -31,6 +32,10 @@ class SessionRepositoryImpl @Inject constructor(
     }
 
     override suspend fun clearDatabaseData() = db.clearDb()
+
+    override fun isActiveSession(): Flow<Boolean> {
+        return authDataSource.isActiveSession()
+    }
 
     override suspend fun getToken(): String? {
         return authDataSource.getProfile()?.token

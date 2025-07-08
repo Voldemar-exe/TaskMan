@@ -1,6 +1,6 @@
 package com.example.home
 
-import com.example.home.sheet.MainBottomSheetType
+import com.example.home.sheet.MoveToControl
 import com.example.shared.TaskType
 import com.example.shared.UserTask
 import com.example.shared.UserTaskGroup
@@ -13,7 +13,7 @@ data class MainState(
     val selectedGroupName: String = "Все",
     val selectedTabIndex: Int = 1,
     val selectedTaskTypes: Set<TaskType> = emptySet(),
-    val bottomSheet: MainBottomSheetType = MainBottomSheetType.None,
+    val moveToControl: MoveToControl = MoveToControl.None,
     val error: String? = null,
     val success: String? = null
 )

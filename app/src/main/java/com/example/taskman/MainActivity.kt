@@ -6,13 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
+import com.example.data.repository.SessionRepository
 import com.example.data.repository.ThemeRepository
 import com.example.sync.SyncManager
 import com.example.theme.TaskManTheme
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -20,6 +19,8 @@ class MainActivity : ComponentActivity() {
     lateinit var syncManager: SyncManager
     @Inject
     lateinit var themeRepository: ThemeRepository
+    @Inject
+    lateinit var sessionRepository: SessionRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,19 +30,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            val isDarkTheme by themeRepository.isDarkTheme().collectAsStateWithLifecycle(
-                initialValue = false
-            )
+
+            val isDarkTheme by themeRepository
+                .isDarkTheme().collectAsStateWithLifecycle(initialValue = false)
+
+            val isActiveSession by sessionRepository
+                .isActiveSession().collectAsStateWithLifecycle(initialValue = false)
 
             TaskManTheme(darkTheme = isDarkTheme) {
-                App(
-                    isDarkTheme = isDarkTheme,
-                    toggleTheme = {
-                        lifecycleScope.launch {
-                            themeRepository.saveTheme(!isDarkTheme)
-                        }
-                    }
-                )
+                App(isActiveSession = isActiveSession)
             }
         }
     }

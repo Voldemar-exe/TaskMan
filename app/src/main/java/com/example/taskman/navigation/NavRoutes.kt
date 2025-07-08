@@ -2,9 +2,8 @@ package com.example.taskman.navigation
 
 import kotlinx.serialization.Serializable
 
-
 @Serializable
-object Profile
+object Splash
 
 @Serializable
 object Main
@@ -13,7 +12,16 @@ object Main
 data class Authentication(val type: String)
 
 @Serializable
+object Profile
+
+@Serializable
+data class TaskControl(val taskId: Int?)
+
+@Serializable
+data class GroupControl(val groupId: Int?)
+
+@Serializable
 object SearchScreen
 
 @Serializable
-object Splash
+object Settings

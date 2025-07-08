@@ -101,6 +101,8 @@ dependencies {
     implementation(project(":core:sync"))
     implementation(project(":feature:auth"))
     implementation(project(":feature:home"))
+    implementation(project(":feature:control"))
     implementation(project(":feature:profile"))
+    implementation(project(":feature:settings"))
     implementation(project(":feature:search"))
 }

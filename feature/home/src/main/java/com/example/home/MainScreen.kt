@@ -1,46 +1,34 @@
 package com.example.home
 
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SheetState
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.home.sheet.ControlBottomSheet
-import com.example.home.sheet.MainBottomSheetType
+import com.example.home.sheet.MoveToControl
 import com.example.home.task.TaskScreen
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     mainViewModel: MainViewModel = hiltViewModel(),
     onProfileClick: () -> Unit,
+    onTaskControlClick: (Int?) -> Unit,
+    onGroupControlClick: (Int?) -> Unit,
     onSearchClick: () -> Unit
 ) {
 
-    val allTasks by mainViewModel.allTasks.collectAsStateWithLifecycle()
     val allGroups by mainViewModel.allGroups.collectAsStateWithLifecycle()
-
     val mainState by mainViewModel.mainState.collectAsStateWithLifecycle()
 
-    val scope: CoroutineScope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
-    val sheetState: SheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
-
-    LaunchedEffect(mainState.bottomSheet) {
-        if (mainState.bottomSheet !is MainBottomSheetType.None) {
-            showBottomSheet = true
-            scope.launch { sheetState.show() }
+    LaunchedEffect(mainState.moveToControl) {
+        when (val move = mainState.moveToControl) {
+            is MoveToControl.Task -> onTaskControlClick(move.taskId).also {
+                mainViewModel.onIntent(MainIntent.MoveTo(MoveToControl.None))
+            }
+            is MoveToControl.Group -> onGroupControlClick(move.groupId).also {
+                mainViewModel.onIntent(MainIntent.MoveTo(MoveToControl.None))
+            }
+            MoveToControl.None -> Unit
         }
     }
 
@@ -52,18 +40,5 @@ fun MainScreen(
         onSearchClick = onSearchClick
     )
 
-    if (showBottomSheet) {
-        ControlBottomSheet(
-            bottomSheetType = mainState.bottomSheet,
-            allTasks = allTasks,
-            sheetState = sheetState,
-            onDismiss = {
-                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                    mainViewModel.onIntent(MainIntent.CloseBottomSheet)
-                    showBottomSheet = false
-                }
-            }
-        )
-    }
 }
 

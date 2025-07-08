@@ -1,5 +1,6 @@
 package com.example.profile
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -49,29 +50,30 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.shared.UserIcon
 import com.example.ui.IconMapper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    isDarkTheme: Boolean,
-    toggleTheme: () -> Unit,
-    state: ProfileState,
-    onIntent: (ProfileIntent) -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel(),
     onBackClick: () -> Unit
 ) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(state.error) {
         if (state.error != null) {
             snackbarHostState.showSnackbar(
-                message = state.error,
+                message = state.error!!,
                 actionLabel = "OK",
                 duration = SnackbarDuration.Short
             )
-            onIntent(ProfileIntent.ClearError)
+            viewModel.onIntent(ProfileIntent.ClearError)
         }
     }
 
@@ -82,14 +84,14 @@ fun ProfileScreen(
                 actionLabel = "OK",
                 duration = SnackbarDuration.Short
             )
-            onIntent(ProfileIntent.ClearSuccess)
+            viewModel.onIntent(ProfileIntent.ClearSuccess)
         }
     }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = { ProfileTopBar(onIntent, scrollBehavior, onBackClick) }
+        topBar = { ProfileTopBar(viewModel::onIntent, scrollBehavior, onBackClick) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -97,9 +99,13 @@ fun ProfileScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
-            ProfileCard(state)
-            OptionsCard(isDarkTheme, toggleTheme)
-            ActionsCard(onIntent, onBackClick)
+            ProfileCard(state = state)
+            OptionsCard(
+                toggleTheme = {
+                    // TODO MOVE THIS TO SETTINGS SCREEN
+                }
+            )
+            ActionsCard(onIntent = viewModel::onIntent, onBackClick = onBackClick)
         }
     }
 }
@@ -179,9 +185,11 @@ fun ProfileCard(state: ProfileState) {
 
 @Composable
 fun OptionsCard(
-    isDarkTheme: Boolean,
     toggleTheme: () -> Unit
 ) {
+
+    val isDarkTheme = isSystemInDarkTheme()
+
     Card(
         modifier = Modifier
             .fillMaxWidth()

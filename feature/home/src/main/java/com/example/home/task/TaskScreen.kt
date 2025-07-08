@@ -25,7 +25,7 @@ import androidx.compose.ui.Modifier
 import com.example.home.MainIntent
 import com.example.home.MainState
 import com.example.home.sheet.GroupTaskDrawerSheet
-import com.example.home.sheet.MainBottomSheetType
+import com.example.home.sheet.MoveToControl
 import com.example.shared.UserTask
 import com.example.shared.UserTaskGroup
 import com.example.ui.components.TaskItem
@@ -53,7 +53,7 @@ fun TaskScreen(
                 onGroupClick = { group, isEdit ->
                     if (isEdit) {
                         onIntent(
-                            MainIntent.ShowBottomSheet(MainBottomSheetType.Group(group.localId))
+                            MainIntent.MoveTo(MoveToControl.Group(group.localId))
                         )
                     } else {
                         isLoading = true
@@ -67,7 +67,7 @@ fun TaskScreen(
                 },
                 onAddClick = {
                     onIntent(
-                        MainIntent.ShowBottomSheet(MainBottomSheetType.Group())
+                        MainIntent.MoveTo(MoveToControl.Group())
                     )
                 },
                 onBackClick = { scope.launch { drawerState.close() } }
@@ -126,8 +126,8 @@ fun TaskScreenContent(
                     TaskItem(
                         modifier = Modifier.clickable {
                             onIntent(
-                                MainIntent.ShowBottomSheet(
-                                    MainBottomSheetType.Task(task.localId)
+                                MainIntent.MoveTo(
+                                    MoveToControl.Task(task.localId)
                                 )
                             )
                         },
