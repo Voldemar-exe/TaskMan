@@ -1,13 +1,13 @@
 package com.example.network.retrofit.auth
 
 import android.util.Log
-import com.example.data.repository.SessionRepository
+import com.example.data.TokenProvider
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
 
 class AuthInterceptor(
-    private val sessionRepository: SessionRepository
+    private val tokenProvider: TokenProvider
 ) : Interceptor {
     companion object {
         private const val TAG = "AuthInterceptor"
@@ -15,9 +15,7 @@ class AuthInterceptor(
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val original = chain.request()
-        val token = runBlocking {
-            sessionRepository.getProfileData()?.token
-        }
+        val token = runBlocking { tokenProvider.getToken() }
 
         Log.d(TAG, "Request URL: ${original.url}")
         Log.d(TAG, "Token present: ${!token.isNullOrBlank()}")

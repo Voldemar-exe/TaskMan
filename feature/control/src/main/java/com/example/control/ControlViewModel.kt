@@ -1,6 +1,5 @@
 package com.example.control
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shared.IntentResult
@@ -13,10 +12,6 @@ abstract class ControlViewModel (
     initialState: ControlState
 ) : ViewModel() {
 
-    companion object {
-        const val TAG = "ControlViewModel"
-    }
-
     protected val controlState = MutableStateFlow(initialState)
     protected val baseState get() = controlState.value.base
     val uiState = controlState.asStateFlow()
@@ -27,12 +22,7 @@ abstract class ControlViewModel (
         }
     }
 
-    init {
-        Log.i(TAG, "init with $initialState")
-    }
-
     protected fun processBaseIntent(intent: ControlIntent) {
-        Log.i(TAG, "$intent")
         viewModelScope.launch {
             when (intent) {
                 is ControlIntent.UpdateName ->

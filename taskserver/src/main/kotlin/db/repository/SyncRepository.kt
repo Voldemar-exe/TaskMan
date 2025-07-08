@@ -1,7 +1,8 @@
 package com.example.db.repository
 
-import com.example.shared.dto.GroupDto
-import com.example.shared.dto.TaskDto
+import com.example.model.GroupDto
+import com.example.model.TaskDto
+
 
 interface SyncRepository {
     suspend fun syncTasks(

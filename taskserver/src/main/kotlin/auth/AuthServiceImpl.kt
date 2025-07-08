@@ -4,11 +4,11 @@ import com.example.db.repository.GroupRepository
 import com.example.db.repository.TaskRepository
 import com.example.db.repository.TokenRepository
 import com.example.db.repository.UserRepository
-import com.example.shared.dto.UserDto
-import com.example.shared.request.LoginRequest
-import com.example.shared.request.RegisterRequest
-import com.example.shared.response.LoginResponse
-import com.example.shared.response.RegisterResponse
+import com.example.model.LoginRequest
+import com.example.model.LoginResponse
+import com.example.model.RegisterRequest
+import com.example.model.RegisterResponse
+import com.example.model.UserDto
 import org.mindrot.jbcrypt.BCrypt
 
 class AuthServiceImpl(

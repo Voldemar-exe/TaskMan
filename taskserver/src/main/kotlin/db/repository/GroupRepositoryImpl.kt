@@ -12,8 +12,8 @@ import com.example.db.tables.GroupTaskTable
 import com.example.db.tables.GroupsTable
 import com.example.db.tables.TasksTable
 import com.example.db.tables.UserGroupTable
-import com.example.shared.dto.GroupDto
-import com.example.shared.dto.TaskDto
+import com.example.model.GroupDto
+import com.example.model.TaskDto
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
 

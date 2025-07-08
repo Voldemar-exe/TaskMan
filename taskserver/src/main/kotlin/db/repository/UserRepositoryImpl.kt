@@ -10,7 +10,7 @@ import com.example.db.tables.GroupTaskTable
 import com.example.db.tables.TokensTable
 import com.example.db.tables.UserGroupTable
 import com.example.db.tables.UserTaskTable
-import com.example.shared.dto.UserDto
+import com.example.model.UserDto
 
 class UserRepositoryImpl : UserRepository {
 

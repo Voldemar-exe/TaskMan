@@ -14,8 +14,8 @@ import com.example.db.tables.TasksTable
 import com.example.db.tables.UserGroupTable
 import com.example.db.tables.UserTaskTable
 import com.example.db.tables.UsersTable
-import com.example.shared.dto.GroupDto
-import com.example.shared.dto.TaskDto
+import com.example.model.GroupDto
+import com.example.model.TaskDto
 
 class SyncRepositoryImpl : SyncRepository {
     override suspend fun syncTasks(

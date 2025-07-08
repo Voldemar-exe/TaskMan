@@ -1,6 +1,5 @@
 package com.example.control.task
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.control.ControlIntent
 import com.example.control.ControlState
@@ -25,15 +24,10 @@ class TaskControlViewModel @Inject constructor(
         task = ControlState.TaskState()
     )
 ) {
-    companion object {
-        private const val TAG = "TaskControlViewModel"
-    }
-
     private val taskState: ControlState.TaskState
-        get() = controlState.value.task ?: error("Task state is null in $TAG")
+        get() = controlState.value.task ?: error("Task state is null in TaskViewModel")
 
     fun onIntent(intent: ControlIntent) {
-        Log.i(TAG, "intent: $intent")
         when (intent) {
             is TaskControlIntent.UpdateDate -> updateDate(intent.date)
             is TaskControlIntent.UpdateType -> updateType(intent.type)
@@ -59,8 +53,6 @@ class TaskControlViewModel @Inject constructor(
             // startLoading() TODO FIX TO REAL LOADING
             try {
                 val task = stateToSharedTask()
-                Log.w(TAG, "$baseState")
-                Log.w(TAG, "$task")
                 when (controlState.value.base.isEditMode) {
                     true -> taskRepository.updateWithSyncFlag(task)
                     false -> taskRepository.insertWithSyncFlag(task)

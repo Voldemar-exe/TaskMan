@@ -1,8 +1,9 @@
 package com.example.data.repository
 
+import com.example.data.TokenProvider
 import com.example.shared.ProfileData
 
-interface SessionRepository {
+interface SessionRepository : TokenProvider {
     suspend fun clearSession()
     suspend fun clearProfileData()
     suspend fun getProfileData(): ProfileData?

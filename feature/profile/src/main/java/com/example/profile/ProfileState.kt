@@ -3,7 +3,7 @@ package com.example.profile
 data class ProfileState(
     val username: String = "",
     val email: String = "",
-    val isInfo: Boolean = false,
+    val showInfo: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
     val success: Boolean = false,

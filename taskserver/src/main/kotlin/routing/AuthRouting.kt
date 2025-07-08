@@ -1,8 +1,8 @@
 package com.example.routing
 
 import com.example.auth.AuthService
-import com.example.shared.request.LoginRequest
-import com.example.shared.request.RegisterRequest
+import com.example.model.LoginRequest
+import com.example.model.RegisterRequest
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.request.receive

@@ -1,6 +1,6 @@
 package com.example.db.repository
 
-import com.example.shared.dto.TaskDto
+import com.example.model.TaskDto
 
 
 interface TaskRepository {

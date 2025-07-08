@@ -9,7 +9,7 @@ import com.example.db.dao.taskDaoToDto
 import com.example.db.tables.GroupTaskTable
 import com.example.db.tables.TasksTable
 import com.example.db.tables.UserTaskTable
-import com.example.shared.dto.TaskDto
+import com.example.model.TaskDto
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
 

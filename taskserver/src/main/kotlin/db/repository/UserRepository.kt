@@ -1,7 +1,7 @@
 package com.example.db.repository
 
 import com.example.db.dao.UserDAO
-import com.example.shared.dto.UserDto
+import com.example.model.UserDto
 
 
 interface UserRepository {

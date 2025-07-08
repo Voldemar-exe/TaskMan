@@ -1,6 +1,5 @@
 package com.example.profile
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.repository.SessionRepository
@@ -22,21 +21,15 @@ class ProfileViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ProfileState())
     val uiState = _uiState.asStateFlow()
 
-    companion object {
-        private const val TAG = "ProfileViewModel"
-    }
-
     init {
-        Log.i(TAG, "init: $TAG")
         loadProfile()
     }
 
     fun onIntent(intent: ProfileIntent) {
-        Log.i(TAG, "$intent")
         when (intent) {
             ProfileIntent.LoadProfile -> loadProfile()
             is ProfileIntent.InfoClick ->
-                _uiState.update { it.copy(isInfo = !it.isInfo) }
+                _uiState.update { it.copy(showInfo = !it.showInfo) }
             is ProfileIntent.ClearProfile -> clearProfile()
             ProfileIntent.DeleteProfile -> deleteProfile()
             ProfileIntent.DeleteProfileData -> deleteProfileData()

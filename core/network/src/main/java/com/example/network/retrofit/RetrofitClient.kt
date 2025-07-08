@@ -1,6 +1,6 @@
 package com.example.network.retrofit
 
-import com.example.data.repository.SessionRepository
+import com.example.data.TokenProvider
 import com.example.network.retrofit.auth.AuthInterceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -11,9 +11,9 @@ object RetrofitClient {
     private lateinit var retrofit: Retrofit
     private lateinit var okHttpClient: OkHttpClient
 
-    fun init(sessionRepository: SessionRepository): Retrofit {
+    fun init(tokenProvider: TokenProvider): Retrofit {
         okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(AuthInterceptor(sessionRepository))
+            .addInterceptor(AuthInterceptor(tokenProvider))
             .build()
 
         retrofit = Retrofit.Builder()

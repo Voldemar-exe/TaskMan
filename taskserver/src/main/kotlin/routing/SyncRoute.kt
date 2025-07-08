@@ -1,10 +1,10 @@
 package com.example.routing
 
 import com.example.db.repository.SyncRepository
-import com.example.shared.dto.GroupDto
-import com.example.shared.dto.TaskDto
-import com.example.shared.request.SyncRequest
-import com.example.shared.response.SyncResponse
+import com.example.model.GroupDto
+import com.example.model.SyncRequest
+import com.example.model.SyncResponse
+import com.example.model.TaskDto
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal

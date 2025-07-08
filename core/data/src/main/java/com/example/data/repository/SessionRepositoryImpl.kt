@@ -31,4 +31,8 @@ class SessionRepositoryImpl @Inject constructor(
     }
 
     override suspend fun clearDatabaseData() = db.clearDb()
+
+    override suspend fun getToken(): String? {
+        return authDataSource.getProfile()?.token
+    }
 }
