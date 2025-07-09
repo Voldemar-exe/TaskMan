@@ -5,7 +5,7 @@ import com.example.shared.TaskType
 import com.example.shared.UserTask
 import com.example.shared.UserTaskGroup
 
-data class MainState(
+data class HomeState(
     val visibleGroups: List<UserTaskGroup> = emptyList(),
     val visibleTasks: List<UserTask> = emptyList(),
     val selectedTaskId: Int? = null,

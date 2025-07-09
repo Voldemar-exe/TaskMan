@@ -4,7 +4,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
 
-class MainViewModelTest {
+class HomeViewModelTest {
 
     @Before
     fun setUp() {

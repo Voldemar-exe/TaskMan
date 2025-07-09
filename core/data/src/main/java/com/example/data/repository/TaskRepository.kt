@@ -4,11 +4,12 @@ import com.example.data.toMyTask
 import com.example.database.dao.TaskDao
 import com.example.shared.UserTask
 import jakarta.inject.Inject
+import kotlinx.coroutines.flow.Flow
 
 class TaskRepository @Inject constructor(private val taskDao: TaskDao) {
 
-    val tasksListFlow = taskDao.getAllTasksFlow()
-    val allNotSyncedTasks = taskDao.getAllNotSyncedTasksFlow()
+    val tasksListFlow: Flow<List<UserTask>> = taskDao.getAllTasksFlow()
+    val allNotSyncedTasks: Flow<List<UserTask>> = taskDao.getAllNotSyncedTasksFlow()
 
     suspend fun getAllTasksWithoutGroups(): List<UserTask> {
         return taskDao.getAllTasksWithoutGroups()

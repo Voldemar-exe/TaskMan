@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class MainViewModel @Inject constructor(
+class HomeViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
     private val groupRepository: GroupRepository
 ) : ViewModel() {
@@ -33,8 +33,8 @@ class MainViewModel @Inject constructor(
         private const val STOP_DELAY = 5000L
     }
 
-    private val _mainState = MutableStateFlow(MainState())
-    val mainState = _mainState.asStateFlow()
+    private val _homeState = MutableStateFlow(HomeState())
+    val mainState = _homeState.asStateFlow()
 
     val allTasks = taskRepository.tasksListFlow
         .stateIn(
@@ -60,36 +60,37 @@ class MainViewModel @Inject constructor(
         Log.i(TAG, "init: $TAG")
         viewModelScope.launch(Dispatchers.IO) {
             combine(
-                _mainState.map { it.selectedGroupId }.distinctUntilChanged(),
-                _mainState.map { it.selectedTaskTypes }.distinctUntilChanged(),
-                _mainState.map { it.selectedTabIndex }.distinctUntilChanged(),
+                _homeState.map { it.selectedGroupId }.distinctUntilChanged(),
+                _homeState.map { it.selectedTaskTypes }.distinctUntilChanged(),
+                _homeState.map { it.selectedTabIndex }.distinctUntilChanged(),
                 allTasks,
                 allGroupsWithTasks
             ) { selectedGroupId, selectedTaskTypes, selectedTabIndex, tasks, groupsWithTasks ->
-                val tasksByGroup = getTasksByGroupOrNull(selectedGroupId, groupsWithTasks).let {
-                    tasks
-                }
-                val filteredByTab = filterTasksByTab(selectedTabIndex, tasksByGroup)
-                val filteredByTypes = filterTasksByType(selectedTaskTypes, filteredByTab)
+                val tasksByGroup =
+                    getTasksByGroupOrNull(selectedGroupId, groupsWithTasks) ?: tasks
+                val filteredByTab =
+                    filterTasksByTab(selectedTabIndex, tasksByGroup)
+                val filteredByTypes =
+                    filterTasksByType(selectedTaskTypes, filteredByTab)
                 filteredByTypes.sortedByDescending { it.localId }
             }.collect { filteredTasks ->
-                _mainState.update { it.copy(visibleTasks = filteredTasks) }
+                _homeState.update { it.copy(visibleTasks = filteredTasks) }
             }
         }
     }
 
-    fun onIntent(intent: MainIntent) {
+    fun onIntent(intent: HomeIntent) {
         Log.i(TAG, "$intent")
         when (intent) {
-            is MainIntent.ToggleTaskCompletion -> toggleTaskCompletion(intent.task)
-            is MainIntent.MoveTo -> _mainState.update { it.copy(moveToControl = intent.type) }
-            is MainIntent.SelectTask ->
-                _mainState.update { it.copy(selectedTaskId = intent.taskId) }
-            is MainIntent.SelectGroup -> selectGroup(intent.group)
-            is MainIntent.SelectTaskType -> selectTaskType(intent.taskType)
-            is MainIntent.SelectTab ->
-                _mainState.update { it.copy(selectedTabIndex = intent.tabIndex) }
-            MainIntent.SyncData -> syncAllTasksAndGroups()
+            is HomeIntent.ToggleTaskCompletion -> toggleTaskCompletion(intent.task)
+            is HomeIntent.MoveTo -> _homeState.update { it.copy(moveToControl = intent.type) }
+            is HomeIntent.SelectTask ->
+                _homeState.update { it.copy(selectedTaskId = intent.taskId) }
+            is HomeIntent.SelectGroup -> selectGroup(intent.group)
+            is HomeIntent.SelectTaskType -> selectTaskType(intent.taskType)
+            is HomeIntent.SelectTab ->
+                _homeState.update { it.copy(selectedTabIndex = intent.tabIndex) }
+            HomeIntent.SyncData -> syncAllTasksAndGroups()
         }
     }
 
@@ -124,7 +125,7 @@ class MainViewModel @Inject constructor(
     }
 
     private fun selectGroup(group: UserTaskGroup) {
-        _mainState.update {
+        _homeState.update {
             it.copy(
                 selectedGroupId = group.localId,
                 selectedGroupName = group.name
@@ -133,7 +134,7 @@ class MainViewModel @Inject constructor(
     }
 
     private fun selectTaskType(taskType: TaskType) {
-        _mainState.update { state ->
+        _homeState.update { state ->
             state.copy(
                 selectedTaskTypes = if (taskType in state.selectedTaskTypes) {
                     state.selectedTaskTypes - taskType

@@ -9,6 +9,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.repository.SessionRepository
 import com.example.data.repository.ThemeRepository
 import com.example.sync.SyncManager
+import com.example.taskman.navigation.App
 import com.example.theme.TaskManTheme
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject

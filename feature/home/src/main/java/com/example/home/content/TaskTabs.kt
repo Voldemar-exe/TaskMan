@@ -1,4 +1,4 @@
-package com.example.home.task
+package com.example.home.content
 
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab

@@ -1,9 +1,10 @@
-package com.example.home.task
+package com.example.home.content
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingToolbarDefaults
@@ -18,7 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import com.example.home.MainIntent
+import com.example.home.HomeIntent
 import com.example.home.sheet.MoveToControl
 import com.example.shared.SystemIcon
 import com.example.shared.TaskType
@@ -30,17 +31,20 @@ import com.example.ui.components.WorkTypeDropdownMenu
 fun TaskScreenBottomBar(
     modifier: Modifier = Modifier,
     selectedTaskTypes: List<TaskType>,
+    isShowAllTasks: Boolean,
     onSearchClick: () -> Unit,
-    onIntent: (MainIntent) -> Unit
+    onEditClick: () -> Unit,
+    onIntent: (HomeIntent) -> Unit
 ) {
     var expandedWorkType by remember { mutableStateOf(false) }
+
     Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         HorizontalFloatingToolbar(
             expanded = true,
             floatingActionButton = {
                 FloatingToolbarDefaults.VibrantFloatingActionButton(
                     onClick = {
-                        onIntent(MainIntent.MoveTo(MoveToControl.Task()))
+                        onIntent(HomeIntent.MoveTo(MoveToControl.Task()))
                     }
                 ) {
                     Icon(
@@ -50,6 +54,15 @@ fun TaskScreenBottomBar(
                 }
             }
         ) {
+            if (!isShowAllTasks) {
+                IconButton(onClick = onEditClick) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null
+                    )
+                }
+            }
+
             IconButton(onClick = { expandedWorkType = true }) {
                 Icon(
                     painter = painterResource(IconMapper.itemIconToDrawable(SystemIcon.Filter)),
@@ -59,7 +72,7 @@ fun TaskScreenBottomBar(
             WorkTypeDropdownMenu(
                 expanded = expandedWorkType,
                 selectedTaskTypes = selectedTaskTypes,
-                onSelectTask = { onIntent(MainIntent.SelectTaskType(it)) },
+                onSelectTask = { onIntent(HomeIntent.SelectTaskType(it)) },
                 onExpandedChange = { expandedWorkType = it }
             )
 
@@ -70,7 +83,7 @@ fun TaskScreenBottomBar(
                 )
             }
 
-            IconButton(onClick = { onIntent(MainIntent.SyncData) }) {
+            IconButton(onClick = { onIntent(HomeIntent.SyncData) }) {
                 Icon(
                     painterResource(IconMapper.itemIconToDrawable(SystemIcon.Sync)),
                     contentDescription = null

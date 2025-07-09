@@ -1,4 +1,4 @@
-package com.example.home.task
+package com.example.home.content
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle

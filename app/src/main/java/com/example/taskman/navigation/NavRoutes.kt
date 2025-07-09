@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 object Splash
 
 @Serializable
-object Main
+object Home
 
 @Serializable
 data class Authentication(val type: String)

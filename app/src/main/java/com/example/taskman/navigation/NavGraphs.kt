@@ -7,7 +7,7 @@ import androidx.navigation.toRoute
 import com.example.auth.ui.AuthScreen
 import com.example.control.group.GroupControl
 import com.example.control.task.TaskControl
-import com.example.home.MainScreen
+import com.example.home.HomeScreen
 import com.example.profile.ProfileScreen
 import com.example.search.SearchScreen
 import com.example.settings.SettingsScreen
@@ -17,9 +17,22 @@ fun NavGraphBuilder.splashGraph(navController: NavController) {
     composable<Splash> {
         SplashScreen(
             onSplashFinished = {
-                navController.navigate(Main) {
+                navController.navigate(Home) {
                     popUpTo(Splash) { inclusive = true }
                 }
+            }
+        )
+    }
+}
+
+fun NavGraphBuilder.authGraph(navController: NavController) {
+    composable<Authentication> {
+        AuthScreen(
+            onBackClick = {
+                navController.popBackStack()
+            },
+            loginUser = {
+                navController.navigate(Profile)
             }
         )
     }
@@ -28,17 +41,17 @@ fun NavGraphBuilder.splashGraph(navController: NavController) {
 fun NavGraphBuilder.profileGraph(navController: NavController) {
     composable<Profile> {
         ProfileScreen(
-            onBackClick = { navController.navigate(Main) }
+            onBackClick = { navController.navigate(Home) }
         )
     }
 }
 
-fun NavGraphBuilder.mainGraph(
+fun NavGraphBuilder.homeGraph(
     isActiveSession: Boolean,
     navController: NavController
 ) {
-    composable<Main> {
-        MainScreen(
+    composable<Home> {
+        HomeScreen(
             onProfileClick = {
                 if (isActiveSession) {
                     navController.navigate(Profile)
@@ -59,31 +72,8 @@ fun NavGraphBuilder.mainGraph(
     }
 }
 
-fun NavGraphBuilder.authGraph(navController: NavController) {
-    composable<Authentication> {
-        AuthScreen(
-            onBackClick = {
-                navController.popBackStack()
-            },
-            loginUser = {
-                navController.navigate(Profile)
-            }
-        )
-    }
-}
-
-fun NavGraphBuilder.searchGraph(navController: NavController) {
-    composable<SearchScreen> {
-        SearchScreen(
-            onBackClick = {
-                navController.popBackStack()
-            }
-        )
-    }
-}
-
 fun NavGraphBuilder.taskControlGraph(navController: NavController) {
-    composable<TaskControl> { backStackEntry  ->
+    composable<TaskControl>{ backStackEntry  ->
         val taskControl = backStackEntry.toRoute<TaskControl>()
         TaskControl(
             taskId = taskControl.taskId,
@@ -98,6 +88,16 @@ fun NavGraphBuilder.groupControlGraph(navController: NavController) {
         GroupControl(
             groupId = groupControl.groupId,
             onBackClick = { navController.popBackStack() }
+        )
+    }
+}
+
+fun NavGraphBuilder.searchGraph(navController: NavController) {
+    composable<SearchScreen> {
+        SearchScreen(
+            onBackClick = {
+                navController.popBackStack()
+            }
         )
     }
 }

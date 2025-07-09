@@ -4,7 +4,6 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
 
-
     <application
         android:usesCleartextTraffic="true"
         android:name=".AppApplication"
@@ -24,7 +23,6 @@
             android:theme="@style/Theme.TaskMan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

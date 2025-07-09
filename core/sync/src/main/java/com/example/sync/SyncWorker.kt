@@ -6,8 +6,6 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.data.repository.SyncRepository
-import com.example.data.toMyTask
-import com.example.data.toTaskGroup
 import com.example.network.retrofit.sync.SyncService
 import com.example.shared.SharedGroupWithTasks
 import com.example.shared.UserGroupWithTasks
@@ -85,7 +83,7 @@ class SyncWorker @AssistedInject constructor(
                         val tasks = localGroupWithTasks.tasks.map { remoteTask ->
                                 remoteTask.updateServerId(remoteTask.serverId!!)
                             }
-                        SharedGroupWithTasks(group.toTaskGroup(), tasks.map { it.toMyTask() })
+                        SharedGroupWithTasks(group, tasks)
                     }
                 syncRepository.updateGroupsWithTaskFromServer(updatedLocalGroups)
                 Result.success()
