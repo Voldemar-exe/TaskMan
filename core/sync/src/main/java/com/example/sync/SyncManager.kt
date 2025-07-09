@@ -7,8 +7,8 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.example.database.dao.GroupDao
-import com.example.database.dao.TaskDao
+import com.example.data.repository.GroupRepository
+import com.example.data.repository.TaskRepository
 import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,8 +16,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 class SyncManager @Inject constructor(
-    private val taskDao: TaskDao,
-    private val groupDao: GroupDao,
+    private val taskRepository: TaskRepository,
+    private val groupRepository: GroupRepository,
     private val workManager: WorkManager
 ) {
     companion object {
@@ -33,7 +33,7 @@ class SyncManager @Inject constructor(
 
     private fun observeNotSyncedData() {
         scope.launch {
-            taskDao.getAllNotSyncedTasksFlow().collect { tasks ->
+            taskRepository.allNotSyncedTasks.collect { tasks ->
                 Log.i(TAG, "$tasks")
                 if (tasks.isNotEmpty()) {
                     scheduleSync("tasks", tasks)
@@ -41,7 +41,7 @@ class SyncManager @Inject constructor(
             }
         }
         scope.launch {
-            groupDao.getAllNotSyncedFlow().collect { groups ->
+            groupRepository.allGroupsNotSyncedFlow.collect { groups ->
                 Log.i(TAG, "$groups")
                 if (groups.isNotEmpty()) {
                     scheduleSync("groups", groups)

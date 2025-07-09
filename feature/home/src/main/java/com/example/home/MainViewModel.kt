@@ -43,14 +43,14 @@ class MainViewModel @Inject constructor(
             emptyList()
         )
 
-    private val allGroupsWithTasks = groupRepository.allGroupsWithTasksFlow
+    private val allGroupsWithTasks = groupRepository.allGroupsWithTasks
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(STOP_DELAY),
             emptyList()
         )
 
-    val allGroups = groupRepository.allGroupsFlow.stateIn(
+    val allGroups = groupRepository.allGroups.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(STOP_DELAY),
         emptyList()

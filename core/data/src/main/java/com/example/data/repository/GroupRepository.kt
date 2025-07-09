@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class GroupRepository @Inject constructor(private val groupDao: GroupDao) {
-    val allGroupsFlow: Flow<List<UserTaskGroup>> = groupDao.getAllGroupsFlow().map {
+    val allGroups: Flow<List<UserTaskGroup>> = groupDao.getAllGroupsFlow().map {
         listOf(
             TaskGroup(
                 localId = -1,
@@ -27,10 +27,10 @@ class GroupRepository @Inject constructor(private val groupDao: GroupDao) {
         ) + it
     }
 
-    val allGroupsWithTasksFlow: Flow<List<UserGroupWithTasks>> =
+    val allGroupsWithTasks: Flow<List<UserGroupWithTasks>> =
         groupDao.getAllGroupsWithTasksFlow()
 
-    val allNotSyncedGroupsFlow: Flow<List<UserGroupWithTasks>> =
+    val allGroupsNotSyncedFlow: Flow<List<UserGroupWithTasks>> =
         groupDao.getAllNotSyncedFlow()
 
     suspend fun deleteAllCrossRefsForGroup(groupId: Int) {

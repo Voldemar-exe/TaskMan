@@ -53,11 +53,9 @@ dependencies {
     ksp(libs.androidx.hilt.compiler)
 
     implementation(libs.ktor.serialization.kotlinx.json)
-
-
+    
     // MODULES
     implementation(project(":core:shared"))
     implementation(project(":core:data"))
     implementation(project(":core:network"))
-    implementation(project(":core:database"))
 }

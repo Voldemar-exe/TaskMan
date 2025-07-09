@@ -105,7 +105,7 @@ class AuthViewModel @Inject constructor(
 
     private suspend fun handleRegistration(state: AuthState): Boolean {
         val tasks = taskRepository.getAllTasksWithoutGroups()
-        val groups = groupRepository.allGroupsWithTasksFlow.first()
+        val groups = groupRepository.allGroupsWithTasks.first()
 
         val response = authService.registerUser(
             RegisterRequest(
