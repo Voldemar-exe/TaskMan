@@ -31,17 +31,24 @@ class GroupControlViewModel @Inject constructor(
         private const val TAG = "GroupControlViewModel"
     }
 
-    private val groupState: ControlState.GroupState =
+    private val groupState: ControlState.GroupState get() =
         controlState.value.group ?: error("Task state is null in $TAG")
 
     fun onIntent(intent: ControlIntent) {
         Log.i(TAG, "Intent: $intent")
         when (intent) {
+            is GroupControlIntent.LoadTasks -> loadTasks()
             is GroupControlIntent.AddTask -> addTask(intent.task)
             is GroupControlIntent.RemoveTask ->
                 if (groupState.tasksInGroup.size > 1) removeTask(intent.task)
 
             else -> processBaseIntent(intent)
+        }
+    }
+
+    private fun loadTasks() = viewModelScope.launch {
+        controlState.update {
+            it.copy(group = groupState.copy(allTasks = groupRepository.getAllTasks()))
         }
     }
 
@@ -138,7 +145,6 @@ class GroupControlViewModel @Inject constructor(
     override fun deleteEntity(entityId: Int) {
         viewModelScope.launch {
             startLoading()
-            Log.i(TAG, "Start Delete")
 
             withContext(Dispatchers.IO) {
                 groupRepository.deleteAllCrossRefsForGroup(entityId)

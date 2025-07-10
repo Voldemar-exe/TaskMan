@@ -33,6 +33,8 @@ class GroupRepository @Inject constructor(private val groupDao: GroupDao) {
     val allGroupsNotSyncedFlow: Flow<List<UserGroupWithTasks>> =
         groupDao.getAllNotSyncedFlow()
 
+    suspend fun getAllTasks(): List<UserTask> = groupDao.getAllTasks()
+
     suspend fun deleteAllCrossRefsForGroup(groupId: Int) {
         groupDao.deleteAllCrossRefsForGroup(groupId)
     }

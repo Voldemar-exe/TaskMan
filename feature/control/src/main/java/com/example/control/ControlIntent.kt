@@ -22,6 +22,7 @@ sealed interface TaskControlIntent : ControlIntent {
 }
 
 sealed interface GroupControlIntent : ControlIntent {
+    data object LoadTasks : GroupControlIntent
     data class AddTask(val task: UserTask) : GroupControlIntent
     data class RemoveTask(val task: UserTask) : GroupControlIntent
 }

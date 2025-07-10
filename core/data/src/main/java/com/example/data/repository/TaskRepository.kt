@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 class TaskRepository @Inject constructor(private val taskDao: TaskDao) {
 
-    val tasksListFlow: Flow<List<UserTask>> = taskDao.getAllTasksFlow()
+    val allTasksListFlow: Flow<List<UserTask>> = taskDao.getAllTasksFlow()
     val allNotSyncedTasks: Flow<List<UserTask>> = taskDao.getAllNotSyncedTasksFlow()
 
     suspend fun getAllTasksWithoutGroups(): List<UserTask> {

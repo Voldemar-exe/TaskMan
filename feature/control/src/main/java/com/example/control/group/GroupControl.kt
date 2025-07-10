@@ -14,6 +14,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +36,11 @@ fun GroupControl(
     onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val groupState = uiState.group!!
+
+    LaunchedEffect(groupId) {
+        viewModel.onIntent(GroupControlIntent.LoadTasks)
+    }
 
     var isChooseMode by remember { mutableStateOf(false) }
 
@@ -45,20 +51,16 @@ fun GroupControl(
             onBackClick = onBackClick,
             entityId = groupId
         ) {
-            uiState.group?.tasksInGroup?.let { selectedTasks ->
-                if (selectedTasks.isNotEmpty()) {
-                    LazyColumn {
-                        items(selectedTasks) { task ->
-                            HorizontalDivider()
-                            TaskItem(
-                                task = task,
-                                selected = true,
-                                onCheckClick = {
-                                    viewModel.onIntent(GroupControlIntent.RemoveTask(task))
-                                }
-                            )
+            LazyColumn {
+                items(groupState.tasksInGroup) { task ->
+                    HorizontalDivider()
+                    TaskItem(
+                        task = task,
+                        selected = true,
+                        onCheckClick = {
+                            viewModel.onIntent(GroupControlIntent.RemoveTask(task))
                         }
-                    }
+                    )
                 }
             }
 
@@ -68,8 +70,8 @@ fun GroupControl(
         }
     } else {
         TasksForGroupScreen(
-            allTasks = emptyList(), // TODO ADD ALL TASKS FROM SOMEWHERE
-            tasksInGroup = uiState.group?.tasksInGroup,
+            allTasks = groupState.allTasks,
+            tasksInGroup = groupState.tasksInGroup,
             onDismissRequest = { isChooseMode = false },
             onAddTask = {
                 viewModel.onIntent(

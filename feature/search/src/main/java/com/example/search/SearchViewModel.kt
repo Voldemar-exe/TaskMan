@@ -33,7 +33,7 @@ class SearchViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            taskRepository.tasksListFlow.collect { tasks ->
+            taskRepository.allTasksListFlow.collect { tasks ->
                 _allTasks.value = tasks
                 _state.update { currentState ->
                     val searchedTaskIds = currentState.searchedTasks.map { it.localId }.toSet()

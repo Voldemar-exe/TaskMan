@@ -16,6 +16,10 @@ import kotlinx.coroutines.flow.first
 
 @Dao
 interface GroupDao {
+
+    @Query("SELECT * FROM tasks ORDER BY date DESC")
+    suspend fun getAllTasks(): List<MyTask>
+
     @Query("SELECT * FROM `groups` ORDER BY name")
     fun getAllGroupsFlow(): Flow<List<TaskGroup>>
 

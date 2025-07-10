@@ -36,7 +36,7 @@ class HomeViewModel @Inject constructor(
     private val _homeState = MutableStateFlow(HomeState())
     val mainState = _homeState.asStateFlow()
 
-    val allTasks = taskRepository.tasksListFlow
+    val allTasks = taskRepository.allTasksListFlow
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(STOP_DELAY),
