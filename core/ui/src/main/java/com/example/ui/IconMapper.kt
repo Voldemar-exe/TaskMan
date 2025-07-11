@@ -36,6 +36,8 @@ object IconMapper {
         SystemIcon.Amount -> R.drawable.ic_amount
         SystemIcon.Filter -> R.drawable.ic_filter
         SystemIcon.Sync -> R.drawable.ic_sync
+        SystemIcon.CalendarEvent -> R.drawable.ic_calendar_event
+        SystemIcon.Tag -> R.drawable.ic_tag
 
         SystemIcon.Testing -> R.drawable.ic_testing
     }

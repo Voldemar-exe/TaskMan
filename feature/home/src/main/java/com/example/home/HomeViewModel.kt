@@ -83,7 +83,7 @@ class HomeViewModel @Inject constructor(
         Log.i(TAG, "$intent")
         when (intent) {
             is HomeIntent.ToggleTaskCompletion -> toggleTaskCompletion(intent.task)
-            is HomeIntent.MoveTo -> _homeState.update { it.copy(moveToControl = intent.type) }
+            is HomeIntent.MoveTo -> _homeState.update { it.copy(homeDestination = intent.type) }
             is HomeIntent.SelectTask ->
                 _homeState.update { it.copy(selectedTaskId = intent.taskId) }
             is HomeIntent.SelectGroup -> selectGroup(intent.group)

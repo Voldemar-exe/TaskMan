@@ -20,6 +20,17 @@ fun ControlScreen(
     onIntent: (ControlIntent) -> Unit,
     entityId: Int?,
     onBackClick: () -> Unit,
+    topBar: @Composable () -> Unit =
+        { uiState.base.entityId?.let {
+                ControlTopBar(
+                    onDelete = {
+                        onIntent(ControlIntent.DeleteEntity(it))
+                        onBackClick()
+                        onIntent(ControlIntent.ClearState)
+                    }
+                )
+            }
+        },
     content: @Composable () -> Unit
 ) {
     val sbHostState = remember { SnackbarHostState() }
@@ -53,17 +64,7 @@ fun ControlScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(sbHostState) },
-        topBar = {
-            uiState.base.entityId?.let {
-                ControlTopBar(
-                    onDelete = {
-                        onIntent(ControlIntent.DeleteEntity(it))
-                        onBackClick()
-                        onIntent(ControlIntent.ClearState)
-                    }
-                )
-            }
-        },
+        topBar = topBar,
         bottomBar = {
             ControlBottomBar(
                 isEdit = entityId != null,

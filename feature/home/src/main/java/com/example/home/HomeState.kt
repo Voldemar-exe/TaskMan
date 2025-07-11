@@ -1,6 +1,6 @@
 package com.example.home
 
-import com.example.home.sheet.MoveToControl
+import com.example.home.sheet.HomeDestination
 import com.example.shared.TaskType
 import com.example.shared.UserTask
 import com.example.shared.UserTaskGroup
@@ -13,7 +13,7 @@ data class HomeState(
     val selectedGroupName: String = "Все",
     val selectedTabIndex: Int = 1,
     val selectedTaskTypes: Set<TaskType> = emptySet(),
-    val moveToControl: MoveToControl = MoveToControl.None,
+    val homeDestination: HomeDestination = HomeDestination.Home,
     val error: String? = null,
     val success: String? = null
 )

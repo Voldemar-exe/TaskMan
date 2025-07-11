@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import com.example.home.HomeIntent
 import com.example.home.HomeState
 import com.example.home.sheet.GroupTaskDrawerSheet
-import com.example.home.sheet.MoveToControl
+import com.example.home.sheet.HomeDestination
 import com.example.shared.UserTask
 import com.example.shared.UserTaskGroup
 import com.example.ui.components.TaskItem
@@ -55,7 +55,7 @@ fun TaskScreen(
                 },
                 onAddClick = {
                     onIntent(
-                        HomeIntent.MoveTo(MoveToControl.Group())
+                        HomeIntent.MoveTo(HomeDestination.GroupControl())
                     )
                 },
                 onBackClick = { scope.launch { drawerState.close() } }
@@ -87,7 +87,7 @@ fun TaskScreen(
                     onSearchClick = onSearchClick,
                     onEditClick = {
                         onIntent(
-                            HomeIntent.MoveTo(MoveToControl.Group(state.selectedGroupId))
+                            HomeIntent.MoveTo(HomeDestination.GroupControl(state.selectedGroupId))
                         )
                     }
                 )
@@ -113,11 +113,7 @@ fun TaskScreenContent(
             items(tasks) { task ->
                 TaskItem(
                     modifier = Modifier.clickable {
-                        onIntent(
-                            HomeIntent.MoveTo(
-                                MoveToControl.Task(task.localId)
-                            )
-                        )
+                        onIntent(HomeIntent.MoveTo(HomeDestination.TaskControl(task.localId)))
                     },
                     isCompleted = task.isComplete,
                     task = task,

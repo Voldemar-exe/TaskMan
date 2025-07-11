@@ -18,7 +18,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.main.R
 import com.example.shared.UserTaskGroup
 import com.example.ui.ColorMapper
 import com.example.ui.IconMapper
@@ -48,7 +50,7 @@ fun GroupTaskDrawerSheet(
                 modifier = Modifier.padding(paddingValues),
                 allGroups = allGroups,
                 activeGroupId = activeGroupId,
-                onGroupClick = { onGroupClick(it) }
+                onGroupClick = onGroupClick
             )
         }
     }
@@ -97,7 +99,7 @@ fun GroupTaskTopBar(
             }
         },
         title = {
-            Text("Группы задач")
+            Text(text = stringResource(R.string.nav_menu_label))
         },
         actions = {
             IconButton(onClick = onAddClick) {

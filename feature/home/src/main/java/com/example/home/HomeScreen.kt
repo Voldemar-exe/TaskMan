@@ -6,7 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.home.content.TaskScreen
-import com.example.home.sheet.MoveToControl
+import com.example.home.sheet.HomeDestination
 
 @Composable
 fun HomeScreen(
@@ -20,15 +20,15 @@ fun HomeScreen(
     val allGroups by homeViewModel.allGroups.collectAsStateWithLifecycle()
     val mainState by homeViewModel.mainState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(mainState.moveToControl) {
-        when (val move = mainState.moveToControl) {
-            is MoveToControl.Task -> onTaskControlClick(move.taskId).also {
-                homeViewModel.onIntent(HomeIntent.MoveTo(MoveToControl.None))
+    LaunchedEffect(mainState.homeDestination) {
+        when (val move = mainState.homeDestination) {
+            is HomeDestination.TaskControl -> onTaskControlClick(move.taskId).also {
+                homeViewModel.onIntent(HomeIntent.MoveTo(HomeDestination.Home))
             }
-            is MoveToControl.Group -> onGroupControlClick(move.groupId).also {
-                homeViewModel.onIntent(HomeIntent.MoveTo(MoveToControl.None))
+            is HomeDestination.GroupControl -> onGroupControlClick(move.groupId).also {
+                homeViewModel.onIntent(HomeIntent.MoveTo(HomeDestination.Home))
             }
-            MoveToControl.None -> Unit
+            HomeDestination.Home -> Unit
         }
     }
 

@@ -1,20 +1,26 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.example.shared.SystemIcon
 import com.example.shared.TaskType
 import com.example.shared.UserTask
 import com.example.ui.ColorMapper
@@ -49,10 +55,17 @@ private fun getRemainingTimeInfo(taskTimestamp: Long): Pair<String, Color> {
         diffDays == 0L -> Pair("Сегодня", Orange)
         diffDays == 1L -> Pair("Завтра", Orange)
         diffDays in 2L..4L -> Pair("$diffDays дня", Orange)
-        else -> Pair(
-            SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(taskDateMidnight),
-            Color.Unspecified
-        )
+        else -> {
+            val taskCal = Calendar.getInstance().apply { timeInMillis = taskDateMidnight }
+            val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+            val taskYear = taskCal.get(Calendar.YEAR)
+            val format = if (currentYear == taskYear) "dd MMM" else "dd MMM yyyy"
+            val sdf = SimpleDateFormat(format, Locale("ru", "RU"))
+            Pair(
+                sdf.format(taskDateMidnight),
+                Color.Unspecified
+            )
+        }
     }
 }
 
@@ -64,8 +77,11 @@ fun TaskItem(
     isCompleted: Boolean = false,
     onCheckClick: (UserTask) -> Unit
 ) {
-    val (dateText, textColor) = remember(task.date, isCompleted) {
+    val (dateText, dateColor) = rememberSaveable(task.date, isCompleted) {
         getRemainingTimeInfo(if (isCompleted) 0L else task.date)
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+
     }
     ListItem(
         modifier = modifier
@@ -76,11 +92,29 @@ fun TaskItem(
                 style = onCompletedText(isCompleted)
             )
         },
-        overlineContent = {
-            Text(text = dateText, color = textColor)
-        },
         supportingContent = {
-            Text(text = TaskType.valueOf(task.type).ru)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    modifier = Modifier.size(13.dp),
+                    painter = painterResource(
+                        IconMapper.itemIconToDrawable(SystemIcon.CalendarEvent)
+                    ),
+                    tint =
+                        if (dateColor == Color.Unspecified) LocalContentColor.current
+                        else dateColor,
+                    contentDescription = null
+                )
+                Text(text = dateText, color = dateColor)
+                Spacer(Modifier.padding(horizontal = 2.dp))
+                Icon(
+                    modifier = Modifier.size(13.dp),
+                    painter = painterResource(
+                        IconMapper.itemIconToDrawable(SystemIcon.Tag)
+                    ),
+                    contentDescription = null
+                )
+                Text(text = TaskType.valueOf(task.type).ru)
+            }
         },
         leadingContent = {
             Icon(

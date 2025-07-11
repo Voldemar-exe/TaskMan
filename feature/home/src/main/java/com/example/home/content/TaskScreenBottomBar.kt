@@ -20,7 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.example.home.HomeIntent
-import com.example.home.sheet.MoveToControl
+import com.example.home.sheet.HomeDestination
 import com.example.shared.SystemIcon
 import com.example.shared.TaskType
 import com.example.ui.IconMapper
@@ -44,12 +44,12 @@ fun TaskScreenBottomBar(
             floatingActionButton = {
                 FloatingToolbarDefaults.VibrantFloatingActionButton(
                     onClick = {
-                        onIntent(HomeIntent.MoveTo(MoveToControl.Task()))
+                        onIntent(HomeIntent.MoveTo(HomeDestination.TaskControl()))
                     }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = null
+                        contentDescription = "Add"
                     )
                 }
             }
@@ -58,7 +58,7 @@ fun TaskScreenBottomBar(
                 IconButton(onClick = onEditClick) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = null
+                        contentDescription = "Edit"
                     )
                 }
             }
@@ -79,14 +79,14 @@ fun TaskScreenBottomBar(
             IconButton(onClick = onSearchClick) {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = null
+                    contentDescription = "Search"
                 )
             }
 
             IconButton(onClick = { onIntent(HomeIntent.SyncData) }) {
                 Icon(
                     painterResource(IconMapper.itemIconToDrawable(SystemIcon.Sync)),
-                    contentDescription = null
+                    contentDescription = "Sync"
                 )
             }
         }
